@@ -4,6 +4,7 @@ import React from 'react'
 
 import config from '@/payload.config'
 
+import { LyreButton } from './_components/ui/LyreButton/LyreButton'
 import styles from './page.module.css'
 
 export default async function HomePage() {
@@ -14,8 +15,8 @@ export default async function HomePage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.sectionButton}>New composition</div>
-      <div className={styles.sectionButton}>All compositions</div>
+      <LyreButton className={styles.sectionButton} side="left" text="New composition" />
+      <LyreButton className={styles.sectionButton} side="right" text="All compositions" />
     </div>
   )
 }

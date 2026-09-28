@@ -4,15 +4,6 @@
 }
 
 .sectionButton {
-  display: flex;
   flex: 1;
   min-width: 0;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.sectionButton:hover {
-  background-color: var(--color-surface-raised);
 }
