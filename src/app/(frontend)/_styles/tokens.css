@@ -1,0 +1,51 @@
+:root {
+  /* Palette — couleurs brutes, à ne pas utiliser directement dans les composants */
+  --dusty-grape: #4f4789;
+  --dusty-grape-dark: #3d3670;
+  --midnight-violet: #201335;
+  --pearl: #fffef8;
+  --ivory: #fffded;
+  --parchment: #f6f2e4;
+  --lavender-mist: #e8e4f2;
+  --heather: #ddd8e6;
+  --smoky-plum: #5e5873;
+  --antique-gold: #8c6a24;
+
+  /* Couleurs sémantiques — à utiliser dans les composants */
+  --color-bg: var(--ivory);
+  --color-surface-raised: var(--pearl);
+  --color-surface: var(--parchment);
+  --color-surface-accent: var(--lavender-mist);
+  --color-border: var(--heather);
+
+  --color-text: var(--midnight-violet);
+  --color-text-muted: var(--smoky-plum);
+  --color-text-inverse: var(--ivory);
+
+  --color-primary: var(--dusty-grape);
+  --color-primary-hover: var(--dusty-grape-dark);
+  --color-on-primary: var(--ivory);
+
+  --color-accent: var(--antique-gold);
+
+  /* Typographie */
+  --font-sans: var(--font-nunito-sans), system-ui, sans-serif;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+
+  /* Espacements */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+
+  /* Rayons */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+}

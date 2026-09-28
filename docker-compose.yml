@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   payload:
     image: node:20-alpine
@@ -11,33 +9,33 @@ services:
     working_dir: /home/node/app/
     command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && pnpm dev"
     depends_on:
-      - mongo
-      # - postgres
+      postgres:
+        condition: service_healthy
     env_file:
       - .env
+    # Depuis le réseau Docker, la base est joignable sur l'hôte `postgres`
+    # (port interne 5432), pas sur 127.0.0.1:5434 comme depuis la machine.
+    environment:
+      DATABASE_URL: postgres://orpheus:orpheus@postgres:5432/orpheus
 
-  # Ensure your DATABASE_URL uses 'mongo' as the hostname ie. mongodb://mongo/my-db-name
-  mongo:
-    image: mongo:latest
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: orpheus
+      POSTGRES_PASSWORD: orpheus
+      POSTGRES_DB: orpheus
     ports:
-      - '27017:27017'
-    command:
-      - --storageEngine=wiredTiger
+      # 5434 sur l'hôte : 5432 et 5433 servent déjà à d'autres projets
+      - '5434:5432'
     volumes:
-      - data:/data/db
-    logging:
-      driver: none
-
-  # Uncomment the following to use postgres
-  # postgres:
-  #   restart: always
-  #   image: postgres:latest
-  #   volumes:
-  #     - pgdata:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U orpheus -d orpheus']
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
-  data:
-  # pgdata:
+  pgdata:
   node_modules:
