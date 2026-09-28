@@ -2,7 +2,17 @@
 
 import React, { useEffect, useId, useRef } from 'react'
 
-import { FRAME_PATHS, H, restPath, STRING_BOTTOM, STRINGS, W, BASE_AMP, MAX_AMP  } from './geometry'
+import {
+  BASE_AMP,
+  CHORD_AMP,
+  FRAME_PATHS,
+  H,
+  MAX_AMP,
+  restPath,
+  STRING_BOTTOM,
+  STRINGS,
+  W,
+} from './geometry'
 import styles from './LyreButton.module.css'
 import { useLyrePluck } from './useLyrePluck'
 
@@ -11,7 +21,6 @@ type LyreButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   // Moitié de lyre dessinée contre le bord intérieur du bouton
   side?: 'left' | 'right'
 }
-
 
 export function LyreButton({
   text,
@@ -65,7 +74,7 @@ export function LyreButton({
     onPointerDown?.(e)
     const { x, y } = toLyre(e)
     lastX.current = x
-    STRINGS.forEach((_, i) => pluck(i, 6, y))
+    STRINGS.forEach((_, i) => pluck(i, CHORD_AMP, y))
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
@@ -79,7 +88,7 @@ export function LyreButton({
     STRINGS.forEach((string, i) => {
       const crossed = (string.x - prev) * (string.x - x) < 0
       if (crossed && y > string.top && y < STRING_BOTTOM) {
-        pluck(i, Math.sign(x - prev) * Math.min(MAX_AMP, BASE_AMP + Math.abs(x - prev)), y)
+        pluck(i, Math.sign(x - prev) * Math.min(MAX_AMP, BASE_AMP + Math.abs(x - prev) * 0.25), y)
       }
     })
   }
@@ -137,9 +146,6 @@ export function LyreButton({
             <stop offset="1" stopColor="currentColor" stopOpacity="0.45" />
           </linearGradient>
         </defs>
-        {FRAME_PATHS.map((d) => (
-          <path key={d} className={styles.frame} d={d} />
-        ))}
         {STRINGS.map((string, i) => (
           <path
             key={string.x}
@@ -152,6 +158,12 @@ export function LyreButton({
             strokeWidth={string.width}
           />
         ))}
+        {/* Armature tracée après les cordes : elle recouvre leurs extrémités */}
+        <g className={styles.frame}>
+          {FRAME_PATHS.map((d) => (
+            <path key={d} d={d} />
+          ))}
+        </g>
       </svg>
       <span className={styles.text}>{text}</span>
     </button>

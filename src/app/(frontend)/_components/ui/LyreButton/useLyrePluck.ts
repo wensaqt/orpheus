@@ -6,6 +6,8 @@ import { bentPath, restPath, STRING_BOTTOM, STRINGS } from './geometry'
 const FREQ = 7
 const DAMPING = 0.22
 const DURATION = 1.1
+// Opacité des cordes au repos, identique à .string dans LyreButton.module.css
+const STRING_REST_OPACITY = 0.65
 
 type Pluck = { start: number; amp: number; y: number }
 
@@ -33,7 +35,9 @@ export function useLyrePluck() {
       active = true
       const offset = pluck.amp * Math.exp(-t / DAMPING) * Math.cos(2 * Math.PI * FREQ * t)
       path.setAttribute('d', bentPath(string, offset, pluck.y))
-      path.style.opacity = String(0.55 + 0.45 * Math.exp(-t / 0.4))
+      path.style.opacity = String(
+        STRING_REST_OPACITY + (1 - STRING_REST_OPACITY) * Math.exp(-t / 0.4),
+      )
     })
     frame.current = active ? requestAnimationFrame(step) : null
   }, [])

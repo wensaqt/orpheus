@@ -10,6 +10,7 @@
   --heather: #ddd8e6;
   --smoky-plum: #5e5873;
   --antique-gold: #8c6a24;
+  --pale-gold: #eae3d2; /* antique-gold à 18 % sur pearl */
 
   /* Couleurs sémantiques — à utiliser dans les composants */
   --color-bg: var(--ivory);
@@ -27,6 +28,7 @@
   --color-on-primary: var(--ivory);
 
   --color-accent: var(--antique-gold);
+  --color-ornament: var(--pale-gold); /* décors à peine perceptibles (lyre) */
 
   /* Typographie */
   --font-sans: var(--font-nunito-sans), system-ui, sans-serif;

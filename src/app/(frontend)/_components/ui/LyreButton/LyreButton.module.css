@@ -28,7 +28,7 @@
   translate: 0 -50%;
   height: 180%;
   aspect-ratio: 120 / 300;
-  color: var(--color-accent);
+  color: var(--color-ornament);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.5s;
@@ -44,23 +44,28 @@
 }
 
 .button:is(:hover, :focus-visible) .lyre {
-  opacity: 0.22;
+  opacity: 1;
 }
 
 .frame {
   fill: none;
   stroke: currentColor;
-  stroke-width: 9;
+  stroke-width: 36;
   stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* vector-effect n'est pas hérité : il doit être posé sur chaque tracé */
+.frame path {
   vector-effect: non-scaling-stroke;
-  opacity: 0.8;
 }
 
 .string {
   fill: none;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-  opacity: 0.55;
+  /* Au repos, les cordes sont plus pâles que l'armature (valeur reprise dans useLyrePluck) */
+  opacity: 0.65;
 }
 
 .text {
@@ -69,7 +74,7 @@
   font-size: var(--text-xl);
   font-weight: 300;
   letter-spacing: 0.03em;
-  color: var(--color-text-muted);
+  color: var(--color-primary);
   transition:
     color 0.4s,
     font-weight 0.4s,
@@ -95,7 +100,7 @@
 .button:is(:hover, :focus-visible) .text {
   font-weight: 500;
   letter-spacing: 0.05em;
-  color: var(--color-text);
+  color: var(--color-primary-hover);
 }
 
 @media (prefers-reduced-motion: reduce) {
