@@ -1,0 +1,110 @@
+.label {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  /* Sert d'unité au halo */
+  font-size: var(--text-xl);
+}
+
+/*
+ * Halo de la couleur du fond du parent qui masque la lyre derrière le texte. Le dégradé suit
+ * currentColor pour s'animer au même rythme que le fond du parent.
+ */
+.label::before {
+  content: '';
+  position: absolute;
+  inset: -2.5em -3.5em;
+  z-index: -1;
+  color: var(--color-bg);
+  background: radial-gradient(closest-side, currentColor 40%, transparent);
+  opacity: 0.5;
+  transition: color 0.2s;
+}
+
+:hover > .label::before {
+  color: var(--color-surface-raised);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  color: var(--color-primary);
+  transition:
+    color 0.4s,
+    font-weight 0.4s,
+    letter-spacing 0.4s;
+}
+
+/* Nunito Sans étant variable, la graisse s'anime en douceur */
+:is(:hover, :focus-visible) > .label .title {
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--color-primary-hover);
+}
+
+/*
+ * Filet et sous-titre partagent largeur, durée et courbe : la pointe du filet révèle le
+ * sous-titre à mesure qu'elle avance. Ils partent de l'axe de la lyre vers l'extérieur.
+ */
+.line,
+.subtitle {
+  align-self: stretch;
+  transition-duration: 0.7s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.line {
+  height: 1.5px;
+  /* Couleur du titre survolé (le filet n'est visible qu'au survol), comme le Divider */
+  background-color: var(--color-divider);
+  scale: 0 1;
+  transition-property: scale;
+}
+
+.label[data-side='left'] .line {
+  transform-origin: right;
+}
+
+.label[data-side='right'] .line {
+  transform-origin: left;
+}
+
+.subtitle {
+  font-size: var(--text-base);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--color-text-muted);
+  transition-property: clip-path;
+}
+
+.label[data-side='left'] .subtitle {
+  clip-path: inset(0 0 0 100%);
+}
+
+.label[data-side='right'] .subtitle {
+  clip-path: inset(0 100% 0 0);
+}
+
+:is(:hover, :focus-visible) > .label .line {
+  scale: 1 1;
+}
+
+:is(:hover, :focus-visible) > .label .subtitle {
+  clip-path: inset(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .label::before,
+  .title,
+  .line,
+  .subtitle {
+    transition: none;
+  }
+}

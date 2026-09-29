@@ -1,31 +1,32 @@
 'use client'
 
-import React, { useEffect, useId, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import React from 'react'
 
-import {
-  BASE_AMP,
-  CHORD_AMP,
-  FRAME_PATHS,
-  H,
-  MAX_AMP,
-  restPath,
-  STRING_BOTTOM,
-  STRINGS,
-  W,
-} from './geometry'
 import styles from './LyreButton.module.css'
+import { LyreHalf } from './LyreHalf'
+import { LyreLabel } from './LyreLabel'
+import type { LyreSide } from './types'
+import { useLyreInput } from './useLyreInput'
 import { useLyrePluck } from './useLyrePluck'
 
 type LyreButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   text: string
-  // Moitié de lyre dessinée contre le bord intérieur du bouton
-  side?: 'left' | 'right'
+  // Révélé au survol, sous le filet
+  subtitle?: string
+  side?: LyreSide
+  // Navigue vers cette route au clic
+  href?: string
 }
 
+// Assemble la demi-lyre jouable et son libellé dans un bouton
 export function LyreButton({
   text,
+  subtitle,
   side = 'left',
+  href,
   className,
+  onClick,
   type = 'button',
   onPointerEnter,
   onPointerDown,
@@ -35,137 +36,27 @@ export function LyreButton({
   onBlur,
   ...props
 }: LyreButtonProps) {
-  const gradientId = `lyre-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
-  const svgRef = useRef<SVGSVGElement>(null)
-  const rect = useRef<DOMRect | null>(null)
-  const lastX = useRef<number | null>(null)
-  const timeouts = useRef<number[]>([])
+  const router = useRouter()
   const { pathRefs, pluck } = useLyrePluck()
-
-  // Le rect est mis en cache pour éviter un recalcul de layout à chaque pointermove
-  useEffect(() => {
-    const invalidate = () => {
-      rect.current = null
-    }
-    window.addEventListener('resize', invalidate)
-    window.addEventListener('scroll', invalidate, { capture: true, passive: true })
-    return () => {
-      window.removeEventListener('resize', invalidate)
-      window.removeEventListener('scroll', invalidate, { capture: true })
-      timeouts.current.forEach(clearTimeout)
-    }
-  }, [])
-
-  // Coordonnées du pointeur dans le viewBox (le côté droit est dessiné en miroir)
-  function toLyre(e: React.PointerEvent) {
-    rect.current ??= svgRef.current!.getBoundingClientRect()
-    const { left, top, width, height } = rect.current
-    const x = ((e.clientX - left) / width) * W
-    return { x: side === 'right' ? W - x : x, y: ((e.clientY - top) / height) * H }
-  }
-
-  function handlePointerEnter(e: React.PointerEvent<HTMLButtonElement>) {
-    onPointerEnter?.(e)
-    rect.current = null
-  }
-
-  // Au clic ou au tap, toutes les cordes sonnent ensemble, comme un accord
-  function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
-    onPointerDown?.(e)
-    const { x, y } = toLyre(e)
-    lastX.current = x
-    STRINGS.forEach((_, i) => pluck(i, CHORD_AMP, y))
-  }
-
-  function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
-    onPointerMove?.(e)
-    const { x, y } = toLyre(e)
-    const prev = lastX.current
-    lastX.current = x
-
-    if (prev === null || prev === x) return
-
-    STRINGS.forEach((string, i) => {
-      const crossed = (string.x - prev) * (string.x - x) < 0
-      if (crossed && y > string.top && y < STRING_BOTTOM) {
-        pluck(i, Math.sign(x - prev) * Math.min(MAX_AMP, BASE_AMP + Math.abs(x - prev) * 0.25), y)
-      }
-    })
-  }
-
-  function handlePointerLeave(e: React.PointerEvent<HTMLButtonElement>) {
-    onPointerLeave?.(e)
-    lastX.current = null
-  }
-
-  function cancelGlissando() {
-    timeouts.current.forEach(clearTimeout)
-    timeouts.current = []
-  }
-
-  // Au clavier, glissando de gauche à droite
-  function handleFocus(e: React.FocusEvent<HTMLButtonElement>) {
-    onFocus?.(e)
-    if (!e.currentTarget.matches(':focus-visible')) return
-    cancelGlissando()
-    const order = side === 'left' ? [3, 2, 1, 0] : [0, 1, 2, 3]
-    timeouts.current = order.map((i, step) =>
-      window.setTimeout(() => pluck(i, 6, H / 2), step * 70),
-    )
-  }
-
-  function handleBlur(e: React.FocusEvent<HTMLButtonElement>) {
-    onBlur?.(e)
-    cancelGlissando()
-  }
+  const { svgRef, handlers } = useLyreInput({
+    side,
+    pluck,
+    handlers: { onPointerEnter, onPointerDown, onPointerMove, onPointerLeave, onFocus, onBlur },
+  })
 
   return (
     <button
       type={type}
-      className={[styles.button, styles[side], className].filter(Boolean).join(' ')}
-      onPointerEnter={handlePointerEnter}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
+      className={[styles.button, className].filter(Boolean).join(' ')}
+      {...handlers}
+      onClick={(e) => {
+        onClick?.(e)
+        if (href && !e.defaultPrevented) router.push(href)
+      }}
       {...props}
     >
-      <svg ref={svgRef} className={styles.lyre} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
-        <defs>
-          <linearGradient
-            id={gradientId}
-            gradientUnits="userSpaceOnUse"
-            x1="0"
-            y1="0"
-            x2="0"
-            y2={H}
-          >
-            <stop offset="0" stopColor="currentColor" stopOpacity="0.35" />
-            <stop offset="0.5" stopColor="currentColor" />
-            <stop offset="1" stopColor="currentColor" stopOpacity="0.45" />
-          </linearGradient>
-        </defs>
-        {STRINGS.map((string, i) => (
-          <path
-            key={string.x}
-            ref={(el) => {
-              pathRefs.current[i] = el
-            }}
-            className={styles.string}
-            d={restPath(string)}
-            stroke={`url(#${gradientId})`}
-            strokeWidth={string.width}
-          />
-        ))}
-        {/* Armature tracée après les cordes : elle recouvre leurs extrémités */}
-        <g className={styles.frame}>
-          {FRAME_PATHS.map((d) => (
-            <path key={d} d={d} />
-          ))}
-        </g>
-      </svg>
-      <span className={styles.text}>{text}</span>
+      <LyreHalf side={side} svgRef={svgRef} stringRefs={pathRefs} />
+      <LyreLabel side={side} title={text} subtitle={subtitle} />
     </button>
   )
 }

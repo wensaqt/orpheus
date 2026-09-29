@@ -1,0 +1,15 @@
+.divider {
+  display: block;
+  flex-shrink: 0;
+  background-color: var(--color-divider);
+  pointer-events: none;
+}
+
+/* Trait fin, de la couleur du filet sous les titres des boutons */
+.vertical {
+  width: 1px;
+}
+
+.horizontal {
+  height: 1px;
+}

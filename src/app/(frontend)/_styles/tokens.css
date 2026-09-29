@@ -18,6 +18,7 @@
   --color-surface: var(--parchment);
   --color-surface-accent: var(--lavender-mist);
   --color-border: var(--heather);
+  --color-divider: var(--dusty-grape-dark);
 
   --color-text: var(--midnight-violet);
   --color-text-muted: var(--smoky-plum);
@@ -29,6 +30,7 @@
 
   --color-accent: var(--antique-gold);
   --color-ornament: var(--pale-gold); /* décors à peine perceptibles (lyre) */
+  --color-ornament-active: var(--lavender-mist); /* décor de l'élément survolé */
 
   /* Typographie */
   --font-sans: var(--font-nunito-sans), system-ui, sans-serif;
