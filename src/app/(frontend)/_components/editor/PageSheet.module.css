@@ -1,0 +1,9 @@
+.sheet {
+  width: var(--page-width);
+  max-width: 100%;
+  min-height: var(--page-height);
+  padding: var(--page-padding);
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}

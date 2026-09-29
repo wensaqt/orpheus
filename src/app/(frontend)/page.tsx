@@ -1,22 +1,29 @@
-import { headers as getHeaders } from 'next/headers.js'
-import { getPayload } from 'payload'
-import React from 'react'
-
-import config from '@/payload.config'
-
+import { Divider } from './_components/ui/Divider/Divider'
 import { LyreButton } from './_components/ui/LyreButton/LyreButton'
+import { ROUTES } from './_lib/routes'
+import { createComposition } from './compositions/actions'
 import styles from './page.module.css'
 
-export default async function HomePage() {
-  const headers = await getHeaders()
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
+const COPY = {
+  create: { text: 'New composition', subtitle: 'Start a new piece' },
+  browse: { text: 'All compositions', subtitle: 'Revisit your pieces' },
+}
 
+export default function HomePage() {
   return (
     <div className={styles.container}>
-      <LyreButton className={styles.sectionButton} side="left" text="New composition" />
-      <LyreButton className={styles.sectionButton} side="right" text="All compositions" />
+      {/* Création en POST (server action) : un lien serait préchargé et créerait des documents */}
+      <form action={createComposition} className={styles.section}>
+        <LyreButton type="submit" className={styles.sectionButton} side="left" {...COPY.create} />
+      </form>
+      <LyreButton
+        className={styles.sectionButton}
+        side="right"
+        href={ROUTES.compositions}
+        {...COPY.browse}
+      />
+      {/* Après les boutons pour rester au-dessus de leur fond */}
+      <Divider className={styles.divider} />
     </div>
   )
 }

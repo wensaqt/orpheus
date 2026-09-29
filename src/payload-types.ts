@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    compositions: Composition;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +79,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    compositions: CompositionsSelect<false> | CompositionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -164,6 +166,39 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "compositions".
+ */
+export interface Composition {
+  id: number;
+  title: string;
+  owner: number | User;
+  content?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  page: {
+    format: 'A4' | 'A5' | 'Letter';
+    orientation: 'portrait' | 'landscape';
+    /**
+     * En millimètres
+     */
+    margins?: {
+      top?: number | null;
+      right?: number | null;
+      bottom?: number | null;
+      left?: number | null;
+    };
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -193,6 +228,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'compositions';
+        value: number | Composition;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -276,6 +315,31 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "compositions_select".
+ */
+export interface CompositionsSelect<T extends boolean = true> {
+  title?: T;
+  owner?: T;
+  content?: T;
+  page?:
+    | T
+    | {
+        format?: T;
+        orientation?: T;
+        margins?:
+          | T
+          | {
+              top?: T;
+              right?: T;
+              bottom?: T;
+              left?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

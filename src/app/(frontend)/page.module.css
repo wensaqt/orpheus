@@ -1,9 +1,25 @@
 .container {
+  position: relative;
   display: flex;
   flex-grow: 1;
 }
 
+.section,
 .sectionButton {
   flex: 1;
   min-width: 0;
+}
+
+/* Le formulaire occupe la place du bouton et le laisse remplir toute la section */
+.section {
+  display: flex;
+}
+
+/* Séparateur entre les deux choix */
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
 }
