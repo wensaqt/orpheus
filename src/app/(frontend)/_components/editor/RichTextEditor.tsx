@@ -28,7 +28,7 @@ import React from 'react'
 import styles from './RichTextEditor.module.css'
 import { editorTheme } from './theme'
 
-// Raccourcis Markdown limités aux nœuds enregistrés ci-dessous
+// Markdown shortcuts limited to the nodes registered below
 const TRANSFORMERS = [
   HEADING,
   QUOTE,
@@ -45,7 +45,7 @@ const TRANSFORMERS = [
 const NODES = [HeadingNode, QuoteNode, ListNode, ListItemNode]
 
 type RichTextEditorProps = {
-  // État Lexical sérialisé à charger, ou vide pour un document neuf
+  // Serialized Lexical state to load, or empty for a new document
   initialContent?: Record<string, unknown> | null
   placeholder: string
   onChange: (content: Record<string, unknown>) => void

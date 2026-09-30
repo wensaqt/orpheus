@@ -5,7 +5,7 @@
   pointer-events: none;
 }
 
-/* Trait fin, de la couleur du filet sous les titres des boutons */
+/* Thin line, same colour as the rule under the button titles */
 .vertical {
   width: 1px;
 }

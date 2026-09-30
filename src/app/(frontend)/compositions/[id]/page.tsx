@@ -12,7 +12,7 @@ export default async function CompositionPage({ params }: PageProps<'/compositio
   if (!Number.isInteger(compositionId)) notFound()
 
   const session = await requireUser(ROUTES.composition(id))
-  // Introuvable ou appartenant à quelqu'un d'autre : même réponse, pour ne rien divulguer
+  // Not found or owned by someone else: same response, so nothing is disclosed
   const composition = await getCompositionForEditor(session, compositionId)
   if (!composition) notFound()
 

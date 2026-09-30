@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react'
 import { BASE_AMP, CHORD_AMP, H, MAX_AMP, STRING_BOTTOM, STRINGS, W } from './geometry'
 import type { LyreSide } from './types'
 
-// Communs au bouton et au lien : la lyre se joue de la même façon sur les deux
+// Shared by the button and the link: the lyre plays the same way on both
 export type LyreHandlers = Pick<
   React.HTMLAttributes<HTMLElement>,
   'onPointerEnter' | 'onPointerDown' | 'onPointerMove' | 'onPointerLeave' | 'onFocus' | 'onBlur'
@@ -12,18 +12,18 @@ export type LyreHandlers = Pick<
 type Options = {
   side: LyreSide
   pluck: (i: number, amp: number, y: number) => void
-  // Gestionnaires du consommateur, appelés avant ceux de la lyre
+  // Consumer handlers, called before the lyre's own
   handlers: LyreHandlers
 }
 
-// Traduit pointeur et clavier en pincements : croisement de corde, accord au clic, glissando
+// Turns pointer and keyboard input into plucks: string crossing, chord on click, glissando
 export function useLyreInput({ side, pluck, handlers }: Options) {
   const svgRef = useRef<SVGSVGElement>(null)
   const rect = useRef<DOMRect | null>(null)
   const lastX = useRef<number | null>(null)
   const timeouts = useRef<number[]>([])
 
-  // Le rect est mis en cache pour éviter un recalcul de layout à chaque pointermove
+  // The rect is cached to avoid a layout recalculation on every pointermove
   useEffect(() => {
     const invalidate = () => {
       rect.current = null
@@ -37,7 +37,7 @@ export function useLyreInput({ side, pluck, handlers }: Options) {
     }
   }, [])
 
-  // Coordonnées du pointeur dans le viewBox (le côté droit est dessiné en miroir)
+  // Pointer coordinates in the viewBox (the right side is drawn mirrored)
   function toLyre(e: React.PointerEvent) {
     rect.current ??= svgRef.current!.getBoundingClientRect()
     const { left, top, width, height } = rect.current
@@ -56,7 +56,7 @@ export function useLyreInput({ side, pluck, handlers }: Options) {
       rect.current = null
     },
 
-    // Au clic ou au tap, toutes les cordes sonnent ensemble, comme un accord
+    // On click or tap, all strings sound together, like a chord
     onPointerDown(e) {
       handlers.onPointerDown?.(e)
       const { x, y } = toLyre(e)
@@ -85,7 +85,7 @@ export function useLyreInput({ side, pluck, handlers }: Options) {
       lastX.current = null
     },
 
-    // Au clavier, glissando de gauche à droite
+    // With the keyboard, glissando from left to right
     onFocus(e) {
       handlers.onFocus?.(e)
       if (!e.currentTarget.matches(':focus-visible')) return

@@ -52,7 +52,7 @@ export const Compositions: CollectionConfig = {
       access: { update: () => false },
       admin: { readOnly: true, position: 'sidebar' },
     },
-    // État Lexical sérialisé, validé par son schéma JSON (qui type aussi le champ)
+    // Serialized Lexical state, validated by its JSON schema (which also types the field)
     { name: 'content', type: 'json', jsonSchema: LEXICAL_STATE_JSON_SCHEMA },
     {
       name: 'page',
@@ -80,7 +80,7 @@ export const Compositions: CollectionConfig = {
         {
           name: 'margins',
           type: 'group',
-          admin: { description: 'En millimètres' },
+          admin: { description: 'In millimetres' },
           fields: [
             {
               type: 'row',

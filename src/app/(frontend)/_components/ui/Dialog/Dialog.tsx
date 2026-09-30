@@ -7,14 +7,14 @@ import styles from './Dialog.module.css'
 type DialogProps = {
   open: boolean
   onClose: () => void
-  // id du titre de la fenêtre, pour les lecteurs d'écran
+  // id of the dialog title, for screen readers
   labelledBy: string
   children: React.ReactNode
 }
 
 /*
- * Fenêtre modale sur l'élément natif <dialog> : le navigateur gère le focus piégé, la fermeture
- * par Échap et le fond. Un clic sur le fond ferme aussi la fenêtre.
+ * Modal built on the native <dialog> element: the browser handles the focus trap, closing on
+ * Escape and the backdrop. Clicking the backdrop also closes the dialog.
  */
 export function Dialog({ open, onClose, labelledBy, children }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null)
@@ -32,7 +32,7 @@ export function Dialog({ open, onClose, labelledBy, children }: DialogProps) {
       className={styles.dialog}
       aria-labelledby={labelledBy}
       onClose={onClose}
-      // Le contenu remplit la fenêtre : seul un clic sur le fond atteint le <dialog> lui-même
+      // The content fills the dialog: only a backdrop click reaches the <dialog> itself
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}

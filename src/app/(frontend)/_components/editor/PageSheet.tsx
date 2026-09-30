@@ -9,7 +9,7 @@ type PageSheetProps = {
   children: React.ReactNode
 }
 
-// Feuille aux dimensions du format choisi ; elle s'allonge avec le texte (pas encore de pagination)
+// Sheet sized to the chosen format; it grows with the text (no pagination yet)
 export function PageSheet({ settings, children }: PageSheetProps) {
   const { width, height } = pageSize(settings)
   const { top, right, bottom, left } = settings.margins

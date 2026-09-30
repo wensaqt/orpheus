@@ -7,27 +7,27 @@ import styles from './Menu.module.css'
 export type MenuItem = {
   label: string
   onSelect?: () => void
-  // Grisé et non activable, par ex. une action pas encore disponible
+  // Greyed out and not activatable, e.g. an action not yet available
   disabled?: boolean
-  // Info-bulle, par ex. « Coming soon » sur une action grisée
+  // Tooltip, e.g. "Coming soon" on a disabled action
   hint?: string
   tone?: 'default' | 'danger'
 }
 
 type MenuProps = {
-  // Nom accessible du bouton déclencheur
+  // Accessible name of the trigger button
   label: string
   items: MenuItem[]
   triggerClassName?: string
   children: React.ReactNode
 }
 
-// Écart entre le déclencheur et le menu
+// Gap between the trigger and the menu
 const OFFSET = 4
 
 /*
- * Menu flottant sur l'API Popover native : couche supérieure, fermeture au clic extérieur et à
- * Échap fournies par le navigateur. On y ajoute le placement sous le déclencheur et les flèches.
+ * Floating menu built on the native Popover API: top layer, light dismiss and Escape are
+ * provided by the browser. We add placement below the trigger and arrow-key navigation.
  */
 export function Menu({ label, items, triggerClassName, children }: MenuProps) {
   const id = useId()
@@ -40,7 +40,7 @@ export function Menu({ label, items, triggerClassName, children }: MenuProps) {
       menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:enabled') ?? [],
     )
 
-  // Aligné sous le bord droit du déclencheur, en coordonnées de la fenêtre
+  // Aligned below the trigger's right edge, in viewport coordinates
   function place() {
     const trigger = triggerRef.current?.getBoundingClientRect()
     const menu = menuRef.current
@@ -54,7 +54,7 @@ export function Menu({ label, items, triggerClassName, children }: MenuProps) {
   function handleToggle(e: React.ToggleEvent<HTMLDivElement>) {
     const isOpen = e.newState === 'open'
     setOpen(isOpen)
-    // Le menu est positionné en fixe : on le ferme plutôt que de le laisser flotter au défilement
+    // The menu is fixed-positioned: close it rather than let it float while scrolling
     if (isOpen) {
       enabledItems()[0]?.focus()
       window.addEventListener('scroll', hide, { capture: true, once: true, passive: true })

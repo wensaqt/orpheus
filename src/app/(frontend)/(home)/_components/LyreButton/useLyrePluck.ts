@@ -2,18 +2,18 @@ import { useCallback, useEffect, useRef } from 'react'
 
 import { bentPath, restPath, STRING_BOTTOM, STRINGS } from './geometry'
 
-// Vibration : oscillation amortie du point de pincement
+// Vibration: damped oscillation of the pluck point
 const FREQ = 7
 const DAMPING = 0.22
 const DURATION = 1.1
-// Opacité des cordes au repos, identique à .string dans LyreHalf.module.css
+// String opacity at rest, same as .string in LyreHalf.module.css
 const STRING_REST_OPACITY = 0.65
 
 type Pluck = { start: number; amp: number; y: number }
 
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// Anime les cordes pincées en écrivant directement dans le DOM, sans re-render
+// Animates plucked strings by writing directly to the DOM, without re-rendering
 export function useLyrePluck() {
   const pathRefs = useRef<(SVGPathElement | null)[]>([])
   const plucks = useRef<(Pluck | null)[]>([])

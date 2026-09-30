@@ -41,7 +41,7 @@
   margin-block: 0.2em;
 }
 
-/* Lexical imbrique les sous-listes dans un élément de liste : on masque sa puce */
+/* Lexical nests sub-lists inside a list item: hide its bullet */
 .nestedListItem {
   list-style: none;
 }

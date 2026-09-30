@@ -19,18 +19,18 @@ type Confirm = (options: ConfirmOptions) => Promise<boolean>
 const ConfirmContext = createContext<Confirm | null>(null)
 
 /*
- * Une seule fenêtre de confirmation pour toute l'application. confirm() l'ouvre et renvoie une
- * promesse résolue à true (confirmé) ou false (annulé, Échap, clic sur le fond).
+ * A single confirmation dialog for the whole app. confirm() opens it and returns a promise
+ * resolved to true (confirmed) or false (cancelled, Escape, backdrop click).
  */
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
-  // Gardées après la fermeture pour que le contenu ne disparaisse pas pendant l'animation
+  // Kept after closing so the content doesn't vanish during the animation
   const [options, setOptions] = useState<ConfirmOptions | null>(null)
   const resolver = useRef<((confirmed: boolean) => void) | null>(null)
   const titleId = useId()
 
   const confirm = useCallback<Confirm>((next) => {
-    // Une nouvelle demande annule la précédente
+    // A new request cancels the previous one
     resolver.current?.(false)
     setOptions(next)
     setOpen(true)
@@ -63,7 +63,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                 type="button"
                 className={styles.confirm}
                 data-tone={options.tone ?? 'default'}
-                // Action confirmée par défaut au clavier, comme les boîtes de dialogue natives
+                // Confirm is the default keyboard action, like native dialogs
                 autoFocus
                 onClick={() => settle(true)}
               >

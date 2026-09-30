@@ -1,11 +1,11 @@
 import { en } from './en'
 
-// Langue de l'interface, reprise par <html lang> et les formateurs Intl
+// UI language, used by <html lang> and the Intl formatters
 export const APP_LOCALE = 'en'
 
 type Messages = typeof en
 
-// Chemins pointés vers les textes : 'compositions.delete.label', etc.
+// Dotted paths to strings: 'compositions.delete.label', etc.
 type MessageKey<T = Messages, Prefix extends string = ''> = {
   [K in keyof T & string]: T[K] extends string
     ? `${Prefix}${K}`
@@ -14,7 +14,7 @@ type MessageKey<T = Messages, Prefix extends string = ''> = {
 
 type Params = Record<string, string | number>
 
-// Texte associé à une clé, avec remplacement des paramètres {nom}
+// String for a key, with {name} parameters substituted
 export function t(key: MessageKey, params?: Params): string {
   const message = key
     .split('.')

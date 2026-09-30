@@ -5,7 +5,7 @@ import React from 'react'
 import { ConfirmProvider } from './ConfirmProvider'
 import { ToastProvider } from './ToastProvider'
 
-// Confirmations et notifications, disponibles partout via useConfirm() et useToast()
+// Confirmations and notifications, available everywhere via useConfirm() and useToast()
 export function FeedbackProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastProvider>

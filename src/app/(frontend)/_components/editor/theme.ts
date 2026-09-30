@@ -2,7 +2,7 @@ import type { EditorThemeClasses } from 'lexical'
 
 import styles from './theme.module.css'
 
-// Classes appliquées par Lexical aux nœuds du document
+// Classes Lexical applies to the document nodes
 export const editorTheme: EditorThemeClasses = {
   paragraph: styles.paragraph,
   heading: { h1: styles.h1, h2: styles.h2, h3: styles.h3 },

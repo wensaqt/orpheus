@@ -10,12 +10,12 @@
   min-width: 0;
 }
 
-/* Le formulaire occupe la place du bouton et le laisse remplir toute la section */
+/* The form takes the button's place and lets it fill the whole section */
 .section {
   display: flex;
 }
 
-/* Séparateur entre les deux choix */
+/* Separator between the two choices */
 .divider {
   position: absolute;
   top: 0;

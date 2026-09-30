@@ -17,7 +17,7 @@ type ToastTone = 'default' | 'success' | 'error'
 
 type ToastOptions = {
   tone?: ToastTone
-  // Bouton d'action dans le toast, par ex. « Undo »
+  // Action button in the toast, e.g. "Undo"
   action?: { label: string; onClick: () => void }
 }
 
@@ -29,12 +29,12 @@ type ToastApi = {
   error: (message: string, options?: Omit<ToastOptions, 'tone'>) => void
 }
 
-// Durée d'affichage, suspendue tant que le toast est survolé ou a le focus
+// Display duration, paused while the toast is hovered or focused
 const TOAST_DURATION = 5000
 
 const ToastContext = createContext<ToastApi | null>(null)
 
-// Notifications empilées en bas de l'écran, annoncées aux lecteurs d'écran
+// Notifications stacked at the bottom of the screen, announced to screen readers
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
   const nextId = useRef(0)
@@ -67,7 +67,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-// onDismiss est stable : le minuteur n'est pas relancé quand d'autres toasts arrivent
+// onDismiss is stable: the timer isn't restarted when other toasts arrive
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: number) => void }) {
   const [paused, setPaused] = useState(false)
   const { id } = toast

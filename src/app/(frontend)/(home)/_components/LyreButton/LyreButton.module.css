@@ -10,7 +10,7 @@
   text-decoration: none;
   overflow: hidden;
   cursor: pointer;
-  /* Sur tactile, un glissé horizontal joue les cordes au lieu d'être capté par le navigateur */
+  /* On touch, a horizontal swipe plays the strings instead of being captured by the browser */
   touch-action: pan-y;
   transition: background-color 0.2s;
 }

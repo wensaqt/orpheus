@@ -8,14 +8,14 @@ import config from '@/payload.config'
 
 import { ROUTES } from '@front/_lib/routes'
 
-// Client Payload et utilisateur connecté (via le cookie de session de l'admin), ou null
+// Payload client and signed-in user (via the admin session cookie), or null
 export async function getSession() {
   const payload = await getPayload({ config })
   const { user } = await payload.auth({ headers: await headers() })
   return { payload, user }
 }
 
-// Pour les pages : renvoie vers la connexion, puis de retour sur returnTo
+// For pages: redirects to login, then back to returnTo
 export async function requireUser(returnTo: string) {
   const { payload, user } = await getSession()
   if (!user) redirect(ROUTES.login(returnTo))

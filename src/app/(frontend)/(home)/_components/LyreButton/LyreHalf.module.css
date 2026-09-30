@@ -1,6 +1,6 @@
 /*
- * Demi-lyre collée au bord intérieur : les deux moitiés forment une lyre au centre de la page.
- * Elle déborde largement de la section en hauteur (rognée par le parent), largeur déduite du ratio.
+ * Half-lyre pinned to the inner edge: the two halves form a lyre in the centre of the page.
+ * It overflows the section vertically (clipped by the parent); width follows the ratio.
  */
 .lyre {
   position: absolute;
@@ -23,7 +23,7 @@
   scale: -1 1;
 }
 
-/* Seule la moitié du parent actif apparaît */
+/* Only the active parent's half is shown */
 :is(:hover, :focus-visible) > .lyre {
   opacity: 1;
 }
@@ -36,7 +36,7 @@
   stroke-linejoin: round;
 }
 
-/* vector-effect n'est pas hérité : il doit être posé sur chaque tracé */
+/* vector-effect isn't inherited: it must be set on each path */
 .frame path {
   vector-effect: non-scaling-stroke;
 }
@@ -45,7 +45,7 @@
   fill: none;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-  /* Au repos, les cordes sont plus pâles que l'armature (valeur reprise dans useLyrePluck) */
+  /* At rest, the strings are paler than the frame (value mirrored in useLyrePluck) */
   opacity: 0.65;
 }
 

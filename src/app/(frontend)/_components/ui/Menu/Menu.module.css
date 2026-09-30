@@ -1,4 +1,4 @@
-/* Positionné en fixe par le composant (top / right) sous son déclencheur */
+/* Fixed-positioned by the component (top / right) below its trigger */
 .menu {
   position: fixed;
   inset: auto;

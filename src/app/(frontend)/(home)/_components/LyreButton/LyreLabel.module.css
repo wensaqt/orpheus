@@ -5,13 +5,13 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  /* Sert d'unité au halo */
+  /* Serves as the halo's unit */
   font-size: var(--text-xl);
 }
 
 /*
- * Halo de la couleur du fond du parent qui masque la lyre derrière le texte. Le dégradé suit
- * currentColor pour s'animer au même rythme que le fond du parent.
+ * Halo in the parent's background colour that hides the lyre behind the text. The gradient uses
+ * currentColor so it animates in step with the parent's background.
  */
 .label::before {
   content: '';
@@ -40,7 +40,7 @@
     letter-spacing 0.4s;
 }
 
-/* Nunito Sans étant variable, la graisse s'anime en douceur */
+/* Nunito Sans is a variable font, so the weight animates smoothly */
 :is(:hover, :focus-visible) > .label .title {
   font-weight: 500;
   letter-spacing: 0.05em;
@@ -48,8 +48,8 @@
 }
 
 /*
- * Filet et sous-titre partagent largeur, durée et courbe : la pointe du filet révèle le
- * sous-titre à mesure qu'elle avance. Ils partent de l'axe de la lyre vers l'extérieur.
+ * Rule and subtitle share width, duration and easing: the tip of the rule reveals the
+ * subtitle as it advances. Both start from the lyre's axis and go outwards.
  */
 .line,
 .subtitle {
@@ -60,7 +60,7 @@
 
 .line {
   height: 1.5px;
-  /* Couleur du titre survolé (le filet n'est visible qu'au survol), comme le Divider */
+  /* Colour of the hovered title (the rule is only visible on hover), like the Divider */
   background-color: var(--color-divider);
   scale: 0 1;
   transition-property: scale;

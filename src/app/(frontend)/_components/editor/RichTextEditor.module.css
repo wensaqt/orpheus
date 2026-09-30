@@ -9,7 +9,7 @@
   line-height: 1.6;
 }
 
-/* Le placeholder se superpose au premier paragraphe vide */
+/* The placeholder overlays the first empty paragraph */
 .placeholder {
   position: absolute;
   inset: 0 0 auto;

@@ -185,7 +185,7 @@ export interface Composition {
     format: 'A4' | 'A5' | 'Letter';
     orientation: 'portrait' | 'landscape';
     /**
-     * En millimètres
+     * In millimetres
      */
     margins?: {
       top?: number | null;

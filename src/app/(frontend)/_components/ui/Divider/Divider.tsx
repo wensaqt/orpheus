@@ -7,7 +7,7 @@ type DividerProps = {
   className?: string
 }
 
-// Trait séparateur plein
+// Solid separator line
 export function Divider({ orientation = 'vertical', className }: DividerProps) {
   return (
     <span

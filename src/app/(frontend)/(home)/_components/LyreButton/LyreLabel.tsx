@@ -9,7 +9,7 @@ type LyreLabelProps = {
   subtitle?: string
 }
 
-// Titre, filet et sous-titre ; le filet se trace depuis l'axe de la lyre au survol du parent
+// Title, rule and subtitle; the rule draws out from the lyre's axis when the parent is hovered
 export function LyreLabel({ side, title, subtitle }: LyreLabelProps) {
   return (
     <span className={styles.label} data-side={side}>

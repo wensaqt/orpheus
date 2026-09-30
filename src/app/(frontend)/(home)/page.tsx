@@ -9,7 +9,7 @@ import styles from './page.module.css'
 export default function HomePage() {
   return (
     <div className={styles.container}>
-      {/* Création en POST (server action) : un lien serait préchargé et créerait des documents */}
+      {/* Created via POST (server action): a link would be prefetched and create documents */}
       <form action={createComposition} className={styles.section}>
         <LyreButton
           type="submit"
@@ -26,7 +26,7 @@ export default function HomePage() {
         text={t('home.browse.title')}
         subtitle={t('home.browse.subtitle')}
       />
-      {/* Après les boutons pour rester au-dessus de leur fond */}
+      {/* After the buttons so it stays above their background */}
       <Divider className={styles.divider} />
     </div>
   )

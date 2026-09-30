@@ -1,5 +1,5 @@
 :root {
-  /* Palette — couleurs brutes, à ne pas utiliser directement dans les composants */
+  /* Palette — raw colours, not to be used directly in components */
   --dusty-grape: #4f4789;
   --dusty-grape-dark: #3d3670;
   --midnight-violet: #201335;
@@ -10,9 +10,9 @@
   --heather: #ddd8e6;
   --smoky-plum: #5e5873;
   --antique-gold: #8c6a24;
-  --pale-gold: #eae3d2; /* antique-gold à 18 % sur pearl */
+  --pale-gold: #eae3d2; /* antique-gold at 18% over pearl */
 
-  /* Couleurs sémantiques — à utiliser dans les composants */
+  /* Semantic colours — to be used in components */
   --color-bg: var(--ivory);
   --color-surface-raised: var(--pearl);
   --color-surface: var(--parchment);
@@ -28,10 +28,10 @@
   --color-on-primary: var(--ivory);
 
   --color-accent: var(--antique-gold);
-  --color-ornament: var(--pale-gold); /* décors à peine perceptibles (lyre) */
-  --color-ornament-active: var(--lavender-mist); /* décor de l'élément survolé */
+  --color-ornament: var(--pale-gold); /* barely perceptible decorations (lyre) */
+  --color-ornament-active: var(--lavender-mist); /* decoration of the hovered element */
 
-  /* Typographie */
+  /* Typography */
   --font-sans: var(--font-nunito-sans), system-ui, sans-serif;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -39,7 +39,7 @@
   --text-xl: 1.75rem;
   --text-2xl: 2.5rem;
 
-  /* Espacements */
+  /* Spacing */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 1rem;
@@ -47,7 +47,7 @@
   --space-5: 2rem;
   --space-6: 3rem;
 
-  /* Rayons */
+  /* Radii */
   --radius-sm: 4px;
   --radius-md: 8px;
 }

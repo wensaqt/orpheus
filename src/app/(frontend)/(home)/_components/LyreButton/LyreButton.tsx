@@ -12,13 +12,13 @@ import { useLyrePluck } from './useLyrePluck'
 
 type CommonProps = LyreHandlers & {
   text: string
-  // Révélé au survol, sous le filet
+  // Revealed on hover, below the rule
   subtitle?: string
   side?: LyreSide
   className?: string
 }
 
-// Avec href : un vrai lien (préchargement, clic du milieu) ; sans : un bouton
+// With href: a real link (prefetching, middle click); without: a button
 type LyreButtonProps = CommonProps &
   (
     | { href: string }
@@ -28,7 +28,7 @@ type LyreButtonProps = CommonProps &
       >)
   )
 
-// Assemble la demi-lyre jouable et son libellé dans un bouton ou un lien
+// Combines the playable half-lyre and its label in a button or a link
 export function LyreButton(props: LyreButtonProps) {
   const {
     text,

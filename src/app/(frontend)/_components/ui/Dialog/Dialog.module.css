@@ -20,7 +20,7 @@
   translate: 0 0;
 }
 
-/* Point de départ de l'animation d'ouverture */
+/* Starting point of the opening animation */
 @starting-style {
   .dialog[open] {
     opacity: 0;

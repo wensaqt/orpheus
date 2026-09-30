@@ -7,11 +7,11 @@ import type { LyreSide } from './types'
 type LyreHalfProps = {
   side: LyreSide
   svgRef: React.Ref<SVGSVGElement>
-  // Reçoit les cordes pour que l'animation écrive directement dans le DOM
+  // Receives the strings so the animation can write directly to the DOM
   stringRefs: React.RefObject<(SVGPathElement | null)[]>
 }
 
-// Demi-lyre purement visuelle, collée au bord intérieur de son parent et révélée à son survol
+// Purely visual half-lyre, pinned to its parent's inner edge and revealed on parent hover
 export function LyreHalf({ side, svgRef, stringRefs }: LyreHalfProps) {
   const gradientId = `lyre-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
 
@@ -42,7 +42,7 @@ export function LyreHalf({ side, svgRef, stringRefs }: LyreHalfProps) {
           strokeWidth={string.width}
         />
       ))}
-      {/* Armature tracée après les cordes : elle recouvre leurs extrémités */}
+      {/* Frame drawn after the strings so it covers their ends */}
       <g className={styles.frame}>
         {FRAME_PATHS.map((d) => (
           <path key={d} d={d} />

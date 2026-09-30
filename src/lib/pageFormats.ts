@@ -1,4 +1,4 @@
-// Formats de page proposés, en millimètres (portrait). Partagé par la collection et l'éditeur.
+// Available page formats, in millimetres (portrait). Shared by the collection and the editor.
 export const PAGE_FORMATS = {
   A4: { width: 210, height: 297 },
   A5: { width: 148, height: 210 },
@@ -17,7 +17,7 @@ export type PageSettings = {
   margins: { top: number; right: number; bottom: number; left: number }
 }
 
-// Dimensions effectives de la page selon l'orientation
+// Actual page dimensions for the given orientation
 export const pageSize = ({ format, orientation }: Pick<PageSettings, 'format' | 'orientation'>) => {
   const { width, height } = PAGE_FORMATS[format]
   return orientation === 'landscape' ? { width: height, height: width } : { width, height }
@@ -29,7 +29,7 @@ type StoredPage = {
   margins?: Partial<Record<keyof PageSettings['margins'], number | null>> | null
 }
 
-// Normalise les réglages stockés (marges facultatives) en réglages complets
+// Normalizes stored settings (optional margins) into complete settings
 export const toPageSettings = ({ format, orientation, margins }: StoredPage): PageSettings => ({
   format,
   orientation,
