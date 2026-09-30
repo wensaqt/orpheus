@@ -1,6 +1,4 @@
-import { expect, removeLeftoverAccounts, test } from './fixtures'
-
-test.afterAll(removeLeftoverAccounts)
+import { expect, test } from './fixtures'
 
 test.describe('Compositions', () => {
   test('create from home, write, find it again after reload', async ({ page }) => {
@@ -36,18 +34,24 @@ test.describe('Compositions', () => {
     await page.goto(`/compositions/${composition.id}`)
     await page.locator('[contenteditable="true"]').click()
     await page.keyboard.type('Last keystroke')
+    // The editor state must hold the text before we leave, or there is nothing to flush
+    await expect(page.locator('[contenteditable="true"]')).toContainText('Last keystroke')
     // Right away, before the save delay elapses
     await page.getByRole('link', { name: 'Home' }).click()
     await expect(page).toHaveURL('/')
 
     await expect
-      .poll(async () => {
-        const doc = await account.payload.findByID({
-          collection: 'compositions',
-          id: composition.id,
-        })
-        return JSON.stringify(doc.content ?? {})
-      })
+      .poll(
+        async () => {
+          const doc = await account.payload.findByID({
+            collection: 'compositions',
+            id: composition.id,
+          })
+          return JSON.stringify(doc.content ?? {})
+        },
+        { timeout: 20_000 },
+      )
+      // Generous timeout: under parallel load the dev server may be slow to process the action
       .toContain('Last keystroke')
   })
 

@@ -1,9 +1,8 @@
-import { expect, removeLeftoverAccounts, test } from './fixtures'
+import { expect, test } from './fixtures'
 
 // Queries the real Wiktionary: skipped with E2E_OFFLINE=1 (the logic is covered offline by the
 // unit tests)
 test.skip(!!process.env.E2E_OFFLINE, 'Wiktionary unreachable in offline mode')
-test.afterAll(removeLeftoverAccounts)
 
 test.describe('Synonyms / antonyms panel @network', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] })

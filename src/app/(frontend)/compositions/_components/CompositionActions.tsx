@@ -32,7 +32,11 @@ export function CompositionActions({ id, title }: CompositionActionsProps) {
 
     // Transition: the list revalidated by the action shows along with the navigation
     startTransition(async () => {
-      const { status } = await deleteComposition(id)
+      // The action throws when the session has expired; any failure ends in the same toast
+      const status = await deleteComposition(id).then(
+        (result) => result.status,
+        () => 'error' as const,
+      )
       if (status === 'deleted') toast.success(t('compositions.delete.done', { title }))
       else toast.error(t('compositions.delete.error'))
     })

@@ -25,4 +25,13 @@ test.describe('Home', () => {
     await page.goto('/compositions')
     await expect(page).toHaveURL(/\/admin\/login\?redirect=%2Fcompositions/)
   })
+
+  test('an invalid session cookie passes the proxy but is stopped by the page guard', async ({
+    page,
+    baseURL,
+  }) => {
+    await page.context().addCookies([{ name: 'payload-token', value: 'forged', url: baseURL! }])
+    await page.goto('/compositions')
+    await expect(page).toHaveURL(/\/admin\/login\?redirect=%2Fcompositions/)
+  })
 })

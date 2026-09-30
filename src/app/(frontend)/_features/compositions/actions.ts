@@ -7,7 +7,7 @@ import { DEFAULT_COMPOSITION_TITLE } from '@/lib/compositions'
 import { DEFAULT_PAGE_FORMAT } from '@/lib/pageFormats'
 
 import { ROUTES } from '@front/_lib/routes'
-import { getSession, requireUser } from '@front/_lib/server/session'
+import { authedAction, requireUser } from '@front/_lib/server/auth'
 
 import type { CompositionPatch, DeleteCompositionResult } from './types'
 
@@ -32,31 +32,29 @@ export async function createComposition() {
  * Their validity (type, length, Lexical shape) is checked by the collection.
  * An undefined key (e.g. when saving only the title) is ignored by Payload.
  */
-export async function saveComposition(id: number, { title, content }: CompositionPatch) {
-  const { payload, user } = await getSession()
-  if (!user) throw new Error('Unauthorized')
-
-  const { updatedAt } = await payload.update({
-    collection: 'compositions',
-    id,
-    data: { title, content },
-    user,
-    overrideAccess: false,
-    depth: 0,
-  })
-  return { updatedAt }
-}
+export const saveComposition = authedAction(
+  async ({ payload, user }, id: number, { title, content }: CompositionPatch) => {
+    const { updatedAt } = await payload.update({
+      collection: 'compositions',
+      id,
+      data: { title, content },
+      user,
+      overrideAccess: false,
+      depth: 0,
+    })
+    return { updatedAt }
+  },
+)
 
 // Deletes one of the user's compositions; owner access is checked by Payload
-export async function deleteComposition(id: number): Promise<DeleteCompositionResult> {
-  const { payload, user } = await getSession()
-  if (!user) return { status: 'error' }
-
-  try {
-    await payload.delete({ collection: 'compositions', id, user, overrideAccess: false })
-  } catch {
-    return { status: 'error' }
-  }
-  revalidatePath(ROUTES.compositions)
-  return { status: 'deleted' }
-}
+export const deleteComposition = authedAction(
+  async ({ payload, user }, id: number): Promise<DeleteCompositionResult> => {
+    try {
+      await payload.delete({ collection: 'compositions', id, user, overrideAccess: false })
+    } catch {
+      return { status: 'error' }
+    }
+    revalidatePath(ROUTES.compositions)
+    return { status: 'deleted' }
+  },
+)

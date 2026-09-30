@@ -1,14 +1,14 @@
 import { listCompositionCards } from '@front/_features/compositions/queries'
 import { t } from '@front/_lib/i18n'
 import { ROUTES } from '@front/_lib/routes'
-import { requireUser } from '@front/_lib/server/session'
+import { requireUser } from '@front/_lib/server/auth'
 
 import { CompositionGrid } from './_components/CompositionGrid'
 import styles from './page.module.css'
 
 export default async function CompositionsPage() {
-  const session = await requireUser(ROUTES.compositions)
-  const compositions = await listCompositionCards(session)
+  await requireUser(ROUTES.compositions)
+  const compositions = await listCompositionCards()
 
   return (
     <div className={styles.page}>

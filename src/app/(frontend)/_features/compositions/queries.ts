@@ -1,8 +1,8 @@
 import 'server-only'
 
-import type { Payload, TypedUser } from 'payload'
-
 import { toPageSettings } from '@/lib/pageFormats'
+
+import { requireSession } from '@front/_lib/server/auth'
 
 import { lexicalExcerpt } from './excerpt'
 import type { CompositionCardData } from './types'
@@ -10,10 +10,14 @@ import type { CompositionCardData } from './types'
 // Length of the preview shown on each sheet in the list
 const EXCERPT_LENGTH = 320
 
-type Session = { payload: Payload; user: TypedUser }
+/*
+ * Data access layer: every read guards itself with the session (memoised per request), so a page
+ * cannot fetch compositions without a signed-in user, whatever it checked before.
+ */
 
 // The user's compositions, most recent first, reduced to their card
-export async function listCompositionCards({ payload, user }: Session) {
+export async function listCompositionCards() {
+  const { payload, user } = await requireSession()
   const { docs } = await payload.find({
     collection: 'compositions',
     user,
@@ -34,7 +38,8 @@ export async function listCompositionCards({ payload, user }: Session) {
 }
 
 // Composition to edit, or null if not found or owned by someone else
-export async function getCompositionForEditor({ payload, user }: Session, id: number) {
+export async function getCompositionForEditor(id: number) {
+  const { payload, user } = await requireSession()
   const composition = await payload
     .findByID({ collection: 'compositions', id, user, overrideAccess: false, depth: 0 })
     .catch(() => null)

@@ -35,9 +35,4 @@ export const test = base.extend<{ account: Account; page: Page }>({
   },
 })
 
-// Safety net: accounts left behind by an interrupted run
-export async function removeLeftoverAccounts() {
-  await cleanupTestUsers(await getTestPayload())
-}
-
 export { expect }
