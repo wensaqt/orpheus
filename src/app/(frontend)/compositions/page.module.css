@@ -1,8 +1,8 @@
-/* Same parchment as the editor desk: the sheets stand out against it */
+/* Same ivory background as the home page */
 .page {
   flex-grow: 1;
   padding: var(--space-6) var(--space-5);
-  background-color: var(--color-surface);
+  background-color: var(--color-bg);
 }
 
 .inner {
