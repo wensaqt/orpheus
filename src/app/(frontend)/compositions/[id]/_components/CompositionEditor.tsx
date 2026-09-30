@@ -54,7 +54,8 @@ export function CompositionEditor({ id, title, content, page }: CompositionEdito
             <RichTextEditor
               initialContent={content}
               placeholder={t('editor.placeholder')}
-              onChange={(next) => queue({ content: next })}
+              // editorState.toJSON() produit toujours un état conforme au schéma du champ
+            onChange={(next) => queue({ content: next as LexicalContent })}
             />
           </PageSheet>
         </div>

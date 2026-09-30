@@ -172,15 +172,15 @@ export interface Composition {
   id: number;
   title: string;
   owner: number | User;
-  content?:
-    | {
+  content?: {
+    root: {
+      type: 'root';
+      children: {
         [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+      }[];
+      [k: string]: unknown;
+    };
+  };
   page: {
     format: 'A4' | 'A5' | 'Letter';
     orientation: 'portrait' | 'landscape';

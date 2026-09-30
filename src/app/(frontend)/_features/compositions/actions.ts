@@ -11,8 +11,6 @@ import { getSession, requireUser } from '@front/_lib/server/session'
 
 import type { CompositionPatch, DeleteCompositionResult } from './types'
 
-const MAX_TITLE_LENGTH = 200
-
 // Crée une composition vide pour l'utilisateur connecté et ouvre l'éditeur
 export async function createComposition() {
   const { payload, user } = await requireUser(ROUTES.home)
@@ -29,21 +27,19 @@ export async function createComposition() {
   redirect(ROUTES.composition(composition.id))
 }
 
-// Sauvegarde partielle depuis l'éditeur ; l'accès par propriétaire est vérifié par Payload
-export async function saveComposition(id: number, patch: CompositionPatch) {
+/*
+ * Sauvegarde partielle depuis l'éditeur. Liste blanche : seuls le titre et le contenu sont
+ * modifiables ici. Leur validité (type, longueur, forme Lexical) est vérifiée par la collection.
+ * Une clé undefined (sauvegarde du seul titre, par ex.) est ignorée par Payload.
+ */
+export async function saveComposition(id: number, { title, content }: CompositionPatch) {
   const { payload, user } = await getSession()
   if (!user) throw new Error('Unauthorized')
-
-  const data: CompositionPatch = {}
-  if (typeof patch.title === 'string') data.title = patch.title.slice(0, MAX_TITLE_LENGTH)
-  if (patch.content && typeof patch.content === 'object' && 'root' in patch.content) {
-    data.content = patch.content
-  }
 
   const { updatedAt } = await payload.update({
     collection: 'compositions',
     id,
-    data,
+    data: { title, content },
     user,
     overrideAccess: false,
     depth: 0,
@@ -54,7 +50,7 @@ export async function saveComposition(id: number, patch: CompositionPatch) {
 // Supprime une composition de l'utilisateur ; l'accès par propriétaire est vérifié par Payload
 export async function deleteComposition(id: number): Promise<DeleteCompositionResult> {
   const { payload, user } = await getSession()
-  if (!user || !Number.isInteger(id)) return { status: 'error' }
+  if (!user) return { status: 'error' }
 
   try {
     await payload.delete({ collection: 'compositions', id, user, overrideAccess: false })

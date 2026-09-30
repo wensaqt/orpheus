@@ -1,13 +1,15 @@
-import type { Access, CollectionConfig } from 'payload'
+import type { CollectionConfig } from 'payload'
 
-import { DEFAULT_COMPOSITION_TITLE } from '../lib/compositions'
-import { DEFAULT_PAGE_FORMAT, DEFAULT_PAGE_MARGIN, PAGE_FORMATS } from '../lib/pageFormats'
+import {
+  DEFAULT_COMPOSITION_TITLE,
+  LEXICAL_STATE_JSON_SCHEMA,
+  MAX_COMPOSITION_TITLE_LENGTH,
+} from '@/lib/compositions'
+import { DEFAULT_PAGE_FORMAT, DEFAULT_PAGE_MARGIN, PAGE_FORMATS } from '@/lib/pageFormats'
 
-// Chaque utilisateur ne voit et ne modifie que ses propres compositions
-const ownCompositions: Access = ({ req: { user } }) => {
-  if (!user) return false
-  return { owner: { equals: user.id } }
-}
+import { isLoggedIn, ownCompositions } from './access'
+import { setOwnerOnCreate } from './hooks'
+import { validateTitle } from './validators'
 
 const margin = (name: 'top' | 'right' | 'bottom' | 'left') => ({
   name,
@@ -24,23 +26,23 @@ export const Compositions: CollectionConfig = {
     defaultColumns: ['title', 'updatedAt'],
   },
   access: {
-    create: ({ req: { user } }) => Boolean(user),
+    create: isLoggedIn,
     read: ownCompositions,
     update: ownCompositions,
     delete: ownCompositions,
   },
   hooks: {
-    // Avant la validation, car owner est requis : le propriétaire est toujours l'auteur de la
-    // création, jamais une valeur envoyée
-    beforeValidate: [
-      ({ data, operation, req }) => {
-        if (operation === 'create' && data && req.user) data.owner = req.user.id
-        return data
-      },
-    ],
+    beforeValidate: [setOwnerOnCreate],
   },
   fields: [
-    { name: 'title', type: 'text', required: true, defaultValue: DEFAULT_COMPOSITION_TITLE },
+    {
+      name: 'title',
+      type: 'text',
+      required: true,
+      maxLength: MAX_COMPOSITION_TITLE_LENGTH,
+      defaultValue: DEFAULT_COMPOSITION_TITLE,
+      validate: validateTitle,
+    },
     {
       name: 'owner',
       type: 'relationship',
@@ -50,8 +52,8 @@ export const Compositions: CollectionConfig = {
       access: { update: () => false },
       admin: { readOnly: true, position: 'sidebar' },
     },
-    // État Lexical sérialisé : JSON libre tant que le format de l'éditeur évolue
-    { name: 'content', type: 'json' },
+    // État Lexical sérialisé, validé par son schéma JSON (qui type aussi le champ)
+    { name: 'content', type: 'json', jsonSchema: LEXICAL_STATE_JSON_SCHEMA },
     {
       name: 'page',
       type: 'group',

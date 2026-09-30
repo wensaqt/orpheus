@@ -5,7 +5,7 @@ import type { Payload, TypedUser } from 'payload'
 import { toPageSettings } from '@/lib/pageFormats'
 
 import { lexicalExcerpt } from './excerpt'
-import type { CompositionCardData, LexicalContent } from './types'
+import type { CompositionCardData } from './types'
 
 // Longueur de l'aperçu affiché sur chaque feuille de la liste
 const EXCERPT_LENGTH = 320
@@ -42,14 +42,11 @@ export async function getCompositionForEditor({ payload, user }: Session, id: nu
     .catch(() => null)
   if (!composition) return null
 
-  const { content } = composition
   return {
     id: composition.id,
     title: composition.title,
-    content:
-      content && typeof content === 'object' && !Array.isArray(content)
-        ? (content as LexicalContent)
-        : null,
+    // Forme garantie à l'écriture par le jsonSchema du champ
+    content: composition.content ?? null,
     page: toPageSettings(composition.page),
   }
 }
