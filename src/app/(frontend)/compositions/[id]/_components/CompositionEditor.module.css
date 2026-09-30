@@ -5,21 +5,32 @@
   background-color: var(--color-surface);
 }
 
-/* Le « bureau » sur lequel la feuille est posée */
+/*
+ * The "desk": the sheet stays centred in the middle column, the synonyms panel
+ * takes the right column
+ */
 .desk {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: var(--space-5);
   padding: var(--space-6) var(--space-3);
 }
 
 .column {
+  grid-column: 2;
   display: flex;
   flex-direction: column;
   min-width: 0;
   max-width: 100%;
 }
 
-/* Titre sans aucun cadre : il se lit comme un intitulé et se modifie sur place */
+.aside {
+  grid-column: 3;
+  align-self: stretch;
+}
+
+/* Frameless title: it reads as a heading and is edited in place */
 .title {
   width: 100%;
   min-width: 0;
@@ -40,4 +51,17 @@
   margin-block: calc(-1 * var(--space-3)) var(--space-3);
   font-size: var(--text-sm);
   color: var(--color-accent);
+}
+
+/* No room for three columns: the panel moves below the sheet */
+@media (max-width: 78rem) {
+  .desk {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .column,
+  .aside {
+    grid-column: 1;
+  }
 }
