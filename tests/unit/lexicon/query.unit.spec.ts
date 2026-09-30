@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { MAX_QUERY_LENGTH, parseQuery } from '@front/_features/lexicon/query'
+import { lookupCandidates, MAX_QUERY_LENGTH, parseQuery } from '@front/_features/lexicon/query'
 
 describe('parseQuery', () => {
   it('trims, lower-cases and collapses spaces', () => {
@@ -16,5 +16,13 @@ describe('parseQuery', () => {
 
   it('accepts a query of exactly the maximum length', () => {
     expect(parseQuery('a'.repeat(MAX_QUERY_LENGTH))).toHaveLength(MAX_QUERY_LENGTH)
+  })
+})
+
+describe('lookupCandidates', () => {
+  it('tries the word, then its singular', () => {
+    expect(lookupCandidates('rapides')).toEqual(['rapides', 'rapide'])
+    expect(lookupCandidates('chevaux')).toEqual(['chevaux', 'cheval', 'chevau'])
+    expect(lookupCandidates('vif')).toEqual(['vif'])
   })
 })

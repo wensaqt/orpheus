@@ -49,8 +49,7 @@ export const en = {
     copied: '“{word}” copied',
     copyError: 'Could not copy “{word}”',
     error: 'Could not load synonyms. Please try again.',
-    source: 'Wiktionnaire',
-    license: 'CC BY-SA',
+    source: 'Thesaurus by {name} ({license})',
     partsOfSpeech: {
       noun: 'Noun',
       adjective: 'Adjective',

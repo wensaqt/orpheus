@@ -17,7 +17,8 @@
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --import=tsx/esm\" playwright test --config=playwright.config.ts",
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --project int",
     "test:unit": "cross-env NODE_OPTIONS=--no-deprecation vitest run --project unit",
-    "test:coverage": "cross-env NODE_OPTIONS=--no-deprecation vitest run --coverage"
+    "test:coverage": "cross-env NODE_OPTIONS=--no-deprecation vitest run --coverage",
+    "thesaurus:import": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/import-thesaurus.ts"
   },
   "dependencies": {
     "@lexical/list": "0.50.0",

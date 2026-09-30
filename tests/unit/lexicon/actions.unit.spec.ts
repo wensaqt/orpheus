@@ -13,7 +13,7 @@ const { findSynonyms } = await import('@front/_features/lexicon/actions')
 describe('findSynonyms', () => {
   beforeEach(() => {
     auth.mockReset().mockResolvedValue({ user: { id: 1 } })
-    lookupSynonyms.mockReset().mockResolvedValue({ word: 'vif', groups: [], sourceUrl: 'url' })
+    lookupSynonyms.mockReset().mockResolvedValue({ word: 'vif', groups: [] })
   })
 
   it('rejects anonymous calls without querying Wiktionary', async () => {
@@ -24,7 +24,7 @@ describe('findSynonyms', () => {
 
   it('looks up the normalised query', async () => {
     await expect(findSynonyms('  VIF ')).resolves.toMatchObject({ query: 'vif', word: 'vif' })
-    expect(lookupSynonyms).toHaveBeenCalledWith('vif')
+    expect(lookupSynonyms).toHaveBeenCalledWith(expect.objectContaining({ user: { id: 1 } }), 'vif')
   })
 
   it('returns an empty result for unusable input, without a lookup', async () => {
@@ -33,7 +33,6 @@ describe('findSynonyms', () => {
         query: '',
         word: null,
         groups: [],
-        sourceUrl: null,
       })
     }
     expect(lookupSynonyms).not.toHaveBeenCalled()

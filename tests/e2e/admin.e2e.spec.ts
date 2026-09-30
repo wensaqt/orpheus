@@ -37,6 +37,7 @@ test.describe('Admin Panel', () => {
     await page.goto('http://localhost:3000/admin/collections/users/create')
     await expect(page).toHaveURL(/\/admin\/collections\/users\/[a-zA-Z0-9-_]+/)
     const editViewArtifact = page.locator('input[name="email"]')
-    await expect(editViewArtifact).toBeVisible()
+    // The create form can take a while to render under parallel load
+    await expect(editViewArtifact).toBeVisible({ timeout: 15_000 })
   })
 })

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { isLoggedIn, ownCompositions } from '@/collections/Compositions/access'
+import { isLoggedIn } from '@/access/isLoggedIn'
+import { ownCompositions } from '@/collections/Compositions/access'
 import { setOwnerOnCreate } from '@/collections/Compositions/hooks'
 import { validateTitle } from '@/collections/Compositions/validators'
 

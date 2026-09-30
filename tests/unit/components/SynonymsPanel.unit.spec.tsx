@@ -13,7 +13,6 @@ const found: SynonymResult = {
   query: 'rapides',
   word: 'rapide',
   groups: [{ partOfSpeech: 'adjective', sense: null, words: ['vif', 'prompt'] }],
-  sourceUrl: 'https://fr.wiktionary.org/wiki/rapide',
 }
 
 async function search(word: string) {
@@ -44,9 +43,9 @@ describe('SynonymsPanel', () => {
     await search('rapides')
     expect(announcement()).toBe('Synonyms found for “rapide”: 2')
     expect(screen.getByText('Synonyms of “rapide”')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Wiktionnaire' }).getAttribute('href')).toBe(
-      found.sourceUrl,
-    )
+    expect(
+      screen.getByRole('link', { name: 'Thesaurus by Dicollecte (LGPL)' }).getAttribute('href'),
+    ).toBe('https://grammalecte.net/')
   })
 
   it('announces "no synonyms" rather than a count of zero', async () => {

@@ -3,6 +3,8 @@
 import React, { useId } from 'react'
 
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
+import { THESAURUS_SOURCE } from '@/lib/thesaurus/source'
+
 import type { SynonymResult } from '@front/_features/lexicon/types'
 import { type SynonymStatus, useSynonyms } from '@front/_features/lexicon/useSynonyms'
 import { t } from '@front/_lib/i18n'
@@ -66,16 +68,16 @@ export function SynonymsPanel() {
         )}
       </div>
 
-      {/* Wiktionary content (CC BY-SA): credit the page that was used */}
+      {/* LGPL thesaurus: credit its source */}
       <p className={styles.source}>
-        {result?.sourceUrl ? (
-          <a href={result.sourceUrl} target="_blank" rel="noreferrer" className={styles.sourceLink}>
-            {t('synonyms.source')}
-          </a>
-        ) : (
-          t('synonyms.source')
-        )}{' '}
-        · {t('synonyms.license')}
+        <a
+          href={THESAURUS_SOURCE.url}
+          target="_blank"
+          rel="noreferrer"
+          className={styles.sourceLink}
+        >
+          {t('synonyms.source', { name: THESAURUS_SOURCE.name, license: THESAURUS_SOURCE.license })}
+        </a>
       </p>
     </aside>
   )
@@ -109,7 +111,7 @@ function Results({ result, copyHintId, onPick }: ResultsProps) {
 
   return (
     <>
-      {/* Stated when the entry differs from the query (redirect, or "rapides" → "rapide") */}
+      {/* Stated when the entry differs from the query ("rapides" → "rapide") */}
       {result.word !== result.query && (
         <p className={styles.matched}>{t('synonyms.matched', { word: result.word! })}</p>
       )}

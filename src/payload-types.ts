@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     compositions: Composition;
+    'thesaurus-entries': ThesaurusEntry;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     compositions: CompositionsSelect<false> | CompositionsSelect<true>;
+    'thesaurus-entries': ThesaurusEntriesSelect<false> | ThesaurusEntriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -199,6 +201,29 @@ export interface Composition {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "thesaurus-entries".
+ */
+export interface ThesaurusEntry {
+  id: number;
+  word: string;
+  lang: 'fr';
+  groups: {
+    partOfSpeech:
+      | 'noun'
+      | 'adjective'
+      | 'verb'
+      | 'adverb'
+      | 'pronoun'
+      | 'preposition'
+      | 'conjunction'
+      | 'determiner'
+      | 'interjection';
+    sense: string | null;
+    words: string[];
+  }[];
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -232,6 +257,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'compositions';
         value: number | Composition;
+      } | null)
+    | ({
+        relationTo: 'thesaurus-entries';
+        value: number | ThesaurusEntry;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -340,6 +369,15 @@ export interface CompositionsSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "thesaurus-entries_select".
+ */
+export interface ThesaurusEntriesSelect<T extends boolean = true> {
+  word?: T;
+  lang?: T;
+  groups?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

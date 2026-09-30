@@ -1,4 +1,6 @@
-// Beyond this it is no longer a word or a short phrase: not worth querying Wiktionary
+import { normalizeWord } from '@/lib/thesaurus/mythes'
+
+// Beyond this it is no longer a word or a short phrase: not worth a lookup
 export const MAX_QUERY_LENGTH = 60
 
 /*
@@ -7,7 +9,19 @@ export const MAX_QUERY_LENGTH = 60
  */
 export function parseQuery(raw: unknown): string | null {
   if (typeof raw !== 'string') return null
-  const query = raw.trim().toLowerCase().replace(/\s+/g, ' ')
+  const query = normalizeWord(raw)
   if (!query || query.length > MAX_QUERY_LENGTH) return null
   return query
 }
+
+/*
+ * Words to try, in order: the thesaurus is keyed by base form, so plurals fall back to the
+ * singular (-s, -x, and -aux → -al: "chevaux" → "cheval").
+ */
+export const lookupCandidates = (word: string) => [
+  ...new Set([
+    word,
+    ...(/aux$/.test(word) ? [`${word.slice(0, -3)}al`] : []),
+    ...(/[sx]$/.test(word) ? [word.slice(0, -1)] : []),
+  ]),
+]

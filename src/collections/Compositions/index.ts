@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { isLoggedIn } from '@/access/isLoggedIn'
 import {
   DEFAULT_COMPOSITION_TITLE,
   LEXICAL_STATE_JSON_SCHEMA,
@@ -7,7 +8,7 @@ import {
 } from '@/lib/compositions'
 import { DEFAULT_PAGE_FORMAT, DEFAULT_PAGE_MARGIN, PAGE_FORMATS } from '@/lib/pageFormats'
 
-import { isLoggedIn, ownCompositions } from './access'
+import { ownCompositions } from './access'
 import { setOwnerOnCreate } from './hooks'
 import { validateTitle } from './validators'
 

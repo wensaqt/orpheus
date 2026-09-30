@@ -10,7 +10,7 @@ import {
   TEST_PASSWORD,
 } from '../helpers/testUsers'
 
-type Account = { user: User; payload: Payload }
+export type Account = { user: User; payload: Payload }
 
 /*
  * Each test gets a temporary, already logged-in account (session cookie set via the login API,

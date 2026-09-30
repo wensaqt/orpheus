@@ -12,7 +12,6 @@ const resultFor = (query: string, words = [`syn-${query}`]): SynonymResult => ({
   query,
   word: query,
   groups: [{ partOfSpeech: 'adjective', sense: null, words }],
-  sourceUrl: `https://fr.wiktionary.org/wiki/${query}`,
 })
 
 describe('useSynonyms', () => {
