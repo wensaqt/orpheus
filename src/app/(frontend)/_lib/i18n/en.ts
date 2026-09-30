@@ -36,34 +36,19 @@ export const en = {
       error: 'Could not delete this composition. Please try again.',
     },
   },
-  lexicon: {
-    relationLabel: 'Word relation',
-    relations: { synonyms: 'Synonyms', antonyms: 'Antonyms' },
-    searchLabel: {
-      synonyms: 'Find synonyms',
-      antonyms: 'Find antonyms',
-    },
+  synonyms: {
+    title: 'Synonyms',
+    searchLabel: 'Find synonyms',
     placeholder: 'Type a word…',
-    hint: {
-      synonyms: 'Type a word to see its synonyms. Click one to copy it.',
-      antonyms: 'Type a word to see its antonyms. Click one to copy it.',
-    },
+    hint: 'Type a word to see its synonyms. Click one to copy it.',
     searching: 'Searching…',
-    found: {
-      synonyms: 'Synonyms found for “{word}”: {count}',
-      antonyms: 'Antonyms found for “{word}”: {count}',
-    },
-    empty: {
-      synonyms: 'No synonyms found for “{word}”.',
-      antonyms: 'No antonyms found for “{word}”.',
-    },
-    matched: {
-      synonyms: 'Synonyms of “{word}”',
-      antonyms: 'Antonyms of “{word}”',
-    },
+    found: 'Synonyms found for “{word}”: {count}',
+    empty: 'No synonyms found for “{word}”.',
+    matched: 'Synonyms of “{word}”',
+    copyHint: 'Click to copy',
     copied: '“{word}” copied',
     copyError: 'Could not copy “{word}”',
-    error: 'Could not load results. Please try again.',
+    error: 'Could not load synonyms. Please try again.',
     source: 'Wiktionnaire',
     license: 'CC BY-SA',
     partsOfSpeech: {

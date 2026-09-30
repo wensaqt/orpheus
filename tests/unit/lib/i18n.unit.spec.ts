@@ -9,9 +9,7 @@ describe('t', () => {
 
   it('substitutes parameters, numbers included', () => {
     expect(t('compositions.delete.title', { title: 'Eurydice' })).toBe('Delete “Eurydice”?')
-    expect(t('lexicon.found.synonyms', { word: 'vif', count: 3 })).toBe(
-      'Synonyms found for “vif”: 3',
-    )
+    expect(t('synonyms.found', { word: 'vif', count: 3 })).toBe('Synonyms found for “vif”: 3')
   })
 
   it('leaves a missing parameter visible', () => {

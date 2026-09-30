@@ -12,23 +12,18 @@ export const PARTS_OF_SPEECH = [
 
 export type PartOfSpeech = (typeof PARTS_OF_SPEECH)[number]
 
-// Relations offered by the panel
-export const RELATIONS = ['synonyms', 'antonyms'] as const
-export type Relation = (typeof RELATIONS)[number]
-
-// A group of related words: their part of speech and, if the source specifies it, the intended sense
-export type WordGroup = {
-  partsOfSpeech: PartOfSpeech[]
+// Synonyms sharing a part of speech and, when the source states it, a sense
+export type SynonymGroup = {
+  partOfSpeech: PartOfSpeech
   sense: string | null
   words: string[]
 }
 
-export type LexiconResult = {
-  relation: Relation
+export type SynonymResult = {
   query: string
-  // Entry actually found (may differ from the query: "rapides" → "rapide"), or null
+  // Entry actually shown: may differ from the query (redirect, or inflected form → base form)
   word: string | null
-  groups: WordGroup[]
-  // Wiktionary page consulted, to credit (CC BY-SA), or null if nothing was found
+  groups: SynonymGroup[]
+  // Wiktionary page the synonyms come from, to credit (CC BY-SA), or null if nothing was found
   sourceUrl: string | null
 }

@@ -12,7 +12,7 @@ import { useAutosave } from '@front/_hooks/useAutosave'
 import { t } from '@front/_lib/i18n'
 
 import styles from './CompositionEditor.module.css'
-import { LexiconPanel } from './LexiconPanel'
+import { SynonymsPanel } from './SynonymsPanel'
 
 type CompositionEditorProps = {
   id: number
@@ -58,7 +58,7 @@ export function CompositionEditor({ id, title, content, page }: CompositionEdito
           </PageSheet>
         </div>
         <div className={styles.aside}>
-          <LexiconPanel />
+          <SynonymsPanel />
         </div>
       </div>
     </div>

@@ -9,61 +9,21 @@
   max-height: calc(100dvh - 2 * var(--space-6));
 }
 
-/* Synonyms / Antonyms selector: the active choice is underlined with the rule, as on the home page */
-.relations {
-  display: flex;
-  gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-.relation {
-  position: relative;
-  padding: 0 0 var(--space-2);
+/* Panel title, underlined with a short rule as on the other pages */
+.title {
   font-size: var(--text-lg);
   font-weight: 300;
   letter-spacing: 0.02em;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.relation::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0;
-  height: 1.5px;
-  background-color: var(--color-divider);
-  scale: 0 1;
-  transform-origin: left;
-  transition: scale 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.relation:hover {
-  color: var(--color-primary);
-}
-
-.relation:has(:checked) {
   color: var(--color-primary-hover);
 }
 
-.relation:has(:checked)::after {
-  scale: 1 1;
-}
-
-/* Keyboard focus (arrows between choices): muted rule under the focused choice */
-.relation:has(:focus-visible) {
-  color: var(--color-primary);
-}
-
-.relation:has(:focus-visible)::after {
-  scale: 1 1;
-  opacity: 0.5;
-}
-
-.relation:has(:checked:focus-visible)::after {
-  opacity: 1;
+.title::after {
+  content: '';
+  display: block;
+  width: 2rem;
+  height: 1.5px;
+  margin-block-start: var(--space-2);
+  background-color: var(--color-divider);
 }
 
 /* Frameless input, underlined with a line that turns violet on focus */
@@ -81,6 +41,8 @@
 
 .search:focus-visible {
   border-bottom-color: var(--color-primary);
+  /* Thicker underline on focus: a 1px colour change alone is too faint to see */
+  box-shadow: 0 1px 0 var(--color-primary);
 }
 
 /* Native (blue) clear cross replaced with a subtle cross in the DS colours */
@@ -129,7 +91,7 @@
   margin-block-end: var(--space-3);
 }
 
-/* Intended sense (Wiktionary antonyms), limited to two lines */
+/* Intended sense, when the page states it, limited to two lines */
 .sense {
   display: -webkit-box;
   margin-block-end: var(--space-2);
@@ -146,7 +108,7 @@
   margin-block-start: var(--space-4);
 }
 
-.partsOfSpeech {
+.partOfSpeech {
   margin-block-end: var(--space-2);
   font-size: var(--text-sm);
   font-weight: 400;
@@ -188,8 +150,12 @@
     color 0.2s;
 }
 
+.chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .chip:is(:hover, :focus-visible) {
-  outline: none;
   border-color: var(--color-ornament-active);
   background-color: var(--color-surface-accent);
   color: var(--color-primary-hover);
@@ -213,9 +179,5 @@
 @media (prefers-reduced-motion: reduce) {
   .chips > li {
     animation: none;
-  }
-
-  .relation::after {
-    transition: none;
   }
 }
