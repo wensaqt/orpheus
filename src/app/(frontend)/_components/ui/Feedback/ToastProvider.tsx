@@ -1,0 +1,120 @@
+'use client'
+
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+
+import { t } from '../../../_lib/i18n'
+import styles from './ToastProvider.module.css'
+
+type ToastTone = 'default' | 'success' | 'error'
+
+type ToastOptions = {
+  tone?: ToastTone
+  // Bouton d'action dans le toast, par ex. « Undo »
+  action?: { label: string; onClick: () => void }
+}
+
+type Toast = ToastOptions & { id: number; message: string }
+
+type ToastApi = {
+  show: (message: string, options?: ToastOptions) => void
+  success: (message: string, options?: Omit<ToastOptions, 'tone'>) => void
+  error: (message: string, options?: Omit<ToastOptions, 'tone'>) => void
+}
+
+// Durée d'affichage, suspendue tant que le toast est survolé ou a le focus
+const TOAST_DURATION = 5000
+
+const ToastContext = createContext<ToastApi | null>(null)
+
+// Notifications empilées en bas de l'écran, annoncées aux lecteurs d'écran
+export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const nextId = useRef(0)
+
+  const dismiss = useCallback((id: number) => {
+    setToasts((current) => current.filter((toast) => toast.id !== id))
+  }, [])
+
+  const api = useMemo<ToastApi>(() => {
+    const show: ToastApi['show'] = (message, options = {}) => {
+      const id = nextId.current++
+      setToasts((current) => [...current, { id, message, ...options }])
+    }
+    return {
+      show,
+      success: (message, options) => show(message, { ...options, tone: 'success' }),
+      error: (message, options) => show(message, { ...options, tone: 'error' }),
+    }
+  }, [])
+
+  return (
+    <ToastContext.Provider value={api}>
+      {children}
+      <section className={styles.region} aria-label={t('common.notifications')} aria-live="polite">
+        {toasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
+        ))}
+      </section>
+    </ToastContext.Provider>
+  )
+}
+
+// onDismiss est stable : le minuteur n'est pas relancé quand d'autres toasts arrivent
+function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: number) => void }) {
+  const [paused, setPaused] = useState(false)
+  const { id } = toast
+
+  useEffect(() => {
+    if (paused) return
+    const timer = window.setTimeout(() => onDismiss(id), TOAST_DURATION)
+    return () => window.clearTimeout(timer)
+  }, [paused, onDismiss, id])
+
+  return (
+    <div
+      className={styles.toast}
+      data-tone={toast.tone ?? 'default'}
+      role={toast.tone === 'error' ? 'alert' : 'status'}
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
+      <p className={styles.message}>{toast.message}</p>
+      {toast.action && (
+        <button
+          type="button"
+          className={styles.action}
+          onClick={() => {
+            toast.action?.onClick()
+            onDismiss(id)
+          }}
+        >
+          {toast.action.label}
+        </button>
+      )}
+      <button
+        type="button"
+        className={styles.dismiss}
+        aria-label={t('common.dismiss')}
+        onClick={() => onDismiss(id)}
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+  )
+}
+
+export function useToast() {
+  const api = useContext(ToastContext)
+  if (!api) throw new Error('useToast must be used inside <ToastProvider>')
+  return api
+}

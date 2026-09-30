@@ -3,6 +3,12 @@ export const en = {
   app: {
     name: 'Orpheus',
   },
+  common: {
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    dismiss: 'Dismiss',
+    notifications: 'Notifications',
+  },
   home: {
     create: { title: 'New composition', subtitle: 'Start a new piece' },
     browse: { title: 'All compositions', subtitle: 'Revisit your pieces' },
@@ -25,9 +31,8 @@ export const en = {
     delete: {
       title: 'Delete “{title}”?',
       description: 'This cannot be undone.',
-      cancel: 'Cancel',
       confirm: 'Delete',
-      pending: 'Deleting…',
+      done: '“{title}” deleted',
       error: 'Could not delete this composition. Please try again.',
     },
   },

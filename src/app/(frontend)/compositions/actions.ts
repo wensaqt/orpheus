@@ -55,16 +55,10 @@ export async function saveComposition(id: number, patch: CompositionPatch) {
   return { updatedAt }
 }
 
-export type DeleteCompositionState = { status: 'idle' | 'deleted' | 'error' }
+export type DeleteCompositionResult = { status: 'deleted' | 'error' }
 
-/*
- * Supprime une composition de l'utilisateur, appelée par un formulaire via useActionState
- * (l'id est lié avec bind). L'accès par propriétaire est vérifié par Payload.
- */
-export async function deleteComposition(
-  id: number,
-  _previous: DeleteCompositionState,
-): Promise<DeleteCompositionState> {
+// Supprime une composition de l'utilisateur ; l'accès par propriétaire est vérifié par Payload
+export async function deleteComposition(id: number): Promise<DeleteCompositionResult> {
   const { payload, user } = await getSession()
   if (!user || !Number.isInteger(id)) return { status: 'error' }
 
