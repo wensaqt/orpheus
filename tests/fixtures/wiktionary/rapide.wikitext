@@ -1,0 +1,265 @@
+== {{langue|fr}} ==
+=== {{S|étymologie}} ===
+:{{date|lang=fr}} Du {{étyl|la|fr|mot=rapidus|sens=[[violent]]}}, qui qualifie au départ l’eau [[torrentueux|torrentueuse]] qui emporte tout sur son passage, issu de ''[[rapio#la|răpĕrĕ]]'' (« [[saisir]] », « ravir », « emporter ») lui-même d'une racine dont sont issus ''[[rapt]], [[rapace]], [[rapine]]''.
+
+=== {{S|adjectif|fr}} ===
+{{fr-rég|ʁa.pid|mf=1}}
+'''rapide''' {{pron|ʁa.pid|fr}} {{mf}}
+# Qui se [[mouvoir|meut]] avec [[vitesse]].
+#* {{exemple|Maintenant de longues distances nous séparent et le fleuve '''rapide''' m’accompagne.|lang=fr|source={{w|Marguerite Burnat-Provins}}, ''{{WS|Le Livre pour toi}}'', [https://fr.wikisource.org/wiki/Le_Livre_pour_toi/Maintenant_de_longues_distances_nous_s%C3%A9parent LXX. « Maintenant de longues distances nous séparent »], E. Sansot et Cie, 1907, page 143}}
+#* {{exemple | lang=fr | Une marche '''rapide'''.'' — ''Le cours '''rapide''' d’un fleuve.'' — ''Le vol '''rapide''' des aigles.'' — ''Un mouvement très '''rapide'''.'' — ''Train '''rapide'''.}}
+# {{par extension}} Qui se fait avec vitesse.
+#* {{exemple | lang=fr
+ | Il est commode de se servir d'une pipette jaugeuse pour le mesurage '''rapide''' des 90 cm{{e|3}} d'eau.
+ | source=''Mémorial des poudres'', vol. 22, 1926, page 321}}
+# Très [[incliné]].
+#* {{exemple|lang=fr|
+Arrivés contre la ville, au pied d’une montagne '''rapide''' comme le toit d’une maison, il fallut grimper et nous mettre en bataille de suite sur le plateau.
+|source={{w|Jean-Roch Coignet}}, ''Les cahiers du capitaine Coignet (1799-1815)'', Hachette, 1899, pages 183-184}}
+#* {{exemple|lang=fr| Mon rôle se bornait à serrer les freins à main dans la descente assez '''rapide''' car on passait d'une altitude de 500 mètres à 220 mètres. |source= Jean Daures, ''Nos vingt ans volés : L'histoire des 2700 Aveyronnais victimes des camps nazis du travail forcé'', Rodez : Association départementale de l'Aveyron, 1993, page 114}}
+# Qui [[comprendre|comprend]], qui [[agir|agit]] avec [[rapidité]].
+#* {{exemple | lang=fr | Un esprit '''rapide'''.}}
+#* {{exemple | lang=fr | Une expédition '''rapide'''.}}
+#* {{exemple | lang=fr | Des conquêtes '''rapides'''.}}
+#* {{exemple | lang=fr | Cet enfant fait des progrès '''rapides'''.}}
+#* {{exemple | lang=fr | Ses succès ont été aussi '''rapides''' que brillants.}}
+#* {{exemple | lang=fr | J’ai jeté un coup d’œil '''rapide''' sur cet ouvrage, sur cette affaire.}}
+#* {{exemple | lang=fr | Une lecture '''rapide''' a suffi pour me faire connaître la valeur de cet ouvrage.}}
+# {{figuré|fr}} [[animé|Animé]], [[vif]], [[entrainant]].
+#* ''Un style '''rapide''','' un style où tous les mots portent et qui va droit au but.
+#* ''Une narration '''rapide''','' une narration où les faits se pressent.
+#* ''Une éloquence '''rapide''','' une éloquence animée, vive, qui entraîne l’auditeur.
+# {{lexique|échecs|fr}} Qualifie une [[cadence]] de jeu où le temps de réflexion de chaque joueur est réduit.
+## {{date|lang=fr|avant 2000}} Synonyme de [[blitz]].
+## {{date|lang=fr|2000-2014}} Au moins 15 minutes et moins d’une heure.
+## {{date|lang=fr|depuis 2014}} Au moins 10 minutes et moins d’une heure.
+
+==== {{S|synonymes}} ====
+{{(}}
+* [[bref]]
+* [[diligent]]
+* [[expéditif]]
+* [[hâtif]]
+* [[précipité]]
+* [[prompt]]
+* [[véloce]]
+* [[vivace]]
+{{)}}
+
+==== {{S|antonymes}} ====
+{{(}}
+* [[lent]]
+* [[long]]
+{{)}}
+
+==== {{S|vocabulaire}} ====
+* {{voir thésaurus|fr|vitesse|bref|fleuve}}
+{|border="1"
+|+ Cadences de jeu aux échecs
+|-
+| align="center" | [[lent]] ou [[classique]]
+| align="center" | '''rapide''' <br/> ([[semi-rapide]] avant 2000)
+| align="center" | [[blitz]] <br/> (aussi appelé '''rapide''' avant 2000)
+| align="center" | [[bullet]] <br/> (jeu en ligne)
+|}
+
+==== {{S|dérivés}} ====
+{{(}}
+* [[acier rapide]]
+* [[allumage rapide]] {{info lex|nucléaire}}
+* [[amplification rapide d’extrémités d’ADNc]]
+* [[avance rapide]] {{info lex|audiovisuel}}
+* [[changement rapide d’outillage]] ''ou'' [[CRO]]
+* [[conversion rapide]]
+* [[échange rapide de batterie]]
+* [[en circuit rapide]]
+* [[fission rapide]]
+* [[hyperrapide]]
+* [[mémoire d’accès rapide]]
+* [[neutron rapide]]
+* [[rapide comme l’éclair]]
+* [[rapide comme un serpent]]
+* [[rapidement]]
+* [[rapidissime]]
+* [[rapidité]]
+* [[restauration rapide]]
+* [[retour rapide]]
+* [[short rapide]]
+* [[sucre rapide]]
+* [[tri rapide]]
+* [[trottoir rapide]]
+* [[ultrarapide]], [[ultra-rapide]]
+* [[voie rapide]]
+{{)}}
+
+==== {{S|traductions}} ====
+{{trad-début|Qui se meut avec vitesse}}
+* {{T|af}} : {{trad-|af|haastig}}, {{trad+|af|vinnig}}
+* {{T|sq}} : {{trad+|sq|shpejtë}}
+* {{T|de}} : {{trad+|de|geschwind}}, {{trad+|de|hurtig}}, {{trad+|de|rasch}}, {{trad+|de|schnell}}, {{trad+|de|zügig}}
+* {{T|en}} : {{trad+|en|fast}}, {{trad+|en|quick}}, {{trad+|en|rapid}}, {{trad+|en|speedy}}, {{trad+|en|swift}}, {{trad+|en|expeditious}}, {{trad+|en|prompt}}
+* {{T|ba}} : {{trad|ba|шәп}}, {{trad|ba|тиҙ}}, {{trad|ba|йор}}
+* {{T|bar}} : {{trad|bar|schnö}} (Autriche)
+* {{T|br}} : {{trad+|br|fonnus}}, {{trad+|br|herrek}}, {{trad+|br|prim}}
+* {{T|ca}} : {{trad+|ca|ràpid}}, {{trad+|ca|prompte}}
+* {{T|shy}} : {{trad+|shy|yezreb}}
+* {{T|hr}} : {{trad+|hr|brz}}
+* {{T|da}} : {{trad+|da|hurtig}}
+* {{T|es}} : {{trad+|es|rápido}}
+* {{T|eo}} : {{trad-|eo|rapida}}
+* {{T|fo}} : {{trad-|fo|kvikur}}, {{trad+|fo|skjótur}}
+* {{T|fi}} : {{trad+|fi|nopea}}
+* {{T|vls}} : {{trad|vls|zwak}}, {{trad|vls|zaire}}
+* {{T|fy}} : {{trad-|fy|fluch}}
+* {{T|gd}} : {{trad-|gd|bras}}, {{trad-|gd|luath}}
+* {{T|gag}} : {{trad|gag|hızlı}}, {{trad|gag|çabuk}}
+* {{T|gaulois}} : {{trad|gaulois|acu-}}, {{trad|gaulois|acus}}
+* {{T|ka}} : {{trad+|ka|ჩქარი|tr=č'k'ari}}, {{trad-|ka|სწრაფი|tr=scrap'i}}
+* {{T|grc}} : {{trad|grc|καρπάλιμος|tr=karpálimos}}, {{trad|grc|ταχύς|tr=takhús}}, {{trad|grc|ὀτρηρός|tr=otrērós}}, {{trad|grc|ὠκύς|tr=ōkús}}, {{trad|grc|θοός|tr=thoós}}
+* {{T|mww}} : {{trad|mww|ceev}}
+* {{T|hu}} : {{trad+|hu|gyors}}
+* {{T|sah}} : {{trad|sah|түргэн}}
+* {{T|io}} : {{trad+|io|rapida}}
+* {{T|id}} : {{trad+|id|cepat}}, {{trad+|id|kencang}}
+* {{T|iu}} : {{trad-|iu|ᓱᒃᑲᔪᖅ|R=[[sukkajuq]]}}
+* {{T|is}} : {{trad-|is|hratt}}
+* {{T|it}} : {{trad+|it|rapido}}, {{trad+|it|veloce}}
+* {{T|kjh}} : {{trad|kjh|табырах}}
+* {{T|kum}} : {{trad|kum|чалт}}
+* {{T|la}} : {{trad-|la|rapidus}}, {{trad+|la|velox}}
+* {{T|lep}} : {{trad|lep|ᰃ᰷ᰥᰮᰶ}}
+* {{T|ms}} : {{trad-|ms|jepat}}, {{trad-|ms|lekas}}, {{trad+|ms|cepat}}
+* {{T|cmn}} : {{trad+|zh|快速|tr=kuài sù}}, {{trad+|zh|迅速|tr=xùn sù}}
+* {{T|yua}} : {{trad|yua|seeb}}, {{trad|yua|seebak}}
+* {{T|crg}} : {{trad|crg|vif}}, {{trad|crg|kaakwayaahoo}}
+* {{T|nl}} : {{trad+|nl|gauw}}, {{trad+|nl|gezwind}}, {{trad+|nl|haastig}}, {{trad+|nl|snel}}, {{trad+|nl|spoedig}}, {{trad+|nl|vlug}}
+* {{T|nog}} : {{trad|nog|тез}}, {{trad|nog|шалт}}, {{trad|nog|каты}}
+* {{T|no}} : {{trad+|no|hurtig}}
+* {{T|oc}} : {{trad+|oc|rapid}}, {{trad+|oc|rabent}}
+* {{T|pap}} : {{trad|pap|rápido}}
+* {{T|fa}} : {{trad+|fa|سریع}}, {{trad+|fa|تند}}
+* {{T|pl}} : {{trad+|pl|szybki}}, {{trad+|pl|raptowny}}, {{trad+|pl|pospieszny}}
+* {{T|pt}} : {{trad+|pt|rápido}}, {{trad+|pt|veloz}}
+* {{T|ro}} : {{trad+|ro|repede}}
+* {{T|ru}} : {{trad+|ru|быстрый|tr=bystryj}}, {{trad+|ru|скорый|tr=skoryj}}
+* {{T|se}} : {{trad|se|johtil}}, {{trad|se|gerges}}
+* {{T|sc}} : {{trad-|sc|lestru}}
+* {{T|scn}} : {{trad+|scn|lestu|m}}, {{trad+|scn|ràpidu|m}}
+* {{T|sv}} : {{trad+|sv|snabb}}
+* {{T|sw}} : {{trad-|sw|-epesi}}
+* {{T|tl}} : {{trad-|tl|mabilís}}, {{trad-|tl|madalî}}, {{trad-|tl|matúlin}}
+* {{T|tt}} : {{trad-|tt|тиз}}
+* {{T|cs}} : {{trad+|cs|rychlý}}
+* {{T|tr}} : {{trad+|tr|acele}}, {{trad+|tr|çabuk}}, {{trad+|tr|hızlı}}
+* {{T|tk}} : {{trad-|tk|çalt}}
+* {{T|uk}} : {{trad-|uk|швидкий|tr=švydkyï}}
+* {{T|wa}} : {{trad+|wa|rade}}, {{trad+|wa|vite}}
+* {{T|yo}} : {{trad|yo|yára}}, {{trad|yo|láyè}}, {{trad|yo|tàrà}}, {{trad|yo|tètè}}
+{{trad-fin}}
+
+{{trad-début|Très incliné}}
+* {{T|hr}} : {{trad-|hr|strm}}
+* {{T|pl}} : {{trad+|pl|prędki}}
+* {{T|sv}} : {{trad+|sv|brant}}
+{{trad-fin}}
+
+{{trad-début|Qui comprend, qui agit avec rapidité}}
+* {{T|br}} : {{trad+|br|akuit}}
+* {{T|hr}} : {{trad-|hr|živog duha}}
+* {{T|pl}} : {{trad+|pl|bystry}}
+* {{T|se}} : {{trad|se|háhppil}}
+* {{T|sv}} : {{trad+|sv|strid}}
+{{trad-fin}}
+
+{{trad-début|Animé, vif, entrainant}}
+* {{T|en}} : {{trad+|en|lively}}
+* {{T|eo}} : {{trad-|eo|vigla}}
+* {{T|pl}} : {{trad+|pl|żwawy}}
+* {{T|se}} : {{trad|se|háhppil}}
+* {{T|sv}} : {{trad+|sv|rask}}
+{{trad-fin}}
+
+=== {{S|nom|fr|num=1}} ===
+{{fr-rég|ʁa.pid}}
+[[File:Rapids before the Rhine Falls.jpg|thumb|Un '''rapide'''. (sens 1)]]
+'''rapide''' {{pron|ʁa.pid|fr}} {{m}}
+# {{lexique|géographie|fr}} Partie d’un [[cours d’eau]] qui [[descendre|descend]] très [[rapidement]] sur une [[déclivité]].
+#* {{exemple|lang=fr|Un dur métier, dis-je ! de haler sur la bricole durant trois mois, de recevoir l'eau jusqu'aux aisselles dans les '''rapides''', de guider cette chaîne de trente-deux « coupons » avec la perche ferrée, de « ''chorer'' » qu'il disaient.|source={{Citation/Jean Rogissart/Passantes d’Octobre/1958}}}}
+#* {{exemple|lang=fr| « Ils l'ont défigurée », dit-il, et il poursuivit sa route, sans être sensible ni au charme des eaux pures et courantes des '''rapides''' de Phade, ni au calme harmonieux de la cuvette d’Haulmé où la Semoy divague plus que de raison, entre une terrasse et des versants à pic. |source=René Détrey, ''Merveilles et merveilles'', Charleville : chez l'auteur, 1963, p. 22}}
+#* {{exemple | lang=fr
+ | Les '''rapides''' innombrables du Caroni semblent se jeter à notre rencontre, pour nous happer.
+ | source=Roger Borniche, ''L’Archange'', éditions Grasset et Fasquelle, 1978, chapitre 13}}
+# [[train|Train]] qui avance à grande [[vitesse]] et ne s’arrête qu’à quelques gares importantes.
+#* {{exemple|lang=fr|Les démarches entreprises par la Chambre pour obtenir la régularisation de l’horaire du '''rapide''' Milan-Bordeaux, afin d’assurer la correspondance de ce train à Montluçon avec les express desservant la région nantaise, ont abouti.|source=« À la Chambre de Commerce », ''Le Phare'', 18 janvier 1925, page 3|lien=https://archives-numerisees.loire-atlantique.fr/v2/ark:/42067/114699a73747d5cac0fe0f83c74e48c5}}
+#* {{exemple|— J’entends un bruit de pas…<br
+/>— Alors ce n’est sûrement pas un '''rapide'''…|source={{w|Morris (auteur)|Morris}} [Maurice de Bevere], ''Lucky Luke 12 — Les Cousins Dalton'', éditions Jean Dupuis, 1977, page 24|lang=fr}}
+# {{lexique|échecs|fr}} [[tournoi|Tournoi]] joué à la cadence rapide.
+
+==== {{S|traductions}} ====
+{{trad-début|Cataracte.}}
+* {{T|de}} : {{trad+|de|Stromschnelle|f}}
+* {{T|en}} : {{trad+|en|rapid}}
+* {{T|bar}} : {{trad|bar|Soistufn|f}}
+* {{T|eo}} : {{trad-|eo|katarakto}}, {{trad-|eo|rapidakvo}}, {{trad-|eo|rapidfluo}}
+* {{T|fi}} : {{trad+|fi|koski}}
+* {{T|dgr}} : {{trad|dgr|dehteèlı̨ı̨}}
+* {{T|moh}} : {{trad|moh|kahná:waʼ}}
+* {{T|oc}} : {{trad+|oc|rabeg}}, {{trad+|oc|raspa|f}}
+* {{T|ryu}} : {{trad|ryu|瀬}}, {{trad|ryu|しー|tr=shii}}
+* {{T|fa}} : {{trad-|fa|تنداب|tr=tondâb}}
+* {{T|ru}} : {{trad+|ru|быстрина|tr=bystrina}}
+* {{T|smn}} : {{trad|smn|kuoška}}
+* {{T|se}} : {{trad|se|guoika}}
+* {{T|sv}} : {{trad+|sv|fors}}
+* {{T|uk}} : {{trad-|uk|поріг|tr=porih}}
+{{trad-fin}}
+
+{{trad-début|Train.}}
+* {{T|de}} : {{trad+|de|Schnellzug|m}}
+* {{T|en}} : {{trad+|en|express}}
+* {{T|bar}} : {{trad|bar|Schnözug (Autriche)}}
+* {{T|eo}} : {{trad-|eo|rapidvagonaro}}
+* {{T|ja}} : {{trad+|ja|特急|tr=tokkyū}}
+* {{T|oc}} : {{trad+|oc|rapid}}
+* {{T|pl}} : {{trad+|pl|ekspres}}
+* {{T|sv}} : {{trad+|sv|snälltåg}}
+* {{T|cs}} : {{trad+|cs|rychlík}}
+{{trad-fin}}
+
+=== {{S|nom|fr|num=2}} ===
+{{fr-rég|ʁa.pid|mf=oui}}
+'''rapide''' {{pron|ʁa.pid|fr}} {{mf}}
+# {{familier|fr}} Personne très rapide dans ce qu’elle entreprend.
+#* {{exemple | lang=fr | Tu connais Lisa depuis une semaine et vous allez déjà vous marier ? Vous êtes des '''rapides''' dis donc !}}
+
+==== {{S|synonymes}} ====
+* [[nerveux]]
+* [[furieux]]
+
+=== {{S|prononciation}} ===
+* {{pron-rimes|ʁa.pid|fr}}
+* {{pron|ʁa.pid|fr}}
+* {{écouter|lang=fr|France <!-- précisez svp la ville ou la région -->|ʁa.pid|audio=Fr-rapide.ogg}}
+* {{écouter||ʁa.pid|lang=fr|audio=LL-Q150 (fra)-0x010C-rapide.wav}}
+* {{écouter|lang=fr|France (Paris)|audio=LL-Q150 (fra)-GrandCelinien-rapide.wav}}
+* {{écouter|lang=fr|France (Vosges)|audio=LL-Q150 (fra)-Poslovitch-rapide.wav}}
+* {{écouter|lang=fr|France (Vosges)||audio=LL-Q150 (fra)-LoquaxFR-rapide.wav}}
+* {{écouter|lang=fr|Canada (Shawinigan)||audio=LL-Q150 (fra)-DenisdeShawi-rapide.wav}}
+* {{écouter|lang=fr|France (Hérault)||audio=LL-Q150 (fra)-T. Le Berre-rapide.wav}}
+* {{écouter|lang=fr|Canada (Sainte-Marie)||audio=LL-Q150 (fra)-Webfil-rapide.wav}}
+* {{écouter|lang=fr|France (Strasbourg)||audio=LL-Q143 (epo)-Psychoslave-rapide.wav}}
+* {{écouter|canton du Valais (Suisse)||lang=fr|audio=LL-Q150 (fra)-DSwissK-rapide.wav}}
+* {{écouter|Québec (Canada)||lang=fr|audio=LL-Q150 (fra)-Estrie-rapide.wav}}
+* {{écouter|Vendée (France)||lang=fr|audio=LL-Q150 (fra)-Sartus85-rapide.wav}}
+
+=== {{S|anagrammes}} ===
+{{voir anagrammes|fr}}
+
+=== {{S|voir aussi}} ===
+{{Autres projets
+|w=Rapide}}
+
+=== {{S|références}} ===
+* {{Import:DAF8}}
+
+[[Catégorie:Chutes en français|*]]

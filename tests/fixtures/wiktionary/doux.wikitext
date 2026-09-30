@@ -1,0 +1,450 @@
+== {{langue|fr}} ==
+=== {{S|étymologie}} ===
+: Du {{étyl|la|fr|mot=dulcis}}. {{date|lang=fr|1080}} ''[[dulz]]''.
+
+=== {{S|adjectif|fr}} ===
+{{fr-accord-oux|d|d}}
+'''doux''' {{pron|du|fr}}
+# Agréable au [[toucher]].
+#* {{exemple | lang=fr
+ | Mince, brune, dure de tout le corps, elle représentait le type parfait de la race métisse, la chola, avec ses cheveux noirs lisses, sa peau fine et '''douce'''.
+ | source=Georges Arnaud, ''Le Salaire de la Peur'', 1950}}
+# D’une [[saveur]] peu prononcée, ni [[acide]], ni [[amer]], ni [[piquant]]e. Se dit aussi d’une saveur [[crémeux|crémeuse]] et à la texture [[soyeux|soyeuse]].
+#* {{exemple | lang=fr | Puisque vous êtes sensible, je vous conseille cette sauce plus '''douce'''.}}
+# [[agréable|Agréable]] à entendre, ni [[heurté]], ni [[fort]].
+#* {{exemple | lang=fr | Que cet air de Caccini est '''doux''' !}}
+#* {{exemple | lang=fr
+ | Il parle d'une voix plus '''douce''' que la première neige et a ce regard tendre et profond des êtres d'exception.
+ | source={{w|Anaïs Barbeau-Lavalette}}, ''{{w|La femme qui fuit}}'', éditions Marchand de feuilles, Montréal, 2015, p. 356}}
+# Pour une [[eau]], à teneur faible en [[minéral#Nom|minéraux]], en particulier le [[sel]].
+#* {{exemple | lang=fr | Cette espèce vit aussi bien dans l’eau '''douce''' que dans l’océan.}}
+# [[sucré|Sucré]], en évoquant une [[nourriture]], ou une [[boisson]].
+#* {{exemple | lang=fr | Ce vin est '''doux''' et très fruité.}}
+# Apportant du [[réconfort]], du [[bien-être]].
+#* {{exemple | lang=fr | Je te souhaite une '''douce''' nuit.}}
+#* {{exemple|lang=fr|Mais il vient, le Roi jeune et '''doux''', le Dieu vainqueur,<br>Le Dieu Khons, à la fois baume, flamme et rosée,<br>Qui rend la sève à flots à la plante épuisée,<br>L’espérance et la joie intarissable au cœur.|source={{w|Leconte de Lisle}}, ''{{WS|Poèmes barbares}}'', [https://fr.wikisource.org/wiki/N%C3%A9f%C3%A9rou-Ra « Néférou-Ra »], Librairie Alphonse Lemerre, 1900 (1<sup>re</sup> éd. 1862), page 40}}
+# Qui n’a rien de [[fatigant]].
+#* {{exemple | lang=fr
+ | Sur des routes aux '''doux''' reliefs, vous prendrez la direction de Champlay, Neuilly et Laduz, où vous pourrez visiter un intéressant musée des Arts et Traditions populaires.
+ | source=''Balades à vélo en Bourgogne'' 2009 {{w|Petit Futé}}, p.234}}
+# Qualifie une [[consonne]] sonore, qui n’est pas [[sourde]].
+#* {{exemple | lang=fr
+ | Il parlait couramment anglais, mais avec un fort accent tudesque, qu’on remarquait spécialement dans la prononciation des lettres ''v'' et ''b'' ; il adoucissait ses ''th'' jusqu’à faire entendre le son ''dz'' très '''doux''' […]
+ | source={{Citation/H. G. Wells/La Guerre dans les airs/1921|153}}}}
+#* {{exemple | lang=fr | « g » est une consonne '''douce'''.}}
+# {{figuré|fr}} D’un caractère [[affable]] et [[conciliant]].
+#* {{exemple | lang=fr | Un peuple '''doux''' et hospitalier.}}
+# {{figuré|fr}} Peu [[pénible]], peu [[difficile]] à [[supporter]], à [[endurer]], à [[observer]], qui n’est pas [[imposer|imposé]] ou [[infliger|infligé]] [[avec]] trop de [[rigueur]].
+#* {{exemple | lang=fr | C’est une peine trop '''douce''' pour ce criminel.}}
+# Qui est de [[température]] [[tiède]].
+#* {{exemple | lang=fr
+ | Chaque période interglaciaire amène un adoucissement du climat, qui prend le type froid et sec ou bien '''doux''' et humide.
+ | source={{w|Henri Gaussen}}, ''Géographie des plantes'', Armand Colin, 1933, p. 58}}
+# {{lexique|métallurgie|fr}} Qui se [[plie]] [[aisément]] sans se [[casser]].
+#* {{exemple | lang=fr | Le fer le plus '''doux''' est le plus propre à faire de l’acier.}}
+#{{lexique|hydrologie|fr}} Qualifie une [[eau]] dont la [[teneur]] en [[ion]]s [[calcium]] et [[magnésium]] reste en dessous d’un certain seuil, lequel peut varier selon les normes en vigueur dans chaque pays.
+#*{{exemple|lang=fr|La concentration de ces ions dans l’eau permet également de mesurer la dureté de l’eau exprimée par le degré hydrotimétrique français (°f TH). En France, l’eau est dite '''douce''' en dessous de 15°f TH et est dure au-dessus de 25°f TH.|source=Agathe Euzen, « 26. Voir, goûter, sentir... perceptions de la qualité de l'eau par les Parisiens ». ''L’eau mondialisée La gouvernance en question'', La Découverte, 2010. p.471-483. CAIRN.INFO, |lien=https://shs-cairn-info.wikipedialibrary.idm.oclc.org/l-eau-mondialisee--9782707154965-page-471}}
+==== {{S|synonymes}} ====
+: ''Agréable au toucher'' (1) :
+* [[soyeux]]
+: ''Saveur peu prononcée'' (2) :
+* [[modéré]]
+: ''Agréable à entendre'' (3) :
+* [[agréable]], [[calme]], [[suave]]
+: ''Sucré'' (5) :
+* [[liquoreux]], [[moelleux]]
+: ''Apportant du réconfort'' (6) :
+* [[agréable]]
+: ''Qui n’a rien de fatigant'' (7) :
+* [[léger]]
+: ''Consonne sonore'' (8) :
+* [[sonore]]
+
+==== {{S|antonymes}} ====
+: ''Agréable au toucher'' (1) :
+* [[âpre]], [[dur]], [[rêche]], [[rugueux]]
+: ''Saveur peu prononcée, texture soyeuse'' (2) :
+* [[âcre]], [[aigre]], [[amer]], [[fort]]
+: ''Agréable à entendre'' (3) :
+* [[fort]], [[irritant]]
+: ''Eau à teneur faible en minéraux'' (4) :
+* [[salé]]e, [[saumâtre]]
+: ''Sucré'' (5) :
+* [[sec]] (boisson)
+: ''Apportant du réconfort'' (6) :
+* [[dur]], [[rude]]
+: ''Qui n’a rien de fatigant'' (7) :
+* [[fort]]
+: ''Consonne sonore'' (8) :
+* [[fort]], [[sourd]]
+: ''Affable'' (9):
+* [[rude]], [[cruel]], [[farouche]], [[violent]].
+
+==== {{S|dérivés}} ====
+{{(}}
+* [[adoucir]]
+* [[adoucissage]]
+* [[adoucissant]]
+* [[adoucissement]]
+* [[adoucisseur]]
+* [[aigre-doux]]
+* [[à la douce]]
+* [[amande douce]]
+* [[avaler doux comme lait]]
+* [[beurre doux]]
+* [[billet doux]]
+* [[c doux]]
+* [[caryer à noix douce]]
+* [[chauffe-doux]]
+* [[citron doux]]
+* [[douçain]]
+* [[douce-amère]]
+* [[Douce France]]
+* [[douceâtre]]
+* [[doucement]]
+* [[doucereusement]]
+* [[doucereux]]
+* [[doucet]]
+* [[doucette]]
+* [[doucettement]]
+* [[douceur]]
+* [[doucin]]
+* [[doucir]]
+* [[doucissage]]
+* [[doucisseur]]
+* [[doudou]]
+* [[doux-amer]]
+* [[doux comme un agneau]]
+* [[doux commerce]]
+* [[doux dingue]]
+* [[doux Jésus]]
+* [[doux rêve]]
+* [[drogue douce]]
+* [[eau douce]]
+* [[en douce]]
+* [[énergie douce]] ''(énergie qui préserve la nature)''
+* [[esprit doux]]
+* [[faire les yeux doux]]
+* [[faire une douce violence à quelqu’un]]
+* [[flute douce]] {{ortho1990}}
+* [[flûte douce]] 
+* [[g doux]]
+* [[gland doux]]
+* [[grenadille douce]]
+* [[heure douce]] {{vaudois|nocat=1} 
+* [[ŀime douce]] ''(lime dont les aspérités sont fines et peu saillantes)''
+* [[limettier doux de Tunisie]]
+* [[maïs doux]]
+* [[médecine douce]] ''(médecine naturelle)''
+* [[manioc doux]]
+* [[mobilité douce]]
+* [[mot doux]]
+* [[orange douce]]
+* [[patate douce]]
+* [[pédale douce]]
+* [[piment doux]]
+* [[potiron doux d’Hokkaïdo]]
+* [[radoucir]]
+* [[radoucissement]]
+* [[raie blanche douce]]
+* [[redoux]]
+* [[saindoux]]
+* [[sauce douce]] ''(sauce faite avec du sucre et du vinaigre)''
+* [[se la couler douce]]
+* [[taille-douce]]
+* [[vin doux]]
+* [[vin doux naturel]]
+{{)}}
+
+==== {{S|vocabulaire}} ====
+* {{thématique|adjectifs décrivant une saveur|fr}}
+* {{voir thésaurus|fr|vin|moutarde|pomme|siège (mobilier)|bestiaire médiéval|doux|hiver}}
+
+==== {{S|phrases}} ====
+* [[la vengeance est douce au cœur de l’Indien]]
+
+==== {{S|traductions}} ====
+{{trad-début|Agréable au toucher.|1}}
+* {{T|de}} : {{trad+|de|weich}}
+* {{T|fro}} : {{trad|fro|dolz}}, {{trad|fro|dulz}}, {{trad|fro|douz}}
+* {{T|en}} : {{trad+|en|soft}}
+* {{T|br}} : {{trad+|br|dous}}, {{trad+|br|kuñv}}
+* {{T|mlc}} : {{trad|mlc|ʔɔːn⁴²}}
+*{{T|ca}} : {{trad+|ca|dolç}}, {{trad+|ca|suau}}
+* {{T|ko}} : {{trad-|ko|부드럽다|tr=budeuleobda}}, {{trad-|ko|보드랍다|tr=bodeulabda}}
+* {{T|hr}} : {{trad-|hr|nježan}}, {{trad-|hr|nježan}}
+* {{T|dlm}} : {{trad+|dlm|dulco}}
+* {{T|es}} : {{trad+|es|suave}}
+* {{T|hu}} : {{trad+|hu|puha}}
+* {{T|iu}} : {{trad-|iu|ᐊᕿᑦᑐᖅ|R=[[aqittuq]]}}
+* {{T|it}} : {{trad+|it|morbido}}
+* {{T|ja}} : {{trad+|ja|ふわふわ|tr=fuwafuwa}}, {{trad+|ja|もふもふ|tr=mofumofu}}
+* {{T|kk}} : {{trad-|kk|жұмсақ|tr=jumsaq}}, {{trad-|kk|биязы|tr=bıyazı}}
+* {{T|avk}} : {{trad|avk|pibaf}}
+* {{T|ku}} : {{trad+|ku|nerm}}
+* {{T|cmn}} : {{trad-|cmn|柔软|tr=róuruǎn|tradi=柔軟}}, {{trad+|cmn|软|tr=ruǎn|tradi=軟}}
+* {{T|nl}} : {{trad+|nl|zacht}}
+* {{T|oc}} : {{trad+|oc|doç}}
+* {{T|myp}} : {{trad|myp|koaísi}}, {{trad|myp|biixi}}
+* {{T|pt}} : {{trad+|pt|macio|m}}, {{trad-|pt|macios|mp}}
+* {{T|ro}} : {{trad+|ro|moale}}
+* {{T|se}} : {{trad|se|láđis}}, {{trad|se|linis}}
+* {{T|solrésol}} : {{trad|solrésol|mis'olmi}}
+* {{T|sv}} : {{trad+|sv|mjuk}}
+* {{T|cs}} : {{trad+|cs|hebký}}
+* {{T|tr}} : {{trad+|tr|yumuşak}}
+{{trad-fin}}
+
+{{trad-début|D’une saveur peu prononcée, ou de texture soyeuse.|2}}
+* {{T|de}} : {{trad+|de|mild}}
+* {{T|en}} : {{trad+|en|mild}}
+* {{T|br}} : {{trad+|br|dous}}, {{trad+|br|blazus}}
+* {{T|ca}} : {{trad+|ca|dolç}}, {{trad+|ca|suau}}
+* {{T|ko}} : {{trad+|ko|달콤하다|tr=dalkomhada}}
+* {{T|hr}} : {{trad-|hr|blag}}
+* {{T|es}} : {{trad+|es|dulce}}, {{trad+|es|suave}}
+* {{T|fi}} : {{trad+|fi|laimea}}, {{trad+|fi|mieto}}
+* {{T|cy}} : {{trad+|cy|blasus}}, {{trad+|cy|meddal}}
+* {{T|it}} : {{trad+|it|dolce}}
+* {{T|kk}} : {{trad-|kk|тұщы|tr=tuşşı}}
+* {{T|avk}} : {{trad|avk|pibaf}}
+* {{T|crg}} : {{trad|crg|doo}}
+* {{T|niv}} : {{trad|niv|ненила}}
+* {{T|normand}} : {{trad|normand|douox}}
+* {{T|oc}} : {{trad+|oc|doç}}
+* {{T|ro}} : {{trad+|ro|dulce}}, {{trad+|ro|delicat}}
+* {{T|se}} : {{trad|se|láđis}}, {{trad|se|láivi}}
+* {{T|solrésol}} : {{trad|solrésol|mis'olmi}}
+* {{T|sv}} : {{trad+|sv|mild}}
+* {{T|uk}} : {{trad-|uk|пишний}}
+{{trad-fin}}
+
+{{trad-début|Agréable à entendre.|3}}
+* {{T|de}} : {{trad+|de|sanft}}, {{trad+|de|lieblich}}
+* {{T|en}} : {{trad+|en|sweet}}, {{trad+|en|gentle}}
+* {{T|br}} : {{trad+|br|flour}}, {{trad+|br|heson}}
+* {{T|ca}} : {{trad+|ca|dolç}}, {{trad+|ca|suau}}
+* {{T|hr}} : {{trad+|hr|ugodan}}
+* {{T|es}} : {{trad+|es|suave}}
+* {{T|cy}} : {{trad+|cy|blasus}}
+* {{T|kk}} : {{trad-|kk|жылы|tr=jılı}}, {{trad-|kk|жағымды|tr=jağımdı}}
+* {{T|cmn}} : {{trad+|cmn|柔和|tr=róuhé|tradi=柔和}}
+* {{T|oc}} : {{trad+|oc|doç}}
+* {{T|ro}} : {{trad+|ro|blând}}, {{trad+|ro|gentil}}
+* {{T|se}} : {{trad|se|soddjil}}
+* {{T|scn}} : {{trad+|scn|duci}}
+{{trad-fin}}
+
+{{trad-début|D’une eau à teneur faible en sel ou minéraux.|4}}
+* {{T|de}} : {{trad+|de|süß}} (''Süßwasser'')
+* {{T|en}} : {{trad+|en|fresh}} (''sans sel''), {{trad+|en|soft}} (''sans minéraux'')
+* {{T|bar}} : {{trad|bar|siaß}}
+* {{T|br}} : {{trad+|br|dous}}, {{trad+|br|milis}}
+* {{T|ca}} : {{trad+|ca|dolç}}
+* {{T|hr}} : {{trad-|hr|živa voda}}
+* {{T|es}} : {{trad+|es|dulce}}
+* {{T|fi}} : {{trad+|fi|makea}}, {{trad+|fi|pehmeä}}
+* {{T|hu}} : {{trad+|hu|lágy}}
+* {{T|kk}} : {{trad-|kk|тұщы|tr=tuşşı}}
+* {{T|ku}} : {{trad+|ku|şîrîn}}
+* {{T|nl}} : {{trad+|nl|zoet}}
+* {{T|oc}} : {{trad+|oc|doç}}
+* {{T|ro}} : {{trad+|ro|dulce}}
+* {{T|sv}} : {{trad+|sv|söt}}
+{{trad-fin}}
+
+{{trad-début|Sucré, en évoquant une nourriture, ou une boisson.|5}}
+* {{T|de}} : {{trad+|de|süß}} (''Früchte''), {{trad+|de|lieblich}} (''Wein''), {{trad+|de|leicht}} (''(Export-)Bier'')
+* {{T|en}} : {{trad+|en|sweet}}
+* {{T|hy}} : {{trad+|hy|քաղցր|tr=k̕aġc̕r}}
+* {{T|ast}} : {{trad+|ast|dulce}}
+* {{T|bar}} : {{trad|bar|siaß}}
+* {{T|my}} : {{trad+|my|ချို|tr=hkyui}}
+* {{T|br}} : {{trad+|br|dous}}, {{trad+|br|cʼhwek}}
+* {{T|ca}} : {{trad+|ca|dolç}}
+* {{T|hr}} : {{trad-|hr|blag}}
+* {{T|es}} : {{trad+|es|dulce}}
+* {{T|gl}} : {{trad+|gl|doce}}
+* {{T|gallo}} : {{trad|gallo|priz a l’anche}}, {{trad|gallo|prinz su l’anche}}
+* {{T|ka}} : {{trad-|ka|ტკბილი|tr=tkbili}}
+* {{T|hu}} : {{trad+|hu|édes}}
+* {{T|it}} : {{trad+|it|dolce}}
+* {{T|kk}} : {{trad-|kk|тәтті|tr=tätti}}
+* {{T|km}} : {{trad+|km|ផ្អែម|tr=pʼaem}}
+* {{T|avk}} : {{trad|avk|botakaf}}
+* {{T|ku}} : {{trad+|ku|şîrîn}}
+* {{T|lo}} : {{trad-|lo|ຫວານ|tr=wān}}
+* {{T|lep}} : {{trad|lep|ᰣᰦᰁᰤᰮ}}
+* {{T|nl}} : {{trad+|nl|zoet}}
+* {{T|oc}} : {{trad+|oc|doç}}
+* {{T|ryu}} : {{trad|ryu|あまさん|tr=amasan}}
+* {{T|fa}} : {{trad+|fa|شیرین}}
+* {{T|ro}} : {{trad+|ro|dulce}}
+* {{T|se}} : {{trad|se|láđis}}
+* {{T|ksw}} : {{trad|ksw|အဆၢ|tr=ʼa hsuh}}
+* {{T|sv}} : {{trad+|sv|söt}}
+* {{T|khb}} : {{trad|khb|ᦛᦱᧃ|tr=v̇aan}}
+* {{T|th}} : {{trad+|th|หวาน|tr=wǎan}}
+* {{T|tr}} : {{trad+|tr|tatlı}}
+* {{T|tk}} : {{trad-|tk|süýji}}
+{{trad-fin}}
+
+{{trad-début|Apportant du réconfort.|6}}
+* {{T|de}} : {{trad+|de|süß}}
+* {{T|en}} : {{trad+|en|gentle}}, {{trad+|en|tender}}
+* {{T|br}} : {{trad+|br|dous}}, {{trad+|br|kennerzhus}}
+* {{T|hr}} : {{trad+|hr|ugodan}}
+* {{T|it}} : {{trad+|it|dolce}}
+* {{T|kk}} : {{trad-|kk|жайлы|tr=jaylı}}
+* {{T|avk}} : {{trad|avk|zijnaf}}
+* {{T|se}} : {{trad|se|láđis}}
+* {{T|solrésol}} : {{trad|solrésol|mis'olmi}}
+* {{T|sv}} : {{trad+|sv|söt}}
+* {{T|uk}} : {{trad-|uk|ладний}}
+{{trad-fin}}
+
+{{trad-début|Qui n’a rien de fatigant.|7}}
+* {{T|en}} : {{trad+|en|gentle}}
+* {{T|br}} : {{trad+|br|diskuizhus}}
+* {{T|hr}} : {{trad-|hr|blag}}
+* {{T|gaulois}} : {{trad|gaulois|aramo-}}
+* {{T|avk}} : {{trad|avk|zijnaf}}
+* {{T|sv}} : {{trad+|sv|mild}}
+{{trad-fin}}
+
+{{trad-début|Se dit d’une consonne sonore.|8}}
+* {{T|en}} : {{trad+|en|soft}}
+* {{T|br}} : {{trad-|br|mouezhiet}}
+* {{T|hr}} : {{trad+|hr|ugodan}}
+* {{T|fi}} : {{trad+|fi|pehmeä}}
+* {{T|avk}} : {{trad|avk|mamtaf}}
+* {{T|sv}} : {{trad+|sv|mjuk}}, {{trad+|sv|tonande}}
+{{trad-fin}}
+
+{{trad-début|{{figuré|nocat=1}} D’un caractère affable et conciliant.|9}}
+* {{T|en}} : {{trad+|en|mild}}
+* {{T|br}} : {{trad+|br|habask}}, {{trad+|br|kuñv}}
+* {{T|hr}} : {{trad-|hr|miroljubiv}}
+* {{T|fi}} : {{trad+|fi|lempeä}}
+* {{T|ja}} : {{trad+|ja|おとなしい|tr=otonashii}}
+* {{T|avk}} : {{trad|avk|zijnaf}}
+* {{T|nl}} : {{trad+|nl|zachtmoedig}}, {{trad+|nl|zachtaardig}}
+* {{T|pl}} : {{trad+|pl|łagodny}}
+* {{T|pt}} : {{trad+|pt|doce|mf}}
+* {{T|se}} : {{trad|se|lodji}}
+* {{T|sv}} : {{trad+|sv|mild}}, {{trad+|sv|saktmodig}}
+{{trad-fin}}
+
+{{trad-début|{{figuré|nocat=1}} Peu pénible, peu difficile à supporter|10}}
+* {{T|en}} : {{trad+|en|mild}}
+* {{T|br}} : {{trad+|br|aes}}
+* {{T|hr}} : {{trad-|hr|blag}}
+* {{T|avk}} : {{trad|avk|meportaf}}
+* {{T|nl}} : {{trad+|nl|licht}}
+{{trad-fin}}
+
+{{trad-début|Qui est de température tiède.|11}}
+* {{T|en}} : {{trad+|en|mild}}
+* {{T|br}} : {{trad+|br|klouar}}
+* {{T|hr}} : {{trad-|hr|mlak}}
+* {{T|fi}} : {{trad+|fi|lauhkea}}, {{trad+|fi|lauha}}
+* {{T|avk}} : {{trad|avk|zakodaf}}
+* {{T|nl}} : {{trad+|nl|zacht}}
+* {{T|niv}} : {{trad|niv|тыкла}}
+* {{T|tr}} : {{trad+|tr|ılık}}
+{{trad-fin}}
+
+{{trad-début|{{info lex|métallurgie}} Qui se plie aisément sans se casser.|12}}
+* {{T|br}} : {{trad+|br|hebleg}}, {{trad+|br|goveliadus}}
+* {{T|hr}} : {{trad+|hr|mek}}
+* {{T|it}} : {{trad+|it|dolce}}
+* {{T|avk}} : {{trad|avk|tastaf}}
+* {{T|nl}} : {{trad+|nl|zacht}}
+{{trad-fin}}
+
+===== {{S|traductions à trier}} =====
+{{trad-début}}
+* {{T|af|trier}} : {{trad-|af|lieflik}}, {{trad+|af|soet}}
+* {{T|sq|trier}} : {{trad+|sq|ëmbël}}
+* {{T|ang|trier}} : {{trad-|ang|milde}}
+* {{T|bm|trier}} : {{trad|bm|duman}}
+* {{T|ca|trier}} : {{trad-|ca|plàcid}}, {{trad+|ca|suau}}, {{trad+|ca|dolç}}
+* {{T|da|trier}} : {{trad-|da|sløv}}, {{trad-|da|stump}}, {{trad-|da|mild}}, {{trad+|da|sød}}
+* {{T|es|trier}} : {{trad+|es|blando}} (1), {{trad+|es|suave}} (1,3), {{trad+|es|dulce}} (2), {{trad+|es|embotado}}, {{trad+|es|obtuso}}, {{trad+|es|apacible}}
+* {{T|eo|trier}} : {{trad-|eo|malakra}}, {{trad+|eo|milda}}, {{trad+|eo|dolĉa}}
+* {{T|fo|trier}} : {{trad-|fo|óhvassur}}, {{trad-|fo|blíður}}, {{trad-|fo|lagaligur}}, {{trad-|fo|mildur}}, {{trad-|fo|søtur}}, {{trad-|fo|mildur}}
+* {{T|fi|trier}} : {{trad+|fi|tylppä}}, {{trad+|fi|tylsä}}, {{trad+|fi|lempeä}}, {{trad+|fi|makea}}
+* {{T|fy|trier}} : {{trad-|fy|stomp}}, {{trad-|fy|myld}}, {{trad-|fy|mjitsk}}, {{trad-|fy|swiet}}
+* {{T|gd|trier}} : {{trad-|gd|milis}}
+* {{T|got|trier}} : {{trad|got|𐍅𐍉𐌸𐌴𐌹𐍃|R=wōþeis}}
+* {{T|hbo|trier}} : {{trad|hbo|חלק|dif=חָלָק|m}}
+* {{T|hu|trier}} : {{trad+|hu|tompa}}, {{trad+|hu|édes}}
+* {{T|io|trier}} : {{trad+|io|dolca}}
+* {{T|id|trier}} : {{trad+|id|manis}}
+* {{T|is|trier}} : {{trad+|is|mjúkur}}
+* {{T|it|trier}} : {{trad+|it|smussato}}, {{trad+|it|spuntato}}, {{trad+|it|mite}}
+* {{T|lac}} : {{trad|lac|ʌrʌkꞌbir}}
+* {{T|la|trier}} : {{trad-|la|suavis}}
+* {{T|ms|trier}} : {{trad-|ms|manis}}
+* {{T|nl|trier}} : {{trad+|nl|zacht}}, {{trad+|nl|bot}}, {{trad+|nl|stomp}}, {{trad+|nl|mild}}, {{trad+|nl|zachtaardig}}, {{trad+|nl|zachtmoedig}}, {{trad+|nl|zachtzinnig}}, {{trad+|nl|zoel}}, {{trad+|nl|liefelijk}}, {{trad+|nl|zoet}}
+* {{T|no|trier}} : {{trad-|no|butt}}, {{trad-|no|sløv}}, {{trad+|no|stump}}, {{trad+|no|søt}}
+* {{T|oc|trier}} : {{trad+|oc|doç}}
+* {{T|pap|trier}} : {{trad|pap|bòt}}, {{trad|pap|stòmpi}}, {{trad|pap|dushi}}
+* {{T|pcd}} : {{trad|pcd|amiteux}}
+* {{T|pl|trier}} : {{trad-|pl|tepy}}, {{trad+|pl|słodki}}
+* {{T|pt|trier}} : {{trad+|pt|cego}}, {{trad+|pt|embotado}}, {{trad+|pt|obtuso}}, {{trad+|pt|ameno}}, {{trad+|pt|brando}}, {{trad+|pt|doce}}, {{trad+|pt|suave}}, {{trad+|pt|meigo}}
+* {{T|ro|trier}} : {{trad+|ro|dulce}}
+* {{T|ru|trier}} : {{trad+|ru|тупой}}, {{trad+|ru|нежный}}
+* {{T|srn|trier}} : {{trad|srn|dede}}, {{trad|srn|switi}}
+* {{T|sv|trier}} : {{trad+|sv|ovass}}, {{trad+|sv|blid}}, {{trad+|sv|mild}}, {{trad+|sv|söt}}
+* {{T|sw|trier}} : {{trad-|sw|-tamu}}
+* {{T|tl|trier}} : {{trad-|tl|matamís}}
+* {{T|cs|trier}} : {{trad+|cs|tupý}}, {{trad+|cs|sladký}}
+* {{T|tr|trier}} : {{trad-|tr|yassi}}, {{trad+|tr|aheste}}, {{trad+|tr|hoş}}, {{trad+|tr|tatlı}}
+{{trad-fin}}
+
+=== {{S|nom|fr}} ===
+{{fr-inv|du}}
+'''doux''' {{pron|du|fr}} {{m}}
+# Caractère de ce qui est doux, [[douceur]].
+#* {{exemple | lang=fr | Aujourd’hui, le cuisinier passe du '''doux''' à l’amer.}}
+#* {{exemple | lang=fr
+ | Et je la serre sous son fichu peint de petites fleurs comme des hannetons d’or, je sens la tiédeur de sa peau, je presse le '''doux''' de sa chair.
+ | source={{w|Jules Vallès}}, ''{{ws|L’Enfant (Vallès)/Texte entier|L’Enfant}}'', G. Charpentier, 1889}}
+
+==== {{S|traductions}} ====
+{{trad-début}}
+* {{T|hr}} : {{trad+|hr|sladak}}
+* {{T|avk}} : {{trad|avk|pibuca}}
+* {{T|ro}} : {{trad+|ro|dulce|n}}
+* {{T|tr}} : {{trad+|tr|ılımlı}}
+{{trad-fin}}
+
+=== {{S|adverbe|fr}} ===
+{{fr-inv|du}}
+'''doux''' {{pron|du|fr}} {{invar}}
+# [[doucement|Doucement]]. Ne s’utilise guère que dans les locutions « [[filer doux]] » et « [[tout doux]] ».
+#* {{exemple | lang=fr | Il fut contraint de filer '''doux'''.}}
+
+==== {{S|traductions}} ====
+* [[louchébem]] : [[loucedé]]
+
+==== {{S|dérivés}} ====
+* [[filer doux]]
+* [[tout doux]]
+
+=== {{S|prononciation}} ===
+* {{pron-rimes|du|fr}}
+* {{écouter|lang=fr|France <!-- précisez svp la ville ou la région -->|du|audio=Fr-doux.ogg}}
+* {{écouter|lang=fr|France (Vosges)||audio=LL-Q150 (fra)-LoquaxFR-doux.wav}}
+* {{écouter|lang=fr|France (Toulouse)||audio=LL-Q150 (fra)-Lepticed7-doux.wav}}
+* {{écouter|lang=fr|France (Lyon)||audio=LL-Q150 (fra)-WikiLucas00-doux.wav}}
+* {{écouter|canton du Valais (Suisse)||lang=fr|audio=LL-Q150 (fra)-DSwissK-doux.wav}}
+
+==== {{S|homophones|fr}} ====
+* [[Doubs]]
+* [[doue]], [[douent]], [[doues]] ''(formes du verbe [[douer]])''
+
+=== {{S|références}} ===
+* {{R:DAF8}}
+* {{R:TLFi}}

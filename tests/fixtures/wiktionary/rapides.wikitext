@@ -1,0 +1,27 @@
+== {{langue|fr}} ==
+=== {{S|adjectif|fr|flexion}} ===
+{{fr-rég|ʁa.pid|mf=1|s=rapide}}
+'''rapides''' {{pron|ʁa.pid|fr}} {{mf}}
+# ''Pluriel de l’adjectif'' [[rapide#fr-adj|rapide]].
+#* {{exemple | lang=fr
+ | Il ne faut pas faire de généralisations '''rapides''', mais il semble bien qu’un commerçant déchaussé et déchaussetté penché sur ses arpions se met dans une situation inférieure vis-à-vis du client.
+ | source=Raymond Queneau, ''Le dimanche de la vie'', 1951, page 159}}
+
+=== {{S|nom|fr|flexion|num=1}} ===
+{{fr-rég|ʁa.pid|s=rapide}}
+'''rapides''' {{pron|ʁa.pid|fr}} {{m}}
+# ''Pluriel de'' [[rapide]].
+#* {{exemple | lang=fr
+ | Les '''rapides''' innombrables du Caroni semblent se jeter à notre rencontre, pour nous happer.
+ | source=Roger Borniche, ''L’Archange'', éditions Grasset et Fasquelle, 1978, chapitre 13}}
+
+=== {{S|nom|fr|flexion|num=2}} ===
+{{fr-rég|ʁa.pid|s=rapide}}
+'''rapides''' {{pron|ʁa.pid|fr}} {{mf}}
+# ''Pluriel de'' [[rapide]].
+
+=== {{S|prononciation}} ===
+* {{écouter|lang=fr|Canada (Shawinigan)||audio=LL-Q150 (fra)-DenisdeShawi-rapides.wav}}
+
+=== {{S|anagrammes}} ===
+{{voir anagrammes|fr}}

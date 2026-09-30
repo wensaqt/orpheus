@@ -1,0 +1,243 @@
+== {{langue|fr}} ==
+=== {{S|étymologie}} ===
+: Dérivé de ''[[heur]]'', signifiant « avoir la chance de », avec le suffixe ''[[-eux]]''.
+
+=== {{S|adjectif|fr}} ===
+{{fr-accord-eux|heur|œ.ʁ}}
+'''heureux''' {{pron|œ.ʁø|fr}} ou {{pron|ø.ʁø|fr}}{{R|TLFi}}
+# Qui [[jouit]] du [[bonheur]], qui [[possède]] ce qui peut le [[rendre]] [[content]].
+#* {{exemple|lang=fr|'''Heureux''' qui j’aimerai, mais plus '''heureux''' qui m’aime !<br>Jamais l’amer souci ne brûlera son cœur ;<br>Et je l’abreuverai de l’ardente liqueur<br>Qui fait l’homme semblable au Kronide lui-même.|source={{w|Leconte de Lisle}}, ''{{WS|Poèmes barbares}}'', [https://fr.wikisource.org/wiki/Ekhidna « Ekhidna »], Librairie Alphonse Lemerre, 1900 (1<sup>re</sup> éd. 1862), page 43}}
+#* {{exemple | lang=fr
+ | Suis-je '''heureux''' ? Oui ; je n’ai ni deuil, ni regrets, ni désir compliqué ; donc, je suis '''heureux'''.
+ | source={{Citation/Henri Barbusse/L’Enfer/1925}}}}
+#* {{exemple | lang=fr | Tous les êtres humains veulent être '''heureux'''.'' — ''Ils travaillaient à rendre les hommes meilleurs et plus '''heureux'''.'' — ''Est '''heureux''' qui croit l’être.'' — ''Nous ne serons parfaitement '''heureux''' que dans le ciel.'' — '''''Heureux''' sous le ciel prospère}}
+#* {{exemple | lang=fr | Il n’est pas fort riche et il ne laisse pas de se croire '''heureux''', d’être '''heureux''', de vivre '''heureux'''.}}
+#* {{exemple | lang=fr | Cette famille n’est pas '''heureuse'''.'' — ''Il se trouve fort '''heureux'''.'' — ''Il rend sa femme très '''heureuse'''.'' — ''Vous devez être bien '''heureux''' d’avoir de tels enfants.}}
+#* {{exemple | lang=fr | '''Heureux''' celui qui craint le Seigneur ! '''Heureux''' qui peut vaincre ses passions !}}
+#* {{exemple|lang=fr|Des études montrent que selon ce même mécanisme, les gagnants de loterie ne se sentent pas plus '''heureux''' avant et après avoir gagné qu'un groupe de contrôle; à l'inverse, les victimes d'accidents se retrouvant en fauteuil roulant se considèrent à peine plus insatisfaites qu'un groupe de contrôle|source=Finn Gessert, L'obsession de l'optimisation de soi nous rend misérables, Slate, 16 avril 2024}}
+# Se dit de la [[condition]], de la [[situation]], de la [[vie]] de celui qui est heureux.
+#* {{exemple | lang=fr | Il est dans un état '''heureux''', dans une condition '''heureuse''', dans une situation '''heureuse'''.}}
+#* ''Il jouit d’un sort très '''heureux'''.'' — ''Mener une vie '''heureuse'''.'' — ''Une '''heureuse''' vieillesse.'' — ''Faire une fin '''heureuse''''' : [[mourir|Mourir]] dans les [[sentiments]] d’un [[homme]] de [[bien]] et d’un bon [[chrétien]].
+# [[favorisé|Favorisé]] par la vie ou par son sort.
+#* {{exemple | lang=fr
+ | Eh bien ! dit mon ami avec indulgence, tu vois là-bas l'homme '''heureux''' qui vient de la reconduire, et qui, fidèle aux lois de notre cercle, n'ira la retrouver peut-être qu'après la nuit.
+ | source={{w|Gérard de Nerval}}, ''{{w|Les Filles du feu}}'', ''Sylvie'', 1854}}
+#* {{exemple | lang=fr | Il fut '''heureux''' assez pour réussir.'' — ''Il est fort '''heureux''' d’en être quitte à si bon marché.'' — ''Nous sommes '''heureux''' qu’il n’en ait rien su.'' — ''Il est '''heureux''' en tout.}}
+#* {{exemple | lang=fr | Vous êtes une '''heureuse''' mère, un '''heureux''' mortel.}}
+# Qui rend [[fortuné]], qui [[procure]] du [[plaisir]] ou qui est [[favorable]] et [[avantageux]].
+#* {{exemple | lang=fr | '''Heureux''' sort.'' — '''''Heureuse''' destinée.'' — ''Règne '''heureux'''.}}
+#* {{exemple | lang=fr | Laissez-la dans cette '''heureuse''' ignorance.'' — ''L’'''heureuse''' simplicité de nos pères.}}
+#* {{exemple | lang=fr | L’âge '''heureux''' de l’enfance.'' — ''Tout leur promettait un '''heureux''' avenir.}}
+#* {{exemple | lang=fr | Moment, événement '''heureux'''.'' — ''Occasion '''heureuse'''.}}
+#* {{exemple | lang=fr | '''Heureux''' changement.'' — '''''Heureux''' ascendant.'' — '''''Heureuse''' influence.}}
+#* {{exemple | lang=fr | Chance '''heureuse'''.'' — ''Hasard '''heureux'''.'' — ''Coup '''heureux'''.}}
+#* {{exemple | lang=fr | C’est '''heureux''', c’est fort '''heureux''' pour vous.}}
+#* {{familier|fr}} et {{ironique|fr}} ''C’est très '''heureux''', c’est bien '''heureux''', c’est fort '''heureux''''' : Se dit lorsqu’une personne [[adhère]] ou se [[détermine]] à quelque chose après avoir [[longtemps]] [[hésité]], ou parce qu’elle ne [[peut]] [[faire]] [[autrement]].
+#* {{exemple | lang=fr
+ | Vous dites que vous avez eu peur? Vous l’admettez. C’est '''heureux'''. Vous voilà sur la bonne voie.
+ | source=LaChance, Richard, ''Bonjour l’amour! Adieu violence!'', Le Dauphin Blanc, Québec, 2007}}
+#* {{exemple | lang=fr | Il s’est enfin déterminé à venir : c’est fort '''heureux'''.}}
+#* {{figuré|fr}} ''Être né sous une '''heureuse''' étoile'' : Être heureux dans tout ce qu’on [[entreprend]].
+#* ''Choix '''heureux''', conseil '''heureux''''' : [[choix|Choix]], [[conseil]] qui est [[suivi]] d’un bon [[succès]].
+#* ''Faire une '''heureuse''' rencontre, une rencontre '''heureuse''''' : [[trouver|Trouver]] par [[hasard]] ce que l’on [[cherchait]] et que l’on n’[[espérait]] pas [[trouver]] [[sitôt]].
+#* On dit dans un sens analogue : ''C’est une rencontre '''heureuse''''' : Surtout en parlant d’un bon [[mot]], d’un [[trait]] d’[[esprit]], d’une [[pensée]] [[ingénieuse]].
+#* {{figuré|fr}} ''Avoir la main '''heureuse''''' : Réussir [[ordinairement]] dans les choses qu’on entreprend.
+#* {{exemple | lang=fr | Cela est difficile ; mais il en viendra à bout, il a la main '''heureuse'''.}}
+#* ''Avoir la main '''heureuse''''' : Se dit aussi d’un [[joueur]] qui [[gagne]] [[souvent]].
+# Qui [[annonce]] de la [[prospérité]], qui [[promet]] de la [[bonne]] fortune, ou qui [[prévient]] [[favorablement]].
+#* {{exemple | lang=fr | Un '''heureux''' présage.'' — ''Un '''heureux''' pronostic.}}
+#* {{exemple | lang=fr | Il a quelque chose d’'''heureux''' dans la physionomie.}}
+# Choses [[sujettes]] à quelque [[danger]], lorsqu’elles [[arrivent]] sans [[accident]].
+#* {{exemple | lang=fr
+ | Un peu de houle agitait le ''Firecrest'' sur son ancre, et mes visiteurs furent '''heureux''' de regagner la terre ferme.
+ | source={{w|Alain Gerbault}}, ''À la poursuite du soleil''; tome 1 : ''De New-York à Tahiti'', 1929}}
+#* {{exemple | lang=fr | Des couches '''heureuses'''.}}
+#* {{exemple | lang=fr | La traversée, la navigation fut très '''heureuse'''.'' — ''Notre voyage fut '''heureux'''.}}
+#* {{exemple | lang=fr | '''Heureux''' retour.'' — '''''Heureuse''' tentative.}}
+# Se dit d’une [[chute]] ou de quelque autre chose de [[fâcheux]] qui n’a pas eu de [[mauvaise]] [[suite]].
+#* {{exemple | lang=fr | C’est une chute '''heureuse'''.}}
+# {{term|Dans une acception plus étendue}} Qui est bon, [[excellent]], [[distingué]] ou [[rare]] en son [[genre]].
+#* {{exemple | lang=fr
+ | Tandis que nous nous entretenions amicalement avec ces bonnes gens, j’observais l’'''heureuse''' disposition du dressoir, de l’évier, des tablettes, où étaient rangés les pots et les assiettes.
+ | source=[[w:Johann Wolfgang von Goethe|Goethe]], ''Campagne de France'', 1822 ; traduction française de Jacques Porchat, Paris : Hachette, 1889, page 93}}
+#* {{exemple | lang=fr
+ | On crie et on chante. Le boulangisme engendre toute une littérature de chansons - souvent d'une prosodie peu '''heureuse'''.
+ | source={{w|Alexandre Zévaès}}, ''Histoire de la Troisième République 1870 à 1926'', Éditions Georges-Anquetil, 1926, p.299}}
+#* {{exemple | lang=fr | Un '''heureux''' choix de mots.}}
+#* ''Les harmonies ne sont pas très '''heureuses''', mais je n'avais pas mis ça sur le compte de l'accordage... {{source|Alexandre Astier, Kaamelott (Livre IV – épisode 75), 2006}}''
+
+==== {{S|synonymes}} ====
+(1)
+* [[béat]]
+* [[bienheureux]]
+* [[comblé]]
+* [[content]]
+* [[enchanté]]
+* [[épanoui]]
+* [[gai]]
+* [[joyeux]]
+* [[ravi]]
+* [[réjoui]]
+* [[satisfait]]
+
+==== {{S|antonymes}} ====
+(1)
+* [[dépité]]
+* [[désenchanté]]
+* [[malheureux]]
+* [[triste]]
+
+==== {{S|dérivés}} ====
+{{(}}
+* [[Arabie heureuse]]
+* [[attendre un heureux événement]]
+* [[avoir la main heureuse]]
+* [[couler des jours heureux]]
+* [[d’heureuse mémoire]]
+* [[encore heureux]]
+* [[être heureux]]
+* [[Jours heureux]]
+* [[heureusement]]
+* [[heureuseté]]
+* [[heureux comme Dieu en France]] ''(Proverbe allemand)''
+* [[heureux comme un pape]]
+* [[heureux comme un prince]]
+* [[heureux comme un roi]]
+* [[heureux comme un poisson dans l’eau]]
+* [[heureux élu]]
+* [[heureux possesseur]]
+* [[imbécile heureux]]
+* [[malheureux]]
+* [[mondialisation heureuse]]
+* [[ne pas faire que des heureux]]
+* [[nombre heureux]]
+* [[père heureux dans ses enfants]]
+* [[père heureux en enfants]]
+* [[sous d’heureux auspices]]
+{{)}}
+
+==== {{S|phrases}} ====
+* [[heureux au jeu, malheureux en amour]]
+* [[heureux en amour, malheureux au jeu]]
+* [[ils furent heureux et eurent beaucoup d’enfants]]
+* [[ils vécurent heureux et eurent beaucoup d’enfants]]
+* [[malheureux au jeu, heureux en amour]]
+* [[malheureux en amour, heureux au jeu]]
+* [[mariage plus vieux, mariage heureux]]
+* [[mariage pluvieux, mariage heureux]]
+* [[pour vivre heureux vivons cachés]]
+==== {{S|vocabulaire}} ====
+* {{voir thésaurus|fr|bonheur}}
+
+==== {{S|traductions}} ====
+{{trad-début|Qui jouit du bonheur|1}}
+* {{T|de}} : {{trad+|de|glücklich}}
+* {{T|fro}} : {{trad|fro|felice}}, {{trad|fro|felix}}
+* {{T|en}} : {{trad+|en|lucky}}, {{trad+|en|fortunate}}, {{trad+|en|happy}}
+* {{T|ar}} : {{trad-|ar|سعيد|m|tr=saiid}}
+* {{T|az}} : {{trad+|az|xoşbəxt}}
+* {{T|ba}} : {{trad|ba|бәхетле}}
+* {{T|bar}} : {{trad|bar|gligglich}}
+* {{T|br}} : {{trad+|br|eürus}}
+* {{T|ca}} : {{trad+|ca|feliç}}
+* {{T|ceb}} : {{trad|ceb|malipayon}}
+* {{T|shy}} : {{trad|shy|ameggaz}}
+* {{T|gag}} : {{trad|gag|kısmetli}}
+* {{T|el}} : {{trad+|el|μακάριος|tr=makários}}
+* {{T|grc}} : {{trad|grc|μακάριος|tr=makários}}
+* {{T|sah}} : {{trad|sah|дьоллоох}}
+* {{T|it}} : {{trad+|it|felice}}
+* {{T|krc}} : {{trad|krc|насыблы}}
+* {{T|kk}} : {{trad-|kk|бақытты|tr=baqıttı}}
+* {{T|ky}} : {{trad+|ky|бактылуу|tr=baktyluu}}
+* {{T|avk}} : {{trad|avk|kalaf}}
+* {{T|kum}} : {{trad|kum|насипли}}
+* {{T|lorrain}} : {{trad|lorrain|agrous}}, {{trad|lorrain|ahhe}}, {{trad|lorrain|euraws|m}}, {{trad|lorrain|euroux|m}}, {{trad|lorrain|eureûx|m}}
+* {{T|mg}} : {{trad+|mg|faly}}
+* {{T|nl}} : {{trad+|nl|gelukkig}}
+* {{T|oc}} : {{trad+|oc|aürós}}, {{trad+|oc|urós}}, {{trad+|oc|astruc}}
+* {{T|pt}} : {{trad+|pt|feliz}}
+* {{T|ru}} : {{trad+|ru|счастливый|tr=sčastlívyj}}
+* {{T|sr}} : {{trad+|sr|srećan|m|tr=srechan}}, {{trad-|sr|srećna|f|tr=srechna}}, {{trad+|sr|srećno|n|tr=srechno}}
+* {{T|swb}} : {{trad|swb|furaha|dif=furahani}}
+* {{T|zdj}} : {{trad|zdj|furaha|dif=furahani}}
+* {{T|solrésol}} : {{trad|solrésol|mis'isol}}
+* {{T|sw}} : {{trad+|sw|furaha|dif=na furaha}}
+* {{T|crh}} : {{trad|crh|bahtlı}}
+* {{T|tt}} : {{trad-|tt|бәхетле}}
+* {{T|cv}} : {{trad|cv|телейлĕ}}
+* {{T|kim}} : {{trad|kim|чоллуғ}}
+* {{T|tr}} : {{trad+|tr|mutlu}}
+* {{T|tk}} : {{trad+|tk|bagtly}}
+* {{T|uk}} : {{trad+|uk|щасливий|tr=schaslivyj}}, {{trad-|uk|сонячний}}, {{trad+|uk|безхмарний}}, {{trad-|uk|щасний}}
+* {{T|wa}} : {{trad+|wa|awureus}}, {{trad+|wa|ureus}}
+{{trad-fin}}
+
+===== {{S|traductions à trier}} =====
+{{trad-début|À trier}}
+* {{T|abx}} : {{trad|abx|lipay}}
+* {{T|af}} : {{trad-|af|gelukkig}}
+* {{T|sq}} : {{trad+|sq|lumtur}}
+* {{T|en|trier}} : {{trad+|en|happy}}
+* {{T|ca}} : {{trad+|ca|feliç}}
+* {{T|shy}} : {{trad|shy|ameggaz}}
+* {{T|ko}} : {{trad+|ko|행복하다|tr=haengbokhada}}
+* {{T|da}} : {{trad+|da|lykkelig}}
+* {{T|es}} : {{trad+|es|afortunado}}, {{trad+|es|feliz}}
+* {{T|eo}} : {{trad-|eo|feliĉa}}
+* {{T|fo}} : {{trad-|fo|lukkuligur}}
+* {{T|fi}} : {{trad+|fi|onnellinen}}
+* {{T|fy}} : {{trad-|fy|lokkich}}
+* {{T|el}} : {{trad+|el|ευτυχισμένος|R=evtikhsiménos}}
+* {{T|io}} : {{trad+|io|helmo}}
+* {{T|id}} : {{trad-|id|felica}}
+* {{T|iu}} : {{trad-|iu|ᖁᕕᐊᓱᒃᑐᖅ|R=[[quviasuktuq]]}}
+* {{T|is}} : {{trad+|is|hamingjusamur}}
+* {{T|it}} : {{trad+|it|felice}}, {{trad-|it|fausto}}, {{trad-|it|fortunato}}
+* {{T|ja}} : {{trad+|ja|幸せ|tr=shiawase}}, {{trad+|ja|幸福|tr=kōfuku}}
+* {{T|lorrain|trier}} : {{trad|lorrain|euroux}}
+* {{T|mi}} : {{trad-|mi|harikoa}}
+* {{T|nl}} : {{trad+|nl|gelukkig}}, {{trad+|nl|zegenrijk}}
+* {{T|no}} : {{trad-|no|lykkelig}}
+* {{T|pap}} : {{trad|pap|felis}}
+* {{T|pl}} : {{trad+|pl|szczęśliwy}}
+* {{T|pt}} : {{trad+|pt|feliz}}, {{trad+|pt|bem-sucedido}}, {{trad+|pt|afortunado}}, {{trad+|pt|ditoso}}, {{trad+|pt|venturoso}}, {{trad+|pt|sortudo}}
+* {{T|ro}} : {{trad+|ro|fericit}}
+* {{T|se}} : {{trad|se|ilolaš}}, {{trad|se|lihkolaš}}
+* {{T|sv}} : {{trad+|sv|lycklig}}
+* {{T|tl}} : {{trad-|tl|maligáya}}, {{trad-|tl|masayá}}
+* {{T|cs}} : {{trad+|cs|šťastný}}
+* {{T|tr}} : {{trad+|tr|bahtiyar}}
+* {{T|wa}} : {{trad+|wa|binåjhe}}
+{{trad-fin}}
+
+=== {{S|nom|fr}} ===
+{{fr-inv|œ.ʁø|sp=1}}
+'''heureux''' {{pron|œ.ʁø|fr}} ou {{pron|ø.ʁø|fr}}{{R|TLFi}} {{m}} {{équiv-pour|lang=fr|une femme|heureuse}} {{sp}}
+# {{au pluriel}} Personnes heureuses.
+#* {{exemple | lang=fr | Faire des '''heureux'''.}}
+#* {{exemple | lang=fr | Un petit nombre d’'''heureux'''.}}
+#* ''Les '''heureux''' du monde, les '''heureux''' de la terre'' : Les hommes [[riches]], [[puissants]].
+#* ''Les '''heureux''' du jour'' : Les hommes en [[place]], en [[crédit]], en [[faveur]].
+# On dit également, dans le [[langage]] de la [[chaire]] : les '''heureux''' du siècle.
+
+=== {{S|prononciation}} ===
+* {{pron-rimes|œ.ʁø|fr}}
+* {{écouter|lang=fr|France <!-- précisez svp la ville ou la région -->|ø.ʁø|audio=Fr-heureux.ogg}}
+* {{écouter|lang=fr|Suisse (canton du Valais)|audio=LL-Q150 (fra)-DSwissK-heureux.wav}}
+* {{écouter|lang=fr|France (Vosges)||audio=LL-Q150 (fra)-LoquaxFR-heureux.wav}}
+* {{écouter|Cornimont (France)||lang=fr|audio=LL-Q150 (fra)-Poslovitch-heureux.wav}}
+* {{écouter|Saint-Laurent-de-Cerdans (France)||lang=fr|audio=LL-Q150 (fra)-Helenou66-heureux.wav}}
+* {{écouter|Vendée (France)||lang=fr|audio=LL-Q150 (fra)-Sartus85-heureux.wav}}
+
+=== {{S|voir aussi}} ===
+* {{Le Dico des Ados}}
+* [http://www.tv5monde.com/cms/chaine-francophone/lf/Merci-Professeur/p-17081-Heureuse-je-le-suis.htm?episode=190 Explication de Bernard Cerquiglini en images sur l’origine de l’expression ''Heureuse je le suis'']
+
+=== {{S|références}} ===
+* {{Import:DAF8}}
+<references>
+{{R|TLFi}}
+</references>
+
+[[Catégorie:Mots en français suffixés avec -eux]]
