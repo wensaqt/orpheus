@@ -2,6 +2,7 @@
 
 import { authedAction } from '@front/_lib/server/auth'
 
+import { EMPTY_RESULT } from './compose'
 import { lookupSynonyms } from './lexicon'
 import { parseQuery } from './query'
 import type { SynonymResult } from './types'
@@ -10,7 +11,7 @@ import type { SynonymResult } from './types'
 export const findSynonyms = authedAction(
   async (session, rawQuery: string): Promise<SynonymResult> => {
     const query = parseQuery(rawQuery)
-    if (!query) return { query: '', word: null, groups: [] }
+    if (!query) return { query: '', ...EMPTY_RESULT }
     return { query, ...(await lookupSynonyms(session, query)) }
   },
 )

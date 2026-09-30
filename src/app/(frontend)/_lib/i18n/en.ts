@@ -49,7 +49,10 @@ export const en = {
     copied: '“{word}” copied',
     copyError: 'Could not copy “{word}”',
     error: 'Could not load synonyms. Please try again.',
-    source: 'Thesaurus by {name} ({license})',
+    lessReliable: 'May include other senses.',
+    more: 'More suggestions ({count})',
+    credit: '{name} ({license})',
+    sources: 'Sources:',
     partsOfSpeech: {
       noun: 'Noun',
       adjective: 'Adjective',

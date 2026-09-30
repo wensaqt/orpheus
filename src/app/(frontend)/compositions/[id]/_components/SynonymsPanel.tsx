@@ -3,7 +3,7 @@
 import React, { useId } from 'react'
 
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
-import { THESAURUS_SOURCE } from '@/lib/thesaurus/source'
+import { THESAURUS_CREDITS } from '@/lib/thesaurus/source'
 
 import type { SynonymResult } from '@front/_features/lexicon/types'
 import { type SynonymStatus, useSynonyms } from '@front/_features/lexicon/useSynonyms'
@@ -68,15 +68,25 @@ export function SynonymsPanel() {
         )}
       </div>
 
-      {/* LGPL thesaurus: credit its source */}
+      {/* Credit both sources; the Wiktionary (CC BY-SA) is credited per page when used */}
       <p className={styles.source}>
+        {t('synonyms.sources')}{' '}
         <a
-          href={THESAURUS_SOURCE.url}
+          href={result?.sourceUrl ?? THESAURUS_CREDITS.wiktionary.url}
           target="_blank"
           rel="noreferrer"
           className={styles.sourceLink}
         >
-          {t('synonyms.source', { name: THESAURUS_SOURCE.name, license: THESAURUS_SOURCE.license })}
+          {t('synonyms.credit', THESAURUS_CREDITS.wiktionary)}
+        </a>
+        {' · '}
+        <a
+          href={THESAURUS_CREDITS.dicollecte.url}
+          target="_blank"
+          rel="noreferrer"
+          className={styles.sourceLink}
+        >
+          {t('synonyms.credit', THESAURUS_CREDITS.dicollecte)}
         </a>
       </p>
     </aside>
@@ -115,34 +125,53 @@ function Results({ result, copyHintId, onPick }: ResultsProps) {
       {result.word !== result.query && (
         <p className={styles.matched}>{t('synonyms.matched', { word: result.word! })}</p>
       )}
-      {result.groups.map((group, index) => (
-        <section key={index} className={styles.group}>
-          <h3 className={styles.partOfSpeech}>
-            {t(`synonyms.partsOfSpeech.${group.partOfSpeech}`)}
-          </h3>
-          {group.sense && (
-            <p className={styles.sense} lang="fr" title={group.sense}>
-              {group.sense}
-            </p>
-          )}
-          <ul className={styles.chips}>
-            {group.words.map((word, position) => (
-              // --position staggers the appear animation: words cascade in
-              <li key={word} style={{ '--position': position } as React.CSSProperties}>
-                <button
-                  type="button"
-                  className={styles.chip}
-                  lang="fr"
-                  aria-describedby={copyHintId}
-                  onClick={() => onPick(word)}
-                >
-                  {word}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      <Groups groups={result.groups} copyHintId={copyHintId} onPick={onPick} />
+      {result.more.length > 0 && (
+        // Native disclosure: keyboard- and screen-reader-friendly, collapsed by default
+        <details className={styles.more}>
+          <summary className={styles.moreSummary}>
+            {t('synonyms.more', {
+              count: result.more.reduce((total, group) => total + group.words.length, 0),
+            })}
+          </summary>
+          <Groups groups={result.more} copyHintId={copyHintId} onPick={onPick} />
+        </details>
+      )}
     </>
   )
+}
+
+type GroupsProps = Omit<ResultsProps, 'result'> & {
+  groups: (SynonymResult['more'][number] & { reliable?: boolean })[]
+}
+
+function Groups({ groups, copyHintId, onPick }: GroupsProps) {
+  return groups.map((group, index) => (
+    // data-reliable: less reliable groups (Dicollecte) are shown paler
+    <section key={index} className={styles.group} data-reliable={group.reliable !== false}>
+      <h3 className={styles.partOfSpeech}>{t(`synonyms.partsOfSpeech.${group.partOfSpeech}`)}</h3>
+      {group.reliable === false && <p className={styles.sense}>{t('synonyms.lessReliable')}</p>}
+      {group.sense && (
+        <p className={styles.sense} lang="fr" title={group.sense}>
+          {group.sense}
+        </p>
+      )}
+      <ul className={styles.chips}>
+        {group.words.map((word, position) => (
+          // --position staggers the appear animation: words cascade in
+          <li key={word} style={{ '--position': position } as React.CSSProperties}>
+            <button
+              type="button"
+              className={styles.chip}
+              lang="fr"
+              aria-describedby={copyHintId}
+              onClick={() => onPick(word)}
+            >
+              {word}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))
 }

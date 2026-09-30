@@ -1,7 +1,7 @@
 import type { CollectionConfig, JSONField } from 'payload'
 
 import { isLoggedIn } from '@/access/isLoggedIn'
-import { PARTS_OF_SPEECH, THESAURUS_LANGS } from '@/lib/thesaurus/types'
+import { PARTS_OF_SPEECH, THESAURUS_LANGS, THESAURUS_SOURCES } from '@/lib/thesaurus/types'
 
 const GROUPS_SCHEMA_URI = 'https://orpheus.app/schemas/synonym-groups.json'
 
@@ -25,8 +25,10 @@ const GROUPS_JSON_SCHEMA: NonNullable<JSONField['jsonSchema']> = {
 }
 
 /*
- * Synonym dictionary, one document per word and language, filled by `pnpm thesaurus:import`
- * (scripts/import-thesaurus.ts). Readable by signed-in users; never written through the app.
+ * Synonym dictionary: one document per word, language and source, filled by
+ * `pnpm thesaurus:import` (scripts/import-thesaurus.ts). An inflected form has no groups of its
+ * own but a `lemma` pointing to its base form. Readable by signed-in users; never written
+ * through the app.
  */
 export const ThesaurusEntries: CollectionConfig = {
   slug: 'thesaurus-entries',
@@ -40,7 +42,7 @@ export const ThesaurusEntries: CollectionConfig = {
     update: () => false,
     delete: () => false,
   },
-  indexes: [{ fields: ['word', 'lang'], unique: true }],
+  indexes: [{ fields: ['word', 'lang', 'source'], unique: true }],
   timestamps: false,
   fields: [
     { name: 'word', type: 'text', required: true, index: true },
@@ -51,6 +53,17 @@ export const ThesaurusEntries: CollectionConfig = {
       defaultValue: 'fr',
       options: [...THESAURUS_LANGS],
     },
+    {
+      name: 'source',
+      type: 'select',
+      required: true,
+      defaultValue: 'dicollecte',
+      options: [...THESAURUS_SOURCES],
+    },
     { name: 'groups', type: 'json', required: true, jsonSchema: GROUPS_JSON_SCHEMA },
+    // Base form of an inflected form ("marchait" → "marcher")
+    { name: 'lemma', type: 'text' },
+    // Part of speech of that inflected form ("parlions": verb), listed first
+    { name: 'lemmaPartOfSpeech', type: 'select', options: [...PARTS_OF_SPEECH] },
   ],
 }

@@ -33,6 +33,8 @@ describe('findSynonyms', () => {
         query: '',
         word: null,
         groups: [],
+        more: [],
+        sourceUrl: null,
       })
     }
     expect(lookupSynonyms).not.toHaveBeenCalled()

@@ -38,7 +38,10 @@ test.describe('Synonyms panel', () => {
     await panel.getByRole('searchbox').press('Enter')
 
     await expect(panel.getByRole('button', { name: 'harpe' })).toBeVisible()
-    await expect(panel.getByRole('link', { name: 'Thesaurus by Dicollecte (LGPL)' })).toBeVisible()
+    await expect(panel.getByRole('link', { name: 'Wiktionnaire (CC BY-SA)' })).toHaveAttribute(
+      'href',
+      `https://fr.wiktionary.org/wiki/${word}`,
+    )
 
     await panel.getByRole('button', { name: 'harpe' }).click()
     await expect(page.getByRole('status').filter({ hasText: '“harpe” copied' })).toBeVisible()

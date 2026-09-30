@@ -27,8 +27,48 @@ describe('thesaurus', () => {
     await cleanupTestUsers(payload)
   })
 
-  it('finds the synonyms of a word', async () => {
-    await expect(lookupSynonyms({ payload, user }, word)).resolves.toEqual({ word, groups })
+  it('finds the synonyms of a word, crediting the Wiktionary page', async () => {
+    await expect(lookupSynonyms({ payload, user }, word)).resolves.toMatchObject({
+      word,
+      groups: groups.map((group) => ({ ...group, reliable: true })),
+      sourceUrl: `https://fr.wiktionary.org/wiki/${word}`,
+    })
+  })
+
+  it('adds coherent Dicollecte suggestions and drops unrelated ones', async () => {
+    const friend = `${TEST_WORD_PREFIX}ami`
+    const intruder = `${TEST_WORD_PREFIX}intrus`
+    const dicollecte = { source: 'dicollecte' } as const
+    await seedThesaurusEntry(
+      payload,
+      word,
+      [{ partOfSpeech: 'adjective', sense: null, words: ['prompt', friend, intruder] }],
+      dicollecte,
+    )
+    // Two shared curated words are required: the friend has them, the intruder has none
+    await seedThesaurusEntry(
+      payload,
+      friend,
+      [{ partOfSpeech: 'adjective', sense: null, words: ['prompt', 'rapide'] }],
+      dicollecte,
+    )
+    await seedThesaurusEntry(
+      payload,
+      intruder,
+      [{ partOfSpeech: 'noun', sense: null, words: ['latrines'] }],
+      dicollecte,
+    )
+
+    const result = await lookupSynonyms({ payload, user }, word)
+    expect(result.more.flatMap((group) => group.words)).toEqual([friend])
+  })
+
+  it('leads an inflected form to its base form, same part of speech first', async () => {
+    await seedThesaurusEntry(payload, `${word}ait`, [], {
+      lemma: word,
+      lemmaPartOfSpeech: 'adjective',
+    })
+    await expect(lookupSynonyms({ payload, user }, `${word}ait`)).resolves.toMatchObject({ word })
   })
 
   it('falls back to the singular', async () => {
@@ -39,6 +79,8 @@ describe('thesaurus', () => {
     await expect(lookupSynonyms({ payload, user }, `${TEST_WORD_PREFIX}inconnu`)).resolves.toEqual({
       word: null,
       groups: [],
+      more: [],
+      sourceUrl: null,
     })
   })
 
@@ -54,7 +96,7 @@ describe('thesaurus', () => {
     await expect(
       payload.create({
         collection: 'thesaurus-entries',
-        data: { word: `${TEST_WORD_PREFIX}x`, lang: 'fr', groups },
+        data: { word: `${TEST_WORD_PREFIX}x`, lang: 'fr', source: 'wiktionary', groups },
         ...asUser,
       }),
     ).rejects.toThrow()

@@ -207,6 +207,7 @@ export interface ThesaurusEntry {
   id: number;
   word: string;
   lang: 'fr';
+  source: 'wiktionary' | 'dicollecte';
   groups: {
     partOfSpeech:
       | 'noun'
@@ -221,6 +222,20 @@ export interface ThesaurusEntry {
     sense: string | null;
     words: string[];
   }[];
+  lemma?: string | null;
+  lemmaPartOfSpeech?:
+    | (
+        | 'noun'
+        | 'adjective'
+        | 'verb'
+        | 'adverb'
+        | 'pronoun'
+        | 'preposition'
+        | 'conjunction'
+        | 'determiner'
+        | 'interjection'
+      )
+    | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -377,7 +392,10 @@ export interface CompositionsSelect<T extends boolean = true> {
 export interface ThesaurusEntriesSelect<T extends boolean = true> {
   word?: T;
   lang?: T;
+  source?: T;
   groups?: T;
+  lemma?: T;
+  lemmaPartOfSpeech?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

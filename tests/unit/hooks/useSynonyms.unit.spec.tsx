@@ -11,7 +11,9 @@ const { useSynonyms } = await import('@front/_features/lexicon/useSynonyms')
 const resultFor = (query: string, words = [`syn-${query}`]): SynonymResult => ({
   query,
   word: query,
-  groups: [{ partOfSpeech: 'adjective', sense: null, words }],
+  groups: [{ partOfSpeech: 'adjective', sense: null, words, reliable: true }],
+  more: [],
+  sourceUrl: `https://fr.wiktionary.org/wiki/${query}`,
 })
 
 describe('useSynonyms', () => {

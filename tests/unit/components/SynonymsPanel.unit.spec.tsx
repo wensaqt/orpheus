@@ -12,7 +12,9 @@ const { SynonymsPanel } = await import('@front/compositions/[id]/_components/Syn
 const found: SynonymResult = {
   query: 'rapides',
   word: 'rapide',
-  groups: [{ partOfSpeech: 'adjective', sense: null, words: ['vif', 'prompt'] }],
+  groups: [{ partOfSpeech: 'adjective', sense: null, words: ['vif', 'prompt'], reliable: true }],
+  more: [{ partOfSpeech: 'adjective', sense: null, words: ['agile', 'leste'] }],
+  sourceUrl: 'https://fr.wiktionary.org/wiki/rapide',
 }
 
 async function search(word: string) {
@@ -43,9 +45,12 @@ describe('SynonymsPanel', () => {
     await search('rapides')
     expect(announcement()).toBe('Synonyms found for “rapide”: 2')
     expect(screen.getByText('Synonyms of “rapide”')).toBeTruthy()
-    expect(
-      screen.getByRole('link', { name: 'Thesaurus by Dicollecte (LGPL)' }).getAttribute('href'),
-    ).toBe('https://grammalecte.net/')
+    expect(screen.getByRole('link', { name: 'Wiktionnaire (CC BY-SA)' }).getAttribute('href')).toBe(
+      found.sourceUrl,
+    )
+    expect(screen.getByRole('link', { name: 'Dicollecte (LGPL)' }).getAttribute('href')).toBe(
+      'https://grammalecte.net/',
+    )
   })
 
   it('announces "no synonyms" rather than a count of zero', async () => {
@@ -70,5 +75,21 @@ describe('SynonymsPanel', () => {
       fireEvent.click(screen.getByRole('button', { name: 'vif' }))
     })
     expect(screen.getByRole('alert').textContent).toContain('Could not copy “vif”')
+  })
+
+  it('collapses the extra suggestions and flags less reliable groups', async () => {
+    await search('rapides')
+    const summary = screen.getByText('More suggestions (2)')
+    expect(summary.closest('details')?.open).toBe(false)
+    expect(screen.queryByText('May include other senses.')).toBeNull()
+
+    findSynonyms.mockResolvedValue({
+      ...found,
+      groups: [{ ...found.groups[0], reliable: false }],
+      more: [],
+      sourceUrl: null,
+    })
+    await search('rares')
+    expect(screen.getByText('May include other senses.')).toBeTruthy()
   })
 })

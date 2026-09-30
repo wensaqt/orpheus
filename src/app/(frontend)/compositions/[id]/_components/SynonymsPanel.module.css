@@ -150,6 +150,12 @@
     color 0.2s;
 }
 
+/* Less reliable group: paler chips, so trusted synonyms stand out at a glance */
+.group[data-reliable='false'] .chip {
+  border-style: dashed;
+  color: var(--color-text-muted);
+}
+
 .chip:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
@@ -159,6 +165,31 @@
   border-color: var(--color-ornament-active);
   background-color: var(--color-surface-accent);
   color: var(--color-primary-hover);
+}
+
+/* Collapsed extra suggestions (Dicollecte) */
+.more {
+  margin-block-start: var(--space-4);
+}
+
+.moreSummary {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.moreSummary:hover {
+  color: var(--color-primary-hover);
+}
+
+.moreSummary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.more[open] > .moreSummary {
+  margin-block-end: var(--space-3);
 }
 
 .source {
