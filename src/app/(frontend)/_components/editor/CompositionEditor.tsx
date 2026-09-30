@@ -1,28 +1,17 @@
 'use client'
 
-import Link from 'next/link'
 import React, { useCallback, useState } from 'react'
 
 import type { PageSettings } from '@/lib/pageFormats'
 
+import { t } from '../../_lib/i18n'
 import { ROUTES } from '../../_lib/routes'
 import { type CompositionPatch, saveComposition } from '../../compositions/actions'
+import { BackLink } from '../ui/BackLink/BackLink'
 import styles from './CompositionEditor.module.css'
 import { PageSheet } from './PageSheet'
 import { RichTextEditor } from './RichTextEditor'
-import { type SaveStatus, useAutosave } from './useAutosave'
-
-const COPY = {
-  back: 'Orpheus',
-  titleLabel: 'Composition title',
-  placeholder: 'Start writing…',
-  status: {
-    saved: 'Saved',
-    pending: 'Unsaved changes',
-    saving: 'Saving…',
-    error: 'Could not save — retrying on next change',
-  } satisfies Record<SaveStatus, string>,
-}
+import { useAutosave } from './useAutosave'
 
 type CompositionEditorProps = {
   id: number
@@ -31,7 +20,7 @@ type CompositionEditorProps = {
   page: PageSettings
 }
 
-// Écran d'édition : barre du haut (retour, titre, état) et feuille de papier
+// Écran d'édition épuré : retour discret, titre sans cadre au-dessus de la feuille, puis la feuille
 export function CompositionEditor({ id, title, content, page }: CompositionEditorProps) {
   const [currentTitle, setCurrentTitle] = useState(title)
   const save = useCallback((patch: CompositionPatch) => saveComposition(id, patch), [id])
@@ -39,32 +28,34 @@ export function CompositionEditor({ id, title, content, page }: CompositionEdito
 
   return (
     <div className={styles.screen}>
-      <header className={styles.bar}>
-        <Link href={ROUTES.compositions} className={styles.back} onClick={() => void flush()}>
-          {COPY.back}
-        </Link>
-        <input
-          className={styles.title}
-          aria-label={COPY.titleLabel}
-          value={currentTitle}
-          onChange={(e) => {
-            setCurrentTitle(e.target.value)
-            queue({ title: e.target.value })
-          }}
-          onBlur={() => void flush()}
-        />
-        <span className={styles.status} data-status={status} role="status">
-          {COPY.status[status]}
-        </span>
-      </header>
+      <BackLink href={ROUTES.compositions} label={t('editor.back')} onClick={() => void flush()} />
       <div className={styles.desk}>
-        <PageSheet settings={page}>
-          <RichTextEditor
-            initialContent={content}
-            placeholder={COPY.placeholder}
-            onChange={(next) => queue({ content: next })}
+        {/* La colonne prend la largeur de la feuille, le titre s'y aligne */}
+        <div className={styles.column}>
+          <input
+            className={styles.title}
+            aria-label={t('editor.titleLabel')}
+            value={currentTitle}
+            onChange={(e) => {
+              setCurrentTitle(e.target.value)
+              queue({ title: e.target.value })
+            }}
+            onBlur={() => void flush()}
           />
-        </PageSheet>
+          {/* Seul l'échec d'enregistrement est signalé ; le reste se fait en silence */}
+          {status === 'error' && (
+            <p className={styles.saveError} role="alert">
+              {t('editor.saveError')}
+            </p>
+          )}
+          <PageSheet settings={page}>
+            <RichTextEditor
+              initialContent={content}
+              placeholder={t('editor.placeholder')}
+              onChange={(next) => queue({ content: next })}
+            />
+          </PageSheet>
+        </div>
       </div>
     </div>
   )
