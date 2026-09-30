@@ -1,0 +1,100 @@
+.card {
+  position: relative;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.link:focus-visible {
+  outline: none;
+}
+
+.sheet {
+  display: block;
+  aspect-ratio: var(--sheet-ratio);
+  margin-block-end: var(--space-2);
+  padding: 12%;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-raised);
+  transition:
+    translate 0.3s,
+    border-color 0.3s;
+}
+
+/* Aperçu du texte en tout petit, qui s'efface vers le bas de la feuille */
+.excerpt {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  font-size: 0.5rem;
+  line-height: 1.5;
+  white-space: pre-line;
+  color: var(--color-text-muted);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+
+/* La feuille se soulève et son bord passe dans la teinte active de la lyre */
+.link:is(:hover, :focus-visible) .sheet {
+  translate: 0 calc(-1 * var(--space-1));
+  border-color: var(--color-ornament-active);
+}
+
+.link:focus-visible .sheet {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.title {
+  position: relative;
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-block-end: 2px;
+  font-size: var(--text-lg);
+  font-weight: 300;
+  color: var(--color-primary);
+  transition: color 0.3s;
+}
+
+/* Filet qui se trace sous le titre, comme sur la home */
+.title::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 1.5px;
+  background-color: var(--color-divider);
+  scale: 0 1;
+  transform-origin: left;
+  transition: scale 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link:is(:hover, :focus-visible) .title {
+  color: var(--color-primary-hover);
+}
+
+.link:is(:hover, :focus-visible) .title::after {
+  scale: 1 1;
+}
+
+.date {
+  font-size: var(--text-sm);
+  font-style: italic;
+  font-weight: 300;
+  color: var(--color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .title::after {
+    transition: none;
+  }
+}

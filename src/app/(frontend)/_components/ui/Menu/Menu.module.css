@@ -1,0 +1,67 @@
+/* Positionné en fixe par le composant (top / right) sous son déclencheur */
+.menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  min-width: 10rem;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  opacity: 0;
+  translate: 0 calc(-1 * var(--space-1));
+  transition:
+    opacity 0.15s,
+    translate 0.15s,
+    overlay 0.15s allow-discrete,
+    display 0.15s allow-discrete;
+}
+
+.menu:popover-open {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@starting-style {
+  .menu:popover-open {
+    opacity: 0;
+    translate: 0 calc(-1 * var(--space-1));
+  }
+}
+
+.item {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: start;
+  color: inherit;
+  cursor: pointer;
+}
+
+.item:enabled:is(:hover, :focus-visible) {
+  outline: none;
+  background-color: var(--color-surface-accent);
+  color: var(--color-primary-hover);
+}
+
+.item[data-tone='danger']:enabled:is(:hover, :focus-visible) {
+  color: var(--color-accent);
+}
+
+.item:disabled {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    transition: none;
+  }
+}

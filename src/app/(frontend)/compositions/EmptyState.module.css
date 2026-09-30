@@ -1,0 +1,26 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-6);
+  text-align: center;
+}
+
+.mark {
+  margin-block-end: var(--space-3);
+  opacity: 0.85;
+}
+
+.title {
+  font-size: var(--text-xl);
+  font-weight: 300;
+  color: var(--color-primary);
+}
+
+.subtitle {
+  margin-block-end: var(--space-4);
+  font-style: italic;
+  font-weight: 300;
+  color: var(--color-text-muted);
+}

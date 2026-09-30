@@ -1,0 +1,8 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--space-6) var(--space-5);
+  /* Alignées par le bas : titres et dates restent sur une ligne quel que soit le format */
+  align-items: end;
+  list-style: none;
+}

@@ -55,11 +55,24 @@ export async function saveComposition(id: number, patch: CompositionPatch) {
   return { updatedAt }
 }
 
-// Supprime une composition de l'utilisateur ; l'accès par propriétaire est vérifié par Payload
-export async function deleteComposition(id: number) {
-  const { payload, user } = await getSession()
-  if (!user) throw new Error('Unauthorized')
+export type DeleteCompositionState = { status: 'idle' | 'deleted' | 'error' }
 
-  await payload.delete({ collection: 'compositions', id, user, overrideAccess: false })
+/*
+ * Supprime une composition de l'utilisateur, appelée par un formulaire via useActionState
+ * (l'id est lié avec bind). L'accès par propriétaire est vérifié par Payload.
+ */
+export async function deleteComposition(
+  id: number,
+  _previous: DeleteCompositionState,
+): Promise<DeleteCompositionState> {
+  const { payload, user } = await getSession()
+  if (!user || !Number.isInteger(id)) return { status: 'error' }
+
+  try {
+    await payload.delete({ collection: 'compositions', id, user, overrideAccess: false })
+  } catch {
+    return { status: 'error' }
+  }
   revalidatePath(ROUTES.compositions)
+  return { status: 'deleted' }
 }
