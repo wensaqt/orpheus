@@ -22,7 +22,6 @@
 
   --color-text: var(--midnight-violet);
   --color-text-muted: var(--smoky-plum);
-  --color-text-inverse: var(--ivory);
 
   --color-primary: var(--dusty-grape);
   --color-primary-hover: var(--dusty-grape-dark);
@@ -51,5 +50,4 @@
   /* Rayons */
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 16px;
 }

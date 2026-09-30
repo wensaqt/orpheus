@@ -2,11 +2,12 @@
 
 import React, { useTransition } from 'react'
 
-import { t } from '../_lib/i18n'
-import { useConfirm } from '../_components/ui/Feedback/ConfirmProvider'
-import { useToast } from '../_components/ui/Feedback/ToastProvider'
-import { Menu, type MenuItem } from '../_components/ui/Menu/Menu'
-import { deleteComposition } from './actions'
+import { useConfirm } from '@front/_components/ui/Feedback/ConfirmProvider'
+import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
+import { Menu, type MenuItem } from '@front/_components/ui/Menu/Menu'
+import { deleteComposition } from '@front/_features/compositions/actions'
+import { t } from '@front/_lib/i18n'
+
 import styles from './CompositionActions.module.css'
 
 type CompositionActionsProps = {

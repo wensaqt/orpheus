@@ -1,8 +1,9 @@
 import Image from 'next/image'
 
-import lyreMark from '../_public/images/lyre-mark.png'
-import { t } from '../_lib/i18n'
-import { CreateCompositionForm } from './CreateCompositionForm'
+import lyreMark from '@front/_assets/images/lyre-mark.png'
+import { CreateCompositionForm } from '@front/_features/compositions/CreateCompositionForm'
+import { t } from '@front/_lib/i18n'
+
 import styles from './EmptyState.module.css'
 
 export function EmptyState() {

@@ -3,11 +3,12 @@ import React from 'react'
 
 import { pageSize } from '@/lib/pageFormats'
 
-import { formatDateTime, formatRelative } from '../_lib/format'
-import { ROUTES } from '../_lib/routes'
+import type { CompositionCardData } from '@front/_features/compositions/types'
+import { formatDateTime, formatRelative } from '@front/_lib/format'
+import { ROUTES } from '@front/_lib/routes'
+
 import styles from './CompositionCard.module.css'
 import { CompositionActions } from './CompositionActions'
-import type { CompositionCardData } from './types'
 
 // Une composition présentée comme une miniature de sa feuille, aux proportions de son format
 export function CompositionCard({ composition }: { composition: CompositionCardData }) {

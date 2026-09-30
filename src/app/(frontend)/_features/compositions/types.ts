@@ -9,3 +9,14 @@ export type CompositionCardData = {
   format: PageFormat
   orientation: PageOrientation
 }
+
+// État Lexical sérialisé (editorState.toJSON())
+export type LexicalContent = Record<string, unknown>
+
+// Modification partielle envoyée par l'éditeur
+export type CompositionPatch = {
+  title?: string
+  content?: LexicalContent
+}
+
+export type DeleteCompositionResult = { status: 'deleted' | 'error' }

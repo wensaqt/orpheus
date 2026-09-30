@@ -2,8 +2,8 @@
 
 import React, { createContext, useCallback, useContext, useId, useRef, useState } from 'react'
 
-import { t } from '../../../_lib/i18n'
-import { Dialog } from '../Dialog/Dialog'
+import { t } from '@front/_lib/i18n'
+import { Dialog } from '@front/_components/ui/Dialog/Dialog'
 import styles from './ConfirmProvider.module.css'
 
 export type ConfirmOptions = {

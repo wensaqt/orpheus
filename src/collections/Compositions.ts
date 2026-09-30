@@ -1,8 +1,7 @@
 import type { Access, CollectionConfig } from 'payload'
 
+import { DEFAULT_COMPOSITION_TITLE } from '../lib/compositions'
 import { DEFAULT_PAGE_FORMAT, DEFAULT_PAGE_MARGIN, PAGE_FORMATS } from '../lib/pageFormats'
-
-export const DEFAULT_COMPOSITION_TITLE = 'Untitled composition'
 
 // Chaque utilisateur ne voit et ne modifie que ses propres compositions
 const ownCompositions: Access = ({ req: { user } }) => {

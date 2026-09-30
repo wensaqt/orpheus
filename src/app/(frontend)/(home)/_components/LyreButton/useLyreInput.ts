@@ -3,8 +3,9 @@ import React, { useEffect, useRef } from 'react'
 import { BASE_AMP, CHORD_AMP, H, MAX_AMP, STRING_BOTTOM, STRINGS, W } from './geometry'
 import type { LyreSide } from './types'
 
-type ButtonHandlers = Pick<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
+// Communs au bouton et au lien : la lyre se joue de la même façon sur les deux
+export type LyreHandlers = Pick<
+  React.HTMLAttributes<HTMLElement>,
   'onPointerEnter' | 'onPointerDown' | 'onPointerMove' | 'onPointerLeave' | 'onFocus' | 'onBlur'
 >
 
@@ -12,7 +13,7 @@ type Options = {
   side: LyreSide
   pluck: (i: number, amp: number, y: number) => void
   // Gestionnaires du consommateur, appelés avant ceux de la lyre
-  handlers: ButtonHandlers
+  handlers: LyreHandlers
 }
 
 // Traduit pointeur et clavier en pincements : croisement de corde, accord au clic, glissando
@@ -49,7 +50,7 @@ export function useLyreInput({ side, pluck, handlers }: Options) {
     timeouts.current = []
   }
 
-  const buttonHandlers: Required<ButtonHandlers> = {
+  const lyreHandlers: Required<LyreHandlers> = {
     onPointerEnter(e) {
       handlers.onPointerEnter?.(e)
       rect.current = null
@@ -101,5 +102,5 @@ export function useLyreInput({ side, pluck, handlers }: Options) {
     },
   }
 
-  return { svgRef, handlers: buttonHandlers }
+  return { svgRef, handlers: lyreHandlers }
 }

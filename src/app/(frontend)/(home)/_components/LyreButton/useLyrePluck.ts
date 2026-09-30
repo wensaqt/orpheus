@@ -6,7 +6,7 @@ import { bentPath, restPath, STRING_BOTTOM, STRINGS } from './geometry'
 const FREQ = 7
 const DAMPING = 0.22
 const DURATION = 1.1
-// Opacité des cordes au repos, identique à .string dans LyreButton.module.css
+// Opacité des cordes au repos, identique à .string dans LyreHalf.module.css
 const STRING_REST_OPACITY = 0.65
 
 type Pluck = { start: number; amp: number; y: number }

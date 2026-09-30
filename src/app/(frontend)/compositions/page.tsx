@@ -1,37 +1,16 @@
-import { lexicalExcerpt } from '../_lib/excerpt'
-import { t } from '../_lib/i18n'
-import { ROUTES } from '../_lib/routes'
-import { requireUser } from '../_lib/session'
-import { BackLink } from '../_components/ui/BackLink/BackLink'
-import { CompositionGrid } from './CompositionGrid'
-import { CreateCompositionForm } from './CreateCompositionForm'
-import styles from './page.module.css'
-import type { CompositionCardData } from './types'
+import { BackLink } from '@front/_components/ui/BackLink/BackLink'
+import { CreateCompositionForm } from '@front/_features/compositions/CreateCompositionForm'
+import { listCompositionCards } from '@front/_features/compositions/queries'
+import { t } from '@front/_lib/i18n'
+import { ROUTES } from '@front/_lib/routes'
+import { requireUser } from '@front/_lib/server/session'
 
-// Longueur de l'aperçu affiché sur chaque feuille
-const EXCERPT_LENGTH = 320
+import { CompositionGrid } from './_components/CompositionGrid'
+import styles from './page.module.css'
 
 export default async function CompositionsPage() {
-  const { payload, user } = await requireUser(ROUTES.compositions)
-  const { docs } = await payload.find({
-    collection: 'compositions',
-    user,
-    overrideAccess: false,
-    depth: 0,
-    sort: '-updatedAt',
-    select: { title: true, updatedAt: true, content: true, page: true },
-    pagination: false,
-  })
-
-  // Le contenu est réduit à son extrait ici, côté serveur, pour garder la page légère
-  const compositions: CompositionCardData[] = docs.map((doc) => ({
-    id: doc.id,
-    title: doc.title,
-    updatedAt: doc.updatedAt,
-    excerpt: lexicalExcerpt(doc.content, EXCERPT_LENGTH),
-    format: doc.page.format,
-    orientation: doc.page.orientation,
-  }))
+  const session = await requireUser(ROUTES.compositions)
+  const compositions = await listCompositionCards(session)
 
   return (
     <div className={styles.page}>

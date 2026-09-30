@@ -4,19 +4,21 @@ import React, { useCallback, useState } from 'react'
 
 import type { PageSettings } from '@/lib/pageFormats'
 
-import { t } from '../../_lib/i18n'
-import { ROUTES } from '../../_lib/routes'
-import { type CompositionPatch, saveComposition } from '../../compositions/actions'
-import { BackLink } from '../ui/BackLink/BackLink'
+import { PageSheet } from '@front/_components/editor/PageSheet'
+import { RichTextEditor } from '@front/_components/editor/RichTextEditor'
+import { BackLink } from '@front/_components/ui/BackLink/BackLink'
+import { saveComposition } from '@front/_features/compositions/actions'
+import type { CompositionPatch, LexicalContent } from '@front/_features/compositions/types'
+import { useAutosave } from '@front/_hooks/useAutosave'
+import { t } from '@front/_lib/i18n'
+import { ROUTES } from '@front/_lib/routes'
+
 import styles from './CompositionEditor.module.css'
-import { PageSheet } from './PageSheet'
-import { RichTextEditor } from './RichTextEditor'
-import { useAutosave } from './useAutosave'
 
 type CompositionEditorProps = {
   id: number
   title: string
-  content: Record<string, unknown> | null
+  content: LexicalContent | null
   page: PageSettings
 }
 

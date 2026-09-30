@@ -6,7 +6,7 @@ import { getPayload } from 'payload'
 
 import config from '@/payload.config'
 
-import { ROUTES } from './routes'
+import { ROUTES } from '@front/_lib/routes'
 
 // Client Payload et utilisateur connecté (via le cookie de session de l'admin), ou null
 export async function getSession() {

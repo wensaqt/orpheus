@@ -7,6 +7,7 @@
   background: none;
   font: inherit;
   color: inherit;
+  text-decoration: none;
   overflow: hidden;
   cursor: pointer;
   /* Sur tactile, un glissé horizontal joue les cordes au lieu d'être capté par le navigateur */

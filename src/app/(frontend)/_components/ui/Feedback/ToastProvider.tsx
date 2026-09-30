@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react'
 
-import { t } from '../../../_lib/i18n'
+import { t } from '@front/_lib/i18n'
 import styles from './ToastProvider.module.css'
 
 type ToastTone = 'default' | 'success' | 'error'

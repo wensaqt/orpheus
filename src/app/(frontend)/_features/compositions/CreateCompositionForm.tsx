@@ -1,4 +1,4 @@
-import { t } from '../_lib/i18n'
+import { t } from '@front/_lib/i18n'
 import { createComposition } from './actions'
 import styles from './CreateCompositionForm.module.css'
 

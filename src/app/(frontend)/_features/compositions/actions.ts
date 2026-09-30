@@ -3,19 +3,15 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
-import { DEFAULT_COMPOSITION_TITLE } from '@/collections/Compositions'
+import { DEFAULT_COMPOSITION_TITLE } from '@/lib/compositions'
 import { DEFAULT_PAGE_FORMAT } from '@/lib/pageFormats'
 
-import { ROUTES } from '../_lib/routes'
-import { getSession, requireUser } from '../_lib/session'
+import { ROUTES } from '@front/_lib/routes'
+import { getSession, requireUser } from '@front/_lib/server/session'
+
+import type { CompositionPatch, DeleteCompositionResult } from './types'
 
 const MAX_TITLE_LENGTH = 200
-
-export type CompositionPatch = {
-  title?: string
-  // État Lexical sérialisé (editorState.toJSON())
-  content?: Record<string, unknown>
-}
 
 // Crée une composition vide pour l'utilisateur connecté et ouvre l'éditeur
 export async function createComposition() {
@@ -54,8 +50,6 @@ export async function saveComposition(id: number, patch: CompositionPatch) {
   })
   return { updatedAt }
 }
-
-export type DeleteCompositionResult = { status: 'deleted' | 'error' }
 
 // Supprime une composition de l'utilisateur ; l'accès par propriétaire est vérifié par Payload
 export async function deleteComposition(id: number): Promise<DeleteCompositionResult> {
