@@ -1,4 +1,4 @@
-/* Posé dans le coin supérieur droit de la feuille, visible au survol de la carte */
+/* Placed in the top-right corner of the sheet, visible on card hover */
 .trigger {
   position: absolute;
   top: var(--space-2);
@@ -32,7 +32,7 @@
   color: var(--color-primary-hover);
 }
 
-/* Sur tactile, pas de survol : toujours visible */
+/* On touch devices there is no hover: always visible */
 @media (hover: none) {
   .trigger {
     opacity: 1;

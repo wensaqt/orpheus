@@ -11,7 +11,7 @@ import { getSession, requireUser } from '@front/_lib/server/session'
 
 import type { CompositionPatch, DeleteCompositionResult } from './types'
 
-// Crée une composition vide pour l'utilisateur connecté et ouvre l'éditeur
+// Creates an empty composition for the signed-in user and opens the editor
 export async function createComposition() {
   const { payload, user } = await requireUser(ROUTES.home)
   const composition = await payload.create({
@@ -28,9 +28,9 @@ export async function createComposition() {
 }
 
 /*
- * Sauvegarde partielle depuis l'éditeur. Liste blanche : seuls le titre et le contenu sont
- * modifiables ici. Leur validité (type, longueur, forme Lexical) est vérifiée par la collection.
- * Une clé undefined (sauvegarde du seul titre, par ex.) est ignorée par Payload.
+ * Partial save from the editor. Allowlist: only the title and content can be changed here.
+ * Their validity (type, length, Lexical shape) is checked by the collection.
+ * An undefined key (e.g. when saving only the title) is ignored by Payload.
  */
 export async function saveComposition(id: number, { title, content }: CompositionPatch) {
   const { payload, user } = await getSession()
@@ -47,7 +47,7 @@ export async function saveComposition(id: number, { title, content }: Compositio
   return { updatedAt }
 }
 
-// Supprime une composition de l'utilisateur ; l'accès par propriétaire est vérifié par Payload
+// Deletes one of the user's compositions; owner access is checked by Payload
 export async function deleteComposition(id: number): Promise<DeleteCompositionResult> {
   const { payload, user } = await getSession()
   if (!user) return { status: 'error' }

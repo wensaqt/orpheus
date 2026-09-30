@@ -15,7 +15,7 @@ type CompositionActionsProps = {
   title: string
 }
 
-// Menu « ⋯ » de la carte. Seule la suppression est disponible pour l'instant.
+// The card's "⋯" menu. Only deletion is available for now.
 export function CompositionActions({ id, title }: CompositionActionsProps) {
   const confirm = useConfirm()
   const toast = useToast()
@@ -30,7 +30,7 @@ export function CompositionActions({ id, title }: CompositionActionsProps) {
     })
     if (!confirmed) return
 
-    // Transition : la liste revalidée par l'action s'affiche avec la navigation
+    // Transition: the list revalidated by the action shows along with the navigation
     startTransition(async () => {
       const { status } = await deleteComposition(id)
       if (status === 'deleted') toast.success(t('compositions.delete.done', { title }))

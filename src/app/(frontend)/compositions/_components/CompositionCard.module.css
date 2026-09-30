@@ -16,7 +16,8 @@
 
 .sheet {
   display: block;
-  aspect-ratio: var(--sheet-ratio);
+  /* Fixed portrait page shape (1:√2), whatever the composition's format */
+  aspect-ratio: 1 / 1.414;
   margin-block-end: var(--space-2);
   padding: 12%;
   overflow: hidden;
@@ -28,7 +29,7 @@
     border-color 0.3s;
 }
 
-/* Aperçu du texte en tout petit, qui s'efface vers le bas de la feuille */
+/* Tiny text preview that fades out toward the bottom of the sheet */
 .excerpt {
   display: block;
   height: 100%;
@@ -40,7 +41,7 @@
   mask-image: linear-gradient(to bottom, #000 55%, transparent);
 }
 
-/* La feuille se soulève et son bord passe dans la teinte active de la lyre */
+/* The sheet lifts and its edge takes the lyre's active tint */
 .link:is(:hover, :focus-visible) .sheet {
   translate: 0 calc(-1 * var(--space-1));
   border-color: var(--color-ornament-active);
@@ -65,7 +66,7 @@
   transition: color 0.3s;
 }
 
-/* Filet qui se trace sous le titre, comme sur la home */
+/* Rule drawn under the title, as on the home page */
 .title::after {
   content: '';
   position: absolute;
@@ -90,6 +91,38 @@
   font-style: italic;
   font-weight: 300;
   color: var(--color-text-muted);
+}
+
+/* "New composition" variant: a button styled as a card, a blank dashed sheet */
+.buttonReset {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.blank {
+  display: grid;
+  place-items: center;
+  border-style: dashed;
+  /* Muted violet: the dashes stay readable on the parchment */
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background-color: transparent;
+}
+
+.link:is(:hover, :focus-visible) .blank {
+  border-style: solid;
+  background-color: var(--color-surface-raised);
+}
+
+.plus {
+  font-size: var(--text-2xl);
+  font-weight: 200;
+  line-height: 1;
+  color: var(--color-primary);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,15 +1,16 @@
 import type { Composition } from '@/payload-types'
 
-// Types dérivés du schéma Payload (payload-types.ts), jamais redéclarés à la main
+// Types derived from the Payload schema (payload-types.ts), never redeclared by hand
 
-// État Lexical sérialisé, typé par le jsonSchema du champ content
+// Serialized Lexical state, typed by the content field's jsonSchema
 export type LexicalContent = NonNullable<Composition['content']>
 
-// Modification partielle envoyée par l'éditeur : seuls ces champs sont modifiables
+// Partial update sent by the editor: only these fields can be changed
 export type CompositionPatch = Partial<Pick<Composition, 'title' | 'content'>>
 
-// Ce qu'une carte de la liste affiche : jamais le contenu complet, seulement son extrait
-export type CompositionCardData = Pick<Composition, 'id' | 'title' | 'updatedAt'> &
-  Pick<Composition['page'], 'format' | 'orientation'> & { excerpt: string }
+// What a list card shows: never the full content, only its excerpt
+export type CompositionCardData = Pick<Composition, 'id' | 'title' | 'updatedAt'> & {
+  excerpt: string
+}
 
 export type DeleteCompositionResult = { status: 'deleted' | 'error' }

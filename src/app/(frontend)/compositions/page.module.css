@@ -1,4 +1,4 @@
-/* Même parchemin que le bureau de l'éditeur : les feuilles s'y détachent */
+/* Same parchment as the editor desk: the sheets stand out against it */
 .page {
   flex-grow: 1;
   padding: var(--space-6) var(--space-5);
@@ -18,7 +18,7 @@
   margin-block-end: var(--space-6);
 }
 
-/* Titre dans le style de la home, souligné d'un court filet */
+/* Title in the home page style, underlined with a short rule */
 .heading {
   font-size: var(--text-2xl);
   font-weight: 300;

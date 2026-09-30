@@ -1,0 +1,19 @@
+.home {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-4);
+  z-index: 1;
+  display: block;
+  border-radius: var(--radius-sm);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.home:is(:hover, :focus-visible) {
+  opacity: 1;
+}
+
+.home:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

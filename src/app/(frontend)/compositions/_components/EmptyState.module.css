@@ -24,3 +24,8 @@
   font-weight: 300;
   color: var(--color-text-muted);
 }
+
+.single {
+  width: 10rem;
+  list-style: none;
+}

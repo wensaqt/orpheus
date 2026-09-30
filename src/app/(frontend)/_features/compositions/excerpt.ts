@@ -1,6 +1,6 @@
 type LexicalNode = { type?: string; text?: string; children?: LexicalNode[] }
 
-// Nœuds dont les enfants sont des lignes distinctes
+// Nodes whose children are separate lines
 const LINE_CONTAINERS = new Set(['list', 'listitem'])
 
 const textOf = (node: LexicalNode): string => {
@@ -9,7 +9,7 @@ const textOf = (node: LexicalNode): string => {
   return (node.children ?? []).map(textOf).join(separator)
 }
 
-// Premiers caractères du texte d'un état Lexical sérialisé, un bloc par ligne
+// First characters of the text of a serialized Lexical state, one block per line
 export function lexicalExcerpt(content: unknown, maxLength: number): string {
   const root = (content as { root?: LexicalNode } | null)?.root
   if (!root?.children) return ''

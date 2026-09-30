@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 export type SaveStatus = 'saved' | 'pending' | 'saving' | 'error'
 
-// Délai d'inactivité avant d'enregistrer
+// Idle delay before saving
 const AUTOSAVE_DELAY = 800
 
 /*
- * Regroupe les modifications et les enregistre après un temps d'inactivité. Les envois sont
- * chaînés pour garder leur ordre ; en cas d'échec, les modifications sont remises en attente.
+ * Batches changes and saves them after a period of inactivity. Requests are chained to keep
+ * their order; on failure, the changes are queued again.
  */
 export function useAutosave<Patch extends object>(save: (patch: Patch) => Promise<unknown>) {
   const [status, setStatus] = useState<SaveStatus>('saved')
@@ -44,15 +44,22 @@ export function useAutosave<Patch extends object>(save: (patch: Patch) => Promis
     [flush],
   )
 
-  // Prévient avant de quitter la page avec des modifications non enregistrées
+  // Latest version of flush, to call it on unmount without re-running the effect
+  const latestFlush = useRef(flush)
   useEffect(() => {
+    latestFlush.current = flush
+  }, [flush])
+
+  useEffect(() => {
+    // Tab reload or close: the browser warns if changes are still pending
     const warn = (e: BeforeUnloadEvent) => {
       if (Object.keys(pending.current).length) e.preventDefault()
     }
     window.addEventListener('beforeunload', warn)
     return () => {
       window.removeEventListener('beforeunload', warn)
-      if (timer.current) window.clearTimeout(timer.current)
+      // In-app navigation (the component unmounts): send whatever is still pending
+      void latestFlush.current()
     }
   }, [])
 
