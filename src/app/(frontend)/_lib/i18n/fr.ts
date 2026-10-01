@@ -118,6 +118,10 @@ export const fr: Messages = {
       interjection: 'Interjection',
     },
   },
+  binder: {
+    untitledDocument: 'Document sans titre',
+    empty: 'Cette composition n’a pas encore de document.',
+  },
   editor: {
     titleLabel: 'Titre de la composition',
     placeholder: 'Commencez à écrire…',

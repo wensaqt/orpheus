@@ -7,6 +7,7 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { BinderItems } from './collections/BinderItems'
 import { Compositions } from './collections/Compositions'
 import { ThesaurusEntries } from './collections/ThesaurusEntries'
 
@@ -20,7 +21,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Compositions, ThesaurusEntries],
+  collections: [Users, Media, Compositions, BinderItems, ThesaurusEntries],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

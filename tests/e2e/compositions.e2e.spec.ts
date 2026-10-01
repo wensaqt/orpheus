@@ -45,11 +45,12 @@ test.describe('Compositions', () => {
     await expect
       .poll(
         async () => {
-          const doc = await account.payload.findByID({
-            collection: 'compositions',
-            id: composition.id,
+          // The text is saved in the composition's first (and only) document
+          const { docs } = await account.payload.find({
+            collection: 'binder-items',
+            where: { composition: { equals: composition.id } },
           })
-          return JSON.stringify(doc.content ?? {})
+          return JSON.stringify(docs[0]?.content ?? {})
         },
         { timeout: 20_000 },
       )
@@ -58,12 +59,21 @@ test.describe('Compositions', () => {
   })
 
   test('the list shows sheets with their excerpt', async ({ page, account }) => {
-    await account.payload.create({
+    const composition = await account.payload.create({
       collection: 'compositions',
       data: {
         title: 'Hymne',
         owner: account.user.id,
         page: { format: 'Letter', orientation: 'landscape' },
+      },
+      user: account.user,
+      overrideAccess: false,
+    })
+    // The sheet previews the first document of the binder
+    await account.payload.update({
+      collection: 'binder-items',
+      where: { composition: { equals: composition.id } },
+      data: {
         content: {
           root: {
             type: 'root',

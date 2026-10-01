@@ -9,10 +9,6 @@ let payload: Payload
 let alice: User
 let bob: User
 
-const content = {
-  root: { type: 'root', version: 1, children: [{ type: 'paragraph', version: 1, children: [] }] },
-} as Composition['content']
-
 // Act on behalf of a user, like the server actions do (access rules enforced)
 const as = (user: User) => ({ user, overrideAccess: false, depth: 0 }) as const
 
@@ -95,8 +91,6 @@ describe('compositions collection', () => {
         { title: 'x'.repeat(201) },
         'shorter than the max length of 200',
       ],
-      ['content without a Lexical root', { content: { foo: 1 } }, "required property 'root'"],
-      ['a root of the wrong type', { content: { root: { type: 'x', children: [] } } }, 'constant'],
     ])('rejects %s', async (_label, data, message) => {
       const composition = await createFor(alice)
       const error = await payload
@@ -109,40 +103,38 @@ describe('compositions collection', () => {
         .catch((e: unknown) => e)
       expect(validationMessages(error).join(' ')).toContain(message)
     })
-
-    it('accepts a valid Lexical state', async () => {
-      const composition = await createFor(alice)
-      const updated = await payload.update({
-        collection: 'compositions',
-        id: composition.id,
-        data: { content },
-        ...as(alice),
-      })
-      expect(updated.content).toEqual(content)
-    })
   })
 
-  describe('partial save (like saveComposition)', () => {
-    it('an undefined key leaves the matching field unchanged', async () => {
-      const composition = await createFor(alice, { content })
-      const read = () =>
-        payload.findByID({ collection: 'compositions', id: composition.id, ...as(alice) })
-
-      await payload.update({
-        collection: 'compositions',
-        id: composition.id,
-        data: { title: 'Title only', content: undefined },
+  describe('binder', () => {
+    const binderOf = (compositionId: number) =>
+      payload.find({
+        collection: 'binder-items',
+        where: { composition: { equals: compositionId } },
         ...as(alice),
       })
-      expect(await read()).toMatchObject({ title: 'Title only', content })
 
-      await payload.update({
+    it('starts with one empty document, titled as the app asks', async () => {
+      const composition = await payload.create({
         collection: 'compositions',
-        id: composition.id,
-        data: { title: undefined, content },
+        data: { title: 'Chant', owner: alice.id, page: { format: 'A4', orientation: 'portrait' } },
+        context: { firstDocumentTitle: 'Document sans titre' },
         ...as(alice),
       })
-      expect((await read()).title).toBe('Title only')
+      const { docs } = await binderOf(composition.id)
+      expect(docs).toMatchObject([
+        { kind: 'document', title: 'Document sans titre', parent: null, owner: alice.id },
+      ])
+      expect(docs[0].content ?? null).toBeNull()
+    })
+
+    it('goes with its composition when it is deleted', async () => {
+      const composition = await createFor(alice)
+      await payload.delete({ collection: 'compositions', id: composition.id, ...as(alice) })
+      const { totalDocs } = await payload.count({
+        collection: 'binder-items',
+        where: { composition: { equals: composition.id } },
+      })
+      expect(totalDocs).toBe(0)
     })
   })
 })

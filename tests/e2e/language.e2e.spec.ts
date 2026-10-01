@@ -5,15 +5,19 @@ import { expect, test } from './fixtures'
 base.describe('Language', () => {
   base('switching to French applies everywhere and is remembered', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('button', { name: 'Language' }).click()
     const menu = page.getByRole('menu', { name: 'Language' })
-    await baseExpect(menu.getByRole('menuitemradio', { name: 'English' })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    )
-    await menu.getByRole('menuitemradio', { name: 'Français' }).click()
-
-    await baseExpect(page.getByRole('button', { name: /Nouvelle composition/ })).toBeVisible()
+    // The menu opens natively (Popover API) before React hydrates and handles the click: retry
+    await baseExpect(async () => {
+      await page.getByRole('button', { name: 'Language' }).click()
+      await baseExpect(menu.getByRole('menuitemradio', { name: 'English' })).toHaveAttribute(
+        'aria-checked',
+        'true',
+      )
+      await menu.getByRole('menuitemradio', { name: 'Français' }).click()
+      await baseExpect(page.getByRole('button', { name: /Nouvelle composition/ })).toBeVisible({
+        timeout: 5_000,
+      })
+    }).toPass({ timeout: 15_000 })
     await baseExpect(page.locator('html')).toHaveAttribute('lang', 'fr')
     await baseExpect(page).toHaveTitle('Orpheus')
 

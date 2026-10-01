@@ -1,15 +1,11 @@
 import type { CollectionConfig } from 'payload'
 
 import { isLoggedIn } from '@/access/isLoggedIn'
-import {
-  DEFAULT_COMPOSITION_TITLE,
-  LEXICAL_STATE_JSON_SCHEMA,
-  MAX_COMPOSITION_TITLE_LENGTH,
-} from '@/lib/compositions'
+import { DEFAULT_COMPOSITION_TITLE, MAX_COMPOSITION_TITLE_LENGTH } from '@/lib/compositions'
 import { DEFAULT_PAGE_FORMAT, DEFAULT_PAGE_MARGIN, PAGE_FORMATS } from '@/lib/pageFormats'
 
 import { ownCompositions } from './access'
-import { setOwnerOnCreate } from './hooks'
+import { addFirstDocument, deleteBinder, setOwnerOnCreate } from './hooks'
 import { validateTitle } from './validators'
 
 const margin = (name: 'top' | 'right' | 'bottom' | 'left') => ({
@@ -34,6 +30,8 @@ export const Compositions: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [setOwnerOnCreate],
+    afterChange: [addFirstDocument],
+    beforeDelete: [deleteBinder],
   },
   fields: [
     {
@@ -53,8 +51,7 @@ export const Compositions: CollectionConfig = {
       access: { update: () => false },
       admin: { readOnly: true, position: 'sidebar' },
     },
-    // Serialized Lexical state, validated by its JSON schema (which also types the field)
-    { name: 'content', type: 'json', jsonSchema: LEXICAL_STATE_JSON_SCHEMA },
+    // The text lives in the binder (binder-items): one composition, many documents
     {
       name: 'page',
       type: 'group',

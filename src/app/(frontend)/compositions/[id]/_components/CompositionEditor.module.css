@@ -48,6 +48,12 @@
   caret-color: var(--color-primary);
 }
 
+.empty {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--color-text-muted);
+}
+
 .saveError {
   margin-block: calc(-1 * var(--space-3)) var(--space-3);
   font-size: var(--text-sm);

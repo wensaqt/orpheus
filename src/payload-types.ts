@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     compositions: Composition;
+    'binder-items': BinderItem;
     'thesaurus-entries': ThesaurusEntry;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -81,6 +82,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     compositions: CompositionsSelect<false> | CompositionsSelect<true>;
+    'binder-items': BinderItemsSelect<false> | BinderItemsSelect<true>;
     'thesaurus-entries': ThesaurusEntriesSelect<false> | ThesaurusEntriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -176,15 +178,6 @@ export interface Composition {
   id: number;
   title: string;
   owner: number | User;
-  content?: {
-    root: {
-      type: 'root';
-      children: {
-        [k: string]: unknown;
-      }[];
-      [k: string]: unknown;
-    };
-  };
   page: {
     format: 'A4' | 'A5' | 'Letter';
     orientation: 'portrait' | 'landscape';
@@ -196,6 +189,30 @@ export interface Composition {
       right?: number | null;
       bottom?: number | null;
       left?: number | null;
+    };
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "binder-items".
+ */
+export interface BinderItem {
+  id: number;
+  title: string;
+  kind: 'folder' | 'document';
+  composition: number | Composition;
+  owner: number | User;
+  parent?: (number | null) | BinderItem;
+  position: number;
+  content?: {
+    root: {
+      type: 'root';
+      children: {
+        [k: string]: unknown;
+      }[];
+      [k: string]: unknown;
     };
   };
   updatedAt: string;
@@ -274,6 +291,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'compositions';
         value: number | Composition;
+      } | null)
+    | ({
+        relationTo: 'binder-items';
+        value: number | BinderItem;
       } | null)
     | ({
         relationTo: 'thesaurus-entries';
@@ -371,7 +392,6 @@ export interface MediaSelect<T extends boolean = true> {
 export interface CompositionsSelect<T extends boolean = true> {
   title?: T;
   owner?: T;
-  content?: T;
   page?:
     | T
     | {
@@ -386,6 +406,21 @@ export interface CompositionsSelect<T extends boolean = true> {
               left?: T;
             };
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "binder-items_select".
+ */
+export interface BinderItemsSelect<T extends boolean = true> {
+  title?: T;
+  kind?: T;
+  composition?: T;
+  owner?: T;
+  parent?: T;
+  position?: T;
+  content?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -116,6 +116,10 @@ export const en = {
       interjection: 'Interjection',
     },
   },
+  binder: {
+    untitledDocument: 'Untitled document',
+    empty: 'This composition has no document yet.',
+  },
   editor: {
     titleLabel: 'Composition title',
     placeholder: 'Start writing…',

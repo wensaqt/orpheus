@@ -25,21 +25,22 @@ export async function createComposition() {
     },
     user,
     overrideAccess: false,
+    // Read by the collection, which adds a first empty document under this title
+    context: { firstDocumentTitle: t('binder.untitledDocument') },
   })
   redirect(ROUTES.composition(composition.id))
 }
 
 /*
- * Partial save from the editor. Allowlist: only the title and content can be changed here.
- * Their validity (type, length, Lexical shape) is checked by the collection.
- * An undefined key (e.g. when saving only the title) is ignored by Payload.
+ * Partial save from the editor. Allowlist: only the title can be changed here; its validity
+ * (type, length) is checked by the collection. The text is saved per document (saveDocument).
  */
 export const saveComposition = authedAction(
-  async ({ payload, user }, id: number, { title, content }: CompositionPatch) => {
+  async ({ payload, user }, id: number, { title }: CompositionPatch) => {
     const { updatedAt } = await payload.update({
       collection: 'compositions',
       id,
-      data: { title, content },
+      data: { title },
       user,
       overrideAccess: false,
       depth: 0,

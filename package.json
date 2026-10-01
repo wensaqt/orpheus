@@ -20,7 +20,8 @@
     "test:coverage": "cross-env NODE_OPTIONS=--no-deprecation vitest run --coverage",
     "thesaurus:import": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/import-thesaurus.ts",
     "users:set": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/set-user-access.ts",
-    "passwords:blocklist": "tsx scripts/build-password-blocklist.ts"
+    "passwords:blocklist": "tsx scripts/build-password-blocklist.ts",
+    "binder:migrate": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/migrate-to-binder.ts"
   },
   "dependencies": {
     "@lexical/list": "0.50.0",
