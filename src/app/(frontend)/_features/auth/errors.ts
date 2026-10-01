@@ -13,13 +13,13 @@ export function toLogInError(error: unknown): LogInError {
 }
 
 /*
- * Reason shown for a failed sign-up, from the collection's validation. A taken email is checked
- * before creating the account, so an email error here means a malformed address.
+ * Reason shown for a failed sign-up, from the collection's validation. A taken email and the
+ * password rules are checked before creating the account, so an email error here means a
+ * malformed address.
  */
 export function toSignUpError(error: unknown): SignUpError {
   if (!(error instanceof ValidationError)) return 'unknown'
   const paths = error.data.errors.map((fieldError) => fieldError.path)
-  if (paths.includes('password')) return 'weak'
   if (paths.includes('email')) return 'invalidEmail'
   return 'unknown'
 }

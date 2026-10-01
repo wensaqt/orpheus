@@ -23,7 +23,7 @@ export const en = {
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm password',
-      passwordHint: 'At least {min} characters.',
+      passwordHint: 'At least {min} characters. A short phrase works well.',
     },
     login: {
       pageTitle: 'Sign in to Orpheus',
@@ -47,8 +47,11 @@ export const en = {
       switch: { question: 'Already have an account?', action: 'Sign in' },
       errors: {
         mismatch: 'The passwords do not match.',
-        weak: 'Use at least {min} characters for the password.',
+        tooShort: 'Use at least {min} characters for the password.',
         tooLong: 'Use at most {max} characters for the password.',
+        common: 'This password is among the most used. Try a short phrase instead.',
+        personal: 'Leave your email and “Orpheus” out of the password.',
+        predictable: 'Too easy to guess: avoid repeated or consecutive characters.',
         taken: 'An account already exists for this email.',
         invalidEmail: 'Enter a valid email address.',
         unknown: 'Could not create the account. Please try again.',

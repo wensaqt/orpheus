@@ -1,3 +1,5 @@
+import { TEST_PASSWORD } from '../helpers/testUsers'
+
 import { expect, test } from './fixtures'
 
 test.describe('Compositions', () => {
@@ -122,7 +124,7 @@ test.describe('Compositions', () => {
       collection: 'users',
       data: {
         email: `orpheus-test-other-${Date.now()}@example.test`,
-        password: 'orpheus-test-password',
+        password: TEST_PASSWORD,
       },
     })
     const theirs = await account.payload.create({

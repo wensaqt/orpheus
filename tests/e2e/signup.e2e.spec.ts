@@ -43,7 +43,12 @@ test.describe('Sign-up', () => {
     const alert = page.getByRole('main').getByRole('alert')
 
     await signUp(page, email, 'lyre')
-    await expect(alert).toHaveText('Use at least 8 characters for the password.')
+    await expect(alert).toHaveText('Use at least 12 characters for the password.')
+
+    await signUp(page, email, 'password1234')
+    await expect(alert).toHaveText(
+      'This password is among the most used. Try a short phrase instead.',
+    )
     await expect(page.getByLabel('Email')).toHaveValue(email)
 
     await signUp(page, email, 'eurydice-forever', 'eurydice-never')

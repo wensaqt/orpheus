@@ -42,10 +42,11 @@ export const ThesaurusEntries: CollectionConfig = {
     update: () => false,
     delete: () => false,
   },
+  // Also serves lookups by word alone (its leading column): no separate index on word
   indexes: [{ fields: ['word', 'lang', 'source'], unique: true }],
   timestamps: false,
   fields: [
-    { name: 'word', type: 'text', required: true, index: true },
+    { name: 'word', type: 'text', required: true },
     {
       name: 'lang',
       type: 'select',

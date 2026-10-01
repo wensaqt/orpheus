@@ -32,7 +32,7 @@ describe('SignupForm', () => {
   it('explains the password rule next to the field', () => {
     const password = screen.getByLabelText('Password')
     const hint = document.getElementById(password.getAttribute('aria-describedby')!)
-    expect(hint?.textContent).toBe('At least 8 characters.')
+    expect(hint?.textContent).toBe('At least 12 characters. A short phrase works well.')
   })
 
   it('sends both passwords and the page to come back to', async () => {
@@ -55,10 +55,10 @@ describe('SignupForm', () => {
   })
 
   it('states the minimum length when the password is too short', async () => {
-    signUp.mockResolvedValue({ error: 'weak', email: 'orphee@example.test' })
+    signUp.mockResolvedValue({ error: 'tooShort', email: 'orphee@example.test' })
     await submit({ ...filled, Password: 'lyre', 'Confirm password': 'lyre' })
     expect(screen.getByRole('alert').textContent).toBe(
-      'Use at least 8 characters for the password.',
+      'Use at least 12 characters for the password.',
     )
     expect(screen.getByLabelText('Confirm password').getAttribute('aria-invalid')).toBeNull()
   })

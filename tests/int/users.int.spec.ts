@@ -121,6 +121,14 @@ describe('users', () => {
     ).rejects.toThrow(ValidationError)
   })
 
+  it('refuses a common or predictable password, whoever sets it', async () => {
+    for (const password of ['azertyuiop123', 'abababababab']) {
+      await expect(
+        payload.update({ collection: 'users', id: user.id, data: { password } }),
+      ).rejects.toThrow(ValidationError)
+    }
+  })
+
   it('refuses an oversized password or email', async () => {
     const signUp = (email: string, password: string) =>
       payload.create({ collection: 'users', data: { email, password }, overrideAccess: false })

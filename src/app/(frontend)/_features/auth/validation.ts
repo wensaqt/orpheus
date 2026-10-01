@@ -1,4 +1,5 @@
-import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@/lib/users'
+import { passwordProblem } from '@/lib/passwords/strength'
+import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH } from '@/lib/users'
 
 import type { SignUpError } from './types'
 
@@ -15,8 +16,8 @@ export function checkSignUp({
   confirm,
 }: Credentials & { confirm: string }): SignUpError | null {
   if (email.length > MAX_EMAIL_LENGTH) return 'invalidEmail'
-  if (password.length < MIN_PASSWORD_LENGTH) return 'weak'
-  if (password.length > MAX_PASSWORD_LENGTH) return 'tooLong'
+  const problem = passwordProblem(password, { email })
+  if (problem) return problem
   if (password !== confirm) return 'mismatch'
   return null
 }

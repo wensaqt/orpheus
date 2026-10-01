@@ -10,19 +10,22 @@ const validation = (path: string) =>
 const email = 'orphee@example.test'
 
 describe('checkSignUp', () => {
-  it('accepts a long enough password typed twice', () => {
-    expect(checkSignUp({ email, password: 'eurydice', confirm: 'eurydice' })).toBeNull()
+  const good = 'eurydice in the dark'
+
+  it('accepts a good password typed twice', () => {
+    expect(checkSignUp({ email, password: good, confirm: good })).toBeNull()
   })
 
-  it('reports a password of the wrong length before a mismatch', () => {
-    expect(checkSignUp({ email, password: 'lyre', confirm: 'harp' })).toBe('weak')
-    const long = 'a'.repeat(129)
-    expect(checkSignUp({ email, password: long, confirm: long })).toBe('tooLong')
-    expect(checkSignUp({ email, password: 'eurydice', confirm: 'eurydic' })).toBe('mismatch')
+  it('reports a problem with the password before a mismatch', () => {
+    expect(checkSignUp({ email, password: 'lyre', confirm: 'harp' })).toBe('tooShort')
+    expect(checkSignUp({ email, password: 'orphee-forever', confirm: 'orphee-forever' })).toBe(
+      'personal',
+    )
+    expect(checkSignUp({ email, password: good, confirm: `${good}!` })).toBe('mismatch')
   })
 
   it('refuses an email longer than the standards allow', () => {
-    const password = 'eurydice'
+    const password = 'eurydice in the dark'
     const tooLong = `${'a'.repeat(243)}@example.test`
     expect(checkSignUp({ email: tooLong, password, confirm: password })).toBe('invalidEmail')
   })
@@ -41,12 +44,13 @@ describe('exceedsCredentialLimits', () => {
 })
 
 describe('toSignUpError', () => {
-  it('maps the collection validation to the field at fault', () => {
-    expect(toSignUpError(validation('password'))).toBe('weak')
+  it('maps an email rejected by the collection to a malformed address', () => {
     expect(toSignUpError(validation('email'))).toBe('invalidEmail')
   })
 
   it('treats anything else as unexpected', () => {
+    // The form checks the password rules first: a password error here is not one to explain
+    expect(toSignUpError(validation('password'))).toBe('unknown')
     expect(toSignUpError(validation('role'))).toBe('unknown')
     expect(toSignUpError(new Error('database down'))).toBe('unknown')
   })

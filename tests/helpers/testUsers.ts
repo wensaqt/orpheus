@@ -4,7 +4,8 @@ import config from '@payload-config'
 
 // All test accounts share this prefix so they can always be found and deleted
 export const TEST_EMAIL_PREFIX = 'orpheus-test-'
-export const TEST_PASSWORD = 'orpheus-test-password'
+// Must pass the password rules: long enough, without the app's name
+export const TEST_PASSWORD = 'lyre-of-thrace-42'
 
 export const getTestPayload = () => getPayload({ config })
 

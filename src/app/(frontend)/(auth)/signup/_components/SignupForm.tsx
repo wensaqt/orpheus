@@ -17,7 +17,14 @@ import { AuthSheet } from '../../_components/AuthSheet'
 
 // The fields each error is about
 const EMAIL_ERRORS: SignUpError[] = ['taken', 'invalidEmail']
-const PASSWORD_ERRORS: SignUpError[] = ['weak', 'tooLong', 'mismatch']
+const PASSWORD_ERRORS: SignUpError[] = [
+  'tooShort',
+  'tooLong',
+  'common',
+  'personal',
+  'predictable',
+  'mismatch',
+]
 
 export function SignupForm({ returnTo }: { returnTo: string }) {
   const [state, action, pending] = useActionState<SignUpState, FormData>(
