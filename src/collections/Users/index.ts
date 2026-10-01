@@ -4,7 +4,7 @@ import { adminOnly, adminOnlyField } from '@/access/isAdmin'
 import { DEFAULT_PLAN, DEFAULT_USER_ROLE, isAdmin, PLANS, USER_ROLES } from '@/lib/users'
 
 import { adminOrSelf } from './access'
-import { firstUserIsAdmin, requireLongPassword } from './hooks'
+import { checkCredentialLengths, firstUserIsAdmin } from './hooks'
 
 // Role and plan can only be granted by an admin, never by the account itself
 const restricted = { create: adminOnlyField, update: adminOnlyField }
@@ -27,7 +27,7 @@ export const Users: CollectionConfig = {
     unlock: adminOnly,
   },
   hooks: {
-    beforeValidate: [requireLongPassword],
+    beforeValidate: [checkCredentialLengths],
     beforeChange: [firstUserIsAdmin],
   },
   fields: [

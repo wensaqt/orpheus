@@ -11,7 +11,7 @@ import { RETURN_TO_PARAM, ROUTES } from '@front/_lib/routes'
 
 import { toLogInError, toSignUpError } from './errors'
 import type { LogInState, SignUpState } from './types'
-import { checkSignUp } from './validation'
+import { checkSignUp, exceedsCredentialLimits } from './validation'
 
 const field = (form: FormData, name: string) => {
   const value = form.get(name)
@@ -25,7 +25,9 @@ const field = (form: FormData, name: string) => {
 export async function logIn(_previous: LogInState, form: FormData): Promise<LogInState> {
   const email = field(form, 'email').trim()
   const password = field(form, 'password')
-  if (!email || !password) return { error: 'invalid', email }
+  if (!email || !password || exceedsCredentialLimits({ email, password })) {
+    return { error: 'invalid', email }
+  }
 
   try {
     await login({ collection: 'users', config, email, password })
@@ -44,7 +46,7 @@ export async function logIn(_previous: LogInState, form: FormData): Promise<LogI
 export async function signUp(_previous: SignUpState, form: FormData): Promise<SignUpState> {
   const email = field(form, 'email').trim()
   const password = field(form, 'password')
-  const invalid = checkSignUp({ password, confirm: field(form, 'confirm') })
+  const invalid = checkSignUp({ email, password, confirm: field(form, 'confirm') })
   if (invalid) return { error: invalid, email }
 
   try {

@@ -48,6 +48,7 @@ export const en = {
       errors: {
         mismatch: 'The passwords do not match.',
         weak: 'Use at least {min} characters for the password.',
+        tooLong: 'Use at most {max} characters for the password.',
         taken: 'An account already exists for this email.',
         invalidEmail: 'Enter a valid email address.',
         unknown: 'Could not create the account. Please try again.',

@@ -16,5 +16,9 @@ export const isAdmin = (user: Account) => user?.role === 'admin'
 
 export const isPro = (user: Account) => user?.plan === 'pro'
 
-// Checked by the collection for every password set, whoever sets it
+// Checked by the collection for every email and password set, whoever sets them
 export const MIN_PASSWORD_LENGTH = 8
+// Long enough for any passphrase, short enough that nobody can make the server hash megabytes
+export const MAX_PASSWORD_LENGTH = 128
+// The longest address the email standards allow
+export const MAX_EMAIL_LENGTH = 254

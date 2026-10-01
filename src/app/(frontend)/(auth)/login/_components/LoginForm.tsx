@@ -2,6 +2,8 @@
 
 import { useActionState, useId } from 'react'
 
+import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH } from '@/lib/users'
+
 import { logIn } from '@front/_features/auth/actions'
 import { INITIAL_AUTH_FORM_STATE, type LogInState } from '@front/_features/auth/types'
 import { t } from '@front/_lib/i18n'
@@ -35,6 +37,7 @@ export function LoginForm({ returnTo }: { returnTo: string }) {
         type="email"
         name="email"
         autoComplete="email"
+        maxLength={MAX_EMAIL_LENGTH}
         required
         defaultValue={state.email}
         errorId={describedBy}
@@ -44,6 +47,7 @@ export function LoginForm({ returnTo }: { returnTo: string }) {
         type="password"
         name="password"
         autoComplete="current-password"
+        maxLength={MAX_PASSWORD_LENGTH}
         required
         errorId={describedBy}
       />

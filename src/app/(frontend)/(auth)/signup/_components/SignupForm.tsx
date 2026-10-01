@@ -2,7 +2,7 @@
 
 import { useActionState, useId } from 'react'
 
-import { MIN_PASSWORD_LENGTH } from '@/lib/users'
+import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@/lib/users'
 
 import { signUp } from '@front/_features/auth/actions'
 import {
@@ -17,7 +17,7 @@ import { AuthSheet } from '../../_components/AuthSheet'
 
 // The fields each error is about
 const EMAIL_ERRORS: SignUpError[] = ['taken', 'invalidEmail']
-const PASSWORD_ERRORS: SignUpError[] = ['weak', 'mismatch']
+const PASSWORD_ERRORS: SignUpError[] = ['weak', 'tooLong', 'mismatch']
 
 export function SignupForm({ returnTo }: { returnTo: string }) {
   const [state, action, pending] = useActionState<SignUpState, FormData>(
@@ -27,7 +27,7 @@ export function SignupForm({ returnTo }: { returnTo: string }) {
   const errorId = useId()
   const on = (errors: SignUpError[]) =>
     state.error && errors.includes(state.error) ? errorId : undefined
-  const min = { min: MIN_PASSWORD_LENGTH }
+  const lengths = { min: MIN_PASSWORD_LENGTH, max: MAX_PASSWORD_LENGTH }
 
   return (
     <AuthSheet
@@ -35,7 +35,7 @@ export function SignupForm({ returnTo }: { returnTo: string }) {
       subtitle={t('auth.signup.subtitle')}
       action={action}
       returnTo={returnTo}
-      error={state.error && t(`auth.signup.errors.${state.error}`, min)}
+      error={state.error && t(`auth.signup.errors.${state.error}`, lengths)}
       errorId={errorId}
       submitLabel={t('auth.signup.submit')}
       pendingLabel={t('auth.signup.submitting')}
@@ -46,16 +46,18 @@ export function SignupForm({ returnTo }: { returnTo: string }) {
         type="email"
         name="email"
         autoComplete="email"
+        maxLength={MAX_EMAIL_LENGTH}
         required
         defaultValue={state.email}
         errorId={on(EMAIL_ERRORS)}
       />
       <AuthField
         label={t('auth.fields.password')}
-        hint={t('auth.fields.passwordHint', min)}
+        hint={t('auth.fields.passwordHint', lengths)}
         type="password"
         name="password"
         autoComplete="new-password"
+        maxLength={MAX_PASSWORD_LENGTH}
         required
         errorId={on(PASSWORD_ERRORS)}
       />
@@ -64,6 +66,7 @@ export function SignupForm({ returnTo }: { returnTo: string }) {
         type="password"
         name="confirm"
         autoComplete="new-password"
+        maxLength={MAX_PASSWORD_LENGTH}
         required
         errorId={on(['mismatch'])}
       />

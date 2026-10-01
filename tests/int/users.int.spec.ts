@@ -121,6 +121,17 @@ describe('users', () => {
     ).rejects.toThrow(ValidationError)
   })
 
+  it('refuses an oversized password or email', async () => {
+    const signUp = (email: string, password: string) =>
+      payload.create({ collection: 'users', data: { email, password }, overrideAccess: false })
+    await expect(
+      signUp(`${TEST_EMAIL_PREFIX}long-${Date.now()}@example.test`, 'a'.repeat(129)),
+    ).rejects.toThrow(ValidationError)
+    await expect(
+      signUp(`${TEST_EMAIL_PREFIX}${'a'.repeat(250)}@example.test`, TEST_PASSWORD),
+    ).rejects.toThrow(ValidationError)
+  })
+
   it('opens the admin panel to admins only', async () => {
     const canAccessAdmin = (as: User) =>
       payload.collections.users.config.access.admin!({ req: { user: as, payload } as never })
