@@ -1,8 +1,8 @@
-/* Same ivory background as the home page */
+/* Pearl, like the editor and the home buttons on hover */
 .page {
   flex-grow: 1;
   padding: var(--space-6) var(--space-5);
-  background-color: var(--color-bg);
+  background-color: var(--color-surface-raised);
 }
 
 .inner {

@@ -3,6 +3,7 @@
   --dusty-grape: #4f4789;
   --dusty-grape-dark: #3d3670;
   --midnight-violet: #201335;
+  --white: #ffffff;
   --pearl: #fffef8;
   --ivory: #fffded;
   --parchment: #f6f2e4;
@@ -15,6 +16,7 @@
   /* Semantic colours — to be used in components */
   --color-bg: var(--ivory);
   --color-surface-raised: var(--pearl);
+  --color-sheet: var(--white); /* the paper you write on */
   --color-surface: var(--parchment);
   --color-surface-accent: var(--lavender-mist);
   --color-border: var(--heather);
@@ -30,6 +32,11 @@
   --color-accent: var(--antique-gold);
   --color-ornament: var(--pale-gold); /* barely perceptible decorations (lyre) */
   --color-ornament-active: var(--lavender-mist); /* decoration of the hovered element */
+
+  /* Shadows — tinted with the text violet rather than grey, to stay warm */
+  --shadow-sheet:
+    0 1px 2px color-mix(in srgb, var(--midnight-violet) 6%, transparent),
+    0 8px 24px color-mix(in srgb, var(--midnight-violet) 5%, transparent);
 
   /* Typography */
   --font-sans: var(--font-nunito-sans), system-ui, sans-serif;
