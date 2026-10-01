@@ -1,0 +1,55 @@
+/* Facing the logo (HomeLink), in the opposite corner and with the same discretion */
+.corner,
+a.trigger {
+  position: fixed;
+  top: var(--space-3);
+  right: var(--space-4);
+  z-index: 1;
+}
+
+.trigger {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background-color: var(--color-surface-raised);
+  color: var(--color-primary);
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.trigger:is(:hover, :focus-visible),
+.trigger[aria-expanded='true'] {
+  opacity: 1;
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-accent);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+/* The email under "Signed in as", cut short if it is long */
+.email {
+  display: block;
+  max-width: 14rem;
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+}

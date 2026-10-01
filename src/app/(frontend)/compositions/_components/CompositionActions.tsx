@@ -46,9 +46,9 @@ export function CompositionActions({ id, title }: CompositionActionsProps) {
     {
       label: t('compositions.actions.duplicate'),
       disabled: true,
-      hint: t('compositions.actions.soon'),
+      hint: t('common.soon'),
     },
-    { label: t('compositions.actions.move'), disabled: true, hint: t('compositions.actions.soon') },
+    { label: t('compositions.actions.move'), disabled: true, hint: t('common.soon') },
     {
       label: t('compositions.actions.delete'),
       tone: 'danger',

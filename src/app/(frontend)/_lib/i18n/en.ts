@@ -9,6 +9,14 @@ export const en = {
     confirm: 'Confirm',
     dismiss: 'Dismiss',
     notifications: 'Notifications',
+    soon: 'Coming soon',
+  },
+  account: {
+    menu: 'Account',
+    signedInAs: 'Signed in as',
+    profile: 'Profile',
+    logOut: 'Sign out',
+    logIn: 'Sign in',
   },
   auth: {
     fields: {
@@ -62,7 +70,6 @@ export const en = {
       duplicate: 'Duplicate',
       move: 'Move to…',
       delete: 'Delete',
-      soon: 'Coming soon',
     },
     delete: {
       title: 'Delete “{title}”?',

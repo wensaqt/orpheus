@@ -1,13 +1,13 @@
 'use server'
 
-import { login } from '@payloadcms/next/auth'
+import { login, logout } from '@payloadcms/next/auth'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 
 import config from '@payload-config'
 
 import { safeReturnTo } from '@front/_lib/returnTo'
-import { RETURN_TO_PARAM } from '@front/_lib/routes'
+import { RETURN_TO_PARAM, ROUTES } from '@front/_lib/routes'
 
 import { toLogInError, toSignUpError } from './errors'
 import type { LogInState, SignUpState } from './types'
@@ -65,4 +65,10 @@ export async function signUp(_previous: SignUpState, form: FormData): Promise<Si
     return { error: toSignUpError(error), email }
   }
   redirect(safeReturnTo(form.get(RETURN_TO_PARAM)))
+}
+
+// Ends the session (Payload clears the cookie) and goes back to the home page
+export async function logOut() {
+  await logout({ config })
+  redirect(ROUTES.home)
 }

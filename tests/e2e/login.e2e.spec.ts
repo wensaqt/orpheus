@@ -53,6 +53,23 @@ test.describe('Signed in', () => {
     await expect(page).toHaveURL(/\/compositions$/)
   })
 
+  test('the account menu signs out, after which pages ask to sign in again', async ({
+    page,
+    account,
+  }) => {
+    await page.goto('/compositions')
+    await page.getByRole('button', { name: 'Account' }).click()
+    const menu = page.getByRole('menu', { name: 'Account' })
+    await expect(menu).toContainText(`Signed in as ${account.user.email}`)
+    await expect(menu.getByRole('menuitem', { name: 'Profile' })).toBeDisabled()
+
+    await menu.getByRole('menuitem', { name: 'Sign out' }).click()
+    await expect(page).toHaveURL(/localhost:3000\/$/)
+    await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
+    await page.goto('/compositions')
+    await expect(page).toHaveURL(/\/login\?redirect=%2Fcompositions$/)
+  })
+
   test('a regular account cannot use the admin panel', async ({ page }) => {
     await page.goto('/admin')
     await expect(page.locator('span[title="Dashboard"]')).toHaveCount(0)

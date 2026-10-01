@@ -17,6 +17,8 @@ export type MenuItem = {
 type MenuProps = {
   // Accessible name of the trigger button
   label: string
+  // Non-interactive content above the items, e.g. who is signed in
+  header?: React.ReactNode
   items: MenuItem[]
   triggerClassName?: string
   children: React.ReactNode
@@ -29,7 +31,7 @@ const OFFSET = 4
  * Floating menu built on the native Popover API: top layer, light dismiss and Escape are
  * provided by the browser. We add placement below the trigger and arrow-key navigation.
  */
-export function Menu({ label, items, triggerClassName, children }: MenuProps) {
+export function Menu({ label, header, items, triggerClassName, children }: MenuProps) {
   const id = useId()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -97,11 +99,18 @@ export function Menu({ label, items, triggerClassName, children }: MenuProps) {
         popover="auto"
         role="menu"
         aria-label={label}
+        aria-describedby={header ? `${id}-header` : undefined}
         className={styles.menu}
         onBeforeToggle={(e) => e.newState === 'open' && place()}
         onToggle={handleToggle}
         onKeyDown={handleKeyDown}
       >
+        {/* Not an item (a menu only holds items): read as the menu's description instead */}
+        {header && (
+          <div id={`${id}-header`} role="presentation" className={styles.header}>
+            {header}
+          </div>
+        )}
         {items.map((item) => (
           <button
             key={item.label}
