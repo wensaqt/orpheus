@@ -3,21 +3,23 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
-import { DEFAULT_COMPOSITION_TITLE } from '@/lib/compositions'
 import { DEFAULT_PAGE_FORMAT } from '@/lib/pageFormats'
 
 import { ROUTES } from '@front/_lib/routes'
 import { authedAction, requireUser } from '@front/_lib/server/auth'
+import { getT } from '@front/_lib/server/i18n'
 
 import type { CompositionPatch, DeleteCompositionResult } from './types'
 
 // Creates an empty composition for the signed-in user and opens the editor
 export async function createComposition() {
   const { payload, user } = await requireUser(ROUTES.home)
+  const t = await getT()
   const composition = await payload.create({
     collection: 'compositions',
     data: {
-      title: DEFAULT_COMPOSITION_TITLE,
+      // In the user's language; the collection default is only a fallback
+      title: t('compositions.untitled'),
       owner: user.id,
       page: { format: DEFAULT_PAGE_FORMAT, orientation: 'portrait' },
     },

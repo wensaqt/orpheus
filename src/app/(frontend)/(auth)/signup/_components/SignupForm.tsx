@@ -10,7 +10,7 @@ import {
   type SignUpError,
   type SignUpState,
 } from '@front/_features/auth/types'
-import { t } from '@front/_lib/i18n'
+import { useT } from '@front/_components/i18n/I18nProvider'
 
 import { AuthField } from '../../_components/AuthField'
 import { AuthSheet } from '../../_components/AuthSheet'
@@ -27,6 +27,7 @@ const PASSWORD_ERRORS: SignUpError[] = [
 ]
 
 export function SignupForm({ returnTo }: { returnTo: string }) {
+  const t = useT()
   const [state, action, pending] = useActionState<SignUpState, FormData>(
     signUp,
     INITIAL_AUTH_FORM_STATE,

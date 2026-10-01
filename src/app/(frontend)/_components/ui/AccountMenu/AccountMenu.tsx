@@ -6,7 +6,7 @@ import { useTransition } from 'react'
 
 import { Menu, type MenuItem } from '@front/_components/ui/Menu/Menu'
 import { logOut } from '@front/_features/auth/actions'
-import { t } from '@front/_lib/i18n'
+import { useT } from '@front/_components/i18n/I18nProvider'
 import { AUTH_PAGES, ROUTES } from '@front/_lib/routes'
 
 import styles from './AccountMenu.module.css'
@@ -24,10 +24,11 @@ function ProfileIcon() {
 type AccountMenuProps = { email: string | null }
 
 /*
- * Top-right corner, facing the logo: the account menu when signed in, otherwise a way to sign
- * in that comes back to the current page.
+ * The account menu when signed in, otherwise a way to sign in that comes back to the current
+ * page.
  */
 export function AccountMenu({ email }: AccountMenuProps) {
+  const t = useT()
   const pathname = usePathname()
   const [pending, startTransition] = useTransition()
 
@@ -56,19 +57,17 @@ export function AccountMenu({ email }: AccountMenuProps) {
   ]
 
   return (
-    <div className={styles.corner}>
-      <Menu
-        label={t('account.menu')}
-        header={
-          <>
-            {t('account.signedInAs')} <strong className={styles.email}>{email}</strong>
-          </>
-        }
-        items={items}
-        triggerClassName={styles.trigger}
-      >
-        <ProfileIcon />
-      </Menu>
-    </div>
+    <Menu
+      label={t('account.menu')}
+      header={
+        <>
+          {t('account.signedInAs')} <strong className={styles.email}>{email}</strong>
+        </>
+      }
+      items={items}
+      triggerClassName={styles.trigger}
+    >
+      <ProfileIcon />
+    </Menu>
   )
 }

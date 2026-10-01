@@ -12,6 +12,12 @@ export type MenuItem = {
   // Tooltip, e.g. "Coming soon" on a disabled action
   hint?: string
   tone?: 'default' | 'danger'
+  // One choice among several (e.g. a language): the item is a radio, checked or not
+  checked?: boolean
+  // Decorative mark before the label (an emoji, a symbol), hidden from screen readers
+  icon?: string
+  // Language of the label, when it differs from the page's ("Français" on an English page)
+  lang?: string
 }
 
 type MenuProps = {
@@ -39,7 +45,9 @@ export function Menu({ label, header, items, triggerClassName, children }: MenuP
 
   const enabledItems = () =>
     Array.from(
-      menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:enabled') ?? [],
+      menuRef.current?.querySelectorAll<HTMLButtonElement>(
+        ':is([role="menuitem"], [role="menuitemradio"]):enabled',
+      ) ?? [],
     )
 
   // Aligned below the trigger's right edge, in viewport coordinates
@@ -115,7 +123,9 @@ export function Menu({ label, header, items, triggerClassName, children }: MenuP
           <button
             key={item.label}
             type="button"
-            role="menuitem"
+            role={item.checked === undefined ? 'menuitem' : 'menuitemradio'}
+            aria-checked={item.checked}
+            lang={item.lang}
             className={styles.item}
             data-tone={item.tone ?? 'default'}
             disabled={item.disabled}
@@ -125,6 +135,11 @@ export function Menu({ label, header, items, triggerClassName, children }: MenuP
               item.onSelect?.()
             }}
           >
+            {item.icon && (
+              <span className={styles.icon} aria-hidden="true">
+                {item.icon}
+              </span>
+            )}
             {item.label}
           </button>
         ))}

@@ -1,30 +1,45 @@
-import { APP_LOCALE } from './i18n'
-
-// Formatters are created once: they are expensive to build
-const dateTimeFormat = new Intl.DateTimeFormat(APP_LOCALE, {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-})
-const dateFormat = new Intl.DateTimeFormat(APP_LOCALE, { dateStyle: 'medium' })
-const relativeFormat = new Intl.RelativeTimeFormat(APP_LOCALE, { numeric: 'auto' })
+import type { Locale } from './i18n'
 
 const MINUTE = 60
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 const WEEK = 7 * DAY
 
-// Readable date and time, e.g. "Sep 30, 2026, 10:42 AM"
-export const formatDateTime = (date: Date | string) => dateTimeFormat.format(new Date(date))
+/*
+ * Date formatters for one language. Intl formatters are expensive to build, so they are created
+ * once per language and reused.
+ */
+function createFormatters(locale: Locale) {
+  const dateTime = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' })
+  const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' })
+  const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
 
-// Relative while recent ("now", "2 hours ago", "yesterday"), then the date
-export function formatRelative(date: Date | string, now: Date = new Date()) {
-  const target = new Date(date)
-  const seconds = (target.getTime() - now.getTime()) / 1000
-  const elapsed = Math.abs(seconds)
+  return {
+    // Readable date and time, e.g. "Sep 30, 2026, 10:42 AM"
+    formatDateTime: (value: Date | string) => dateTime.format(new Date(value)),
 
-  if (elapsed < MINUTE) return relativeFormat.format(0, 'second')
-  if (elapsed < HOUR) return relativeFormat.format(Math.round(seconds / MINUTE), 'minute')
-  if (elapsed < DAY) return relativeFormat.format(Math.round(seconds / HOUR), 'hour')
-  if (elapsed < WEEK) return relativeFormat.format(Math.round(seconds / DAY), 'day')
-  return dateFormat.format(target)
+    // Relative while recent ("now", "2 hours ago", "yesterday"), then the date
+    formatRelative(value: Date | string, now: Date = new Date()) {
+      const target = new Date(value)
+      const seconds = (target.getTime() - now.getTime()) / 1000
+      const elapsed = Math.abs(seconds)
+
+      if (elapsed < MINUTE) return relative.format(0, 'second')
+      if (elapsed < HOUR) return relative.format(Math.round(seconds / MINUTE), 'minute')
+      if (elapsed < DAY) return relative.format(Math.round(seconds / HOUR), 'hour')
+      if (elapsed < WEEK) return relative.format(Math.round(seconds / DAY), 'day')
+      return date.format(target)
+    },
+  }
+}
+
+const formattersByLocale = new Map<Locale, ReturnType<typeof createFormatters>>()
+
+export function getFormatters(locale: Locale) {
+  let formatters = formattersByLocale.get(locale)
+  if (!formatters) {
+    formatters = createFormatters(locale)
+    formattersByLocale.set(locale, formatters)
+  }
+  return formatters
 }

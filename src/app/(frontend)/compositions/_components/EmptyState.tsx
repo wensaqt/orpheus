@@ -1,12 +1,13 @@
 import Image from 'next/image'
 
 import lyreMark from '@front/_assets/images/lyre-mark.png'
-import { t } from '@front/_lib/i18n'
+import { getT } from '@front/_lib/server/i18n'
 
 import styles from './EmptyState.module.css'
 import { NewCompositionCard } from './NewCompositionCard'
 
-export function EmptyState() {
+export async function EmptyState() {
+  const t = await getT()
   return (
     <div className={styles.empty}>
       <Image src={lyreMark} alt="" width={72} height={72} className={styles.mark} />

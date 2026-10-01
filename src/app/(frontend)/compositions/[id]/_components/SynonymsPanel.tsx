@@ -7,12 +7,14 @@ import { THESAURUS_CREDITS } from '@/lib/thesaurus/source'
 
 import type { SynonymResult } from '@front/_features/lexicon/types'
 import { type SynonymStatus, useSynonyms } from '@front/_features/lexicon/useSynonyms'
-import { t } from '@front/_lib/i18n'
+import { useT } from '@front/_components/i18n/I18nProvider'
+import type { Translate } from '@front/_lib/i18n'
 
 import styles from './SynonymsPanel.module.css'
 
 // Panel beside the sheet: synonyms of a word; clicking one copies it
 export function SynonymsPanel() {
+  const t = useT()
   const { query, status, result, setQuery, searchNow } = useSynonyms()
   const titleId = useId()
   const copyHintId = useId()
@@ -50,7 +52,7 @@ export function SynonymsPanel() {
 
       {/* Short announcement for screen readers rather than the whole list */}
       <p className="visually-hidden" role="status">
-        {announcement(status, result)}
+        {announcement(t, status, result)}
       </p>
       {/* Describes what a word chip does, without changing its accessible name */}
       <p id={copyHintId} className="visually-hidden">
@@ -95,7 +97,7 @@ export function SynonymsPanel() {
 
 const hasSynonyms = (result: SynonymResult) => Boolean(result.word && result.groups.length)
 
-function announcement(status: SynonymStatus, result: SynonymResult | null) {
+function announcement(t: Translate, status: SynonymStatus, result: SynonymResult | null) {
   if (status === 'loading') return t('synonyms.searching')
   if (status === 'error') return t('synonyms.error')
   if (status !== 'done' || !result) return ''
@@ -112,6 +114,7 @@ type ResultsProps = {
 }
 
 function Results({ result, copyHintId, onPick }: ResultsProps) {
+  const t = useT()
   // Page not found, or found but without synonyms
   if (!hasSynonyms(result)) {
     return (
@@ -146,6 +149,7 @@ type GroupsProps = Omit<ResultsProps, 'result'> & {
 }
 
 function Groups({ groups, copyHintId, onPick }: GroupsProps) {
+  const t = useT()
   return groups.map((group, index) => (
     // data-reliable: less reliable groups (Dicollecte) are shown paler
     <section key={index} className={styles.group} data-reliable={group.reliable !== false}>

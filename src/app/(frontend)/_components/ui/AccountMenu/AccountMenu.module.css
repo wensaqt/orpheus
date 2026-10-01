@@ -1,12 +1,3 @@
-/* Facing the logo (HomeLink), in the opposite corner and with the same discretion */
-.corner,
-a.trigger {
-  position: fixed;
-  top: var(--space-3);
-  right: var(--space-4);
-  z-index: 1;
-}
-
 .trigger {
   display: grid;
   place-items: center;

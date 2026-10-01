@@ -29,6 +29,8 @@ test.describe('Synonyms panel', () => {
       overrideAccess: false,
     })
     await page.goto(`/compositions/${composition.id}`)
+    // Lexical renders its editable area once React has hydrated: typing earlier would be lost
+    await expect(page.locator('[contenteditable="true"]')).toBeVisible()
     return page.getByRole('complementary', { name: 'Synonyms' })
   }
 

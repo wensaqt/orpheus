@@ -1,12 +1,13 @@
 import { Divider } from '@front/_components/ui/Divider/Divider'
 import { createComposition } from '@front/_features/compositions/actions'
-import { t } from '@front/_lib/i18n'
+import { getT } from '@front/_lib/server/i18n'
 import { ROUTES } from '@front/_lib/routes'
 
 import { LyreButton } from './_components/LyreButton/LyreButton'
 import styles from './page.module.css'
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getT()
   return (
     <div className={styles.container}>
       {/* Created via POST (server action): a link would be prefetched and create documents */}

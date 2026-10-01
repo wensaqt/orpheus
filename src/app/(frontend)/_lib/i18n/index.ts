@@ -1,26 +1,35 @@
 import { en } from './en'
+import { fr } from './fr'
+import type { Locale } from './locales'
 
-// UI language, used by <html lang> and the Intl formatters
-export const APP_LOCALE = 'en'
+export * from './locales'
 
-type Messages = typeof en
+// Same keys in every language: a missing or extra translation does not compile
+type Shape<T> = { readonly [K in keyof T]: T[K] extends string ? string : Shape<T[K]> }
+export type Messages = Shape<typeof en>
 
-// Dotted paths to strings: 'compositions.delete.label', etc.
-type MessageKey<T = Messages, Prefix extends string = ''> = {
+const MESSAGES: Record<Locale, Messages> = { en, fr }
+
+// Dotted paths to strings: 'compositions.delete.title', etc.
+export type MessageKey<T = Messages, Prefix extends string = ''> = {
   [K in keyof T & string]: T[K] extends string
     ? `${Prefix}${K}`
     : MessageKey<T[K], `${Prefix}${K}.`>
 }[keyof T & string]
 
 type Params = Record<string, string | number>
+export type Translate = (key: MessageKey, params?: Params) => string
 
-// String for a key, with {name} parameters substituted
-export function t(key: MessageKey, params?: Params): string {
-  const message = key
-    .split('.')
-    .reduce<unknown>((node, part) => (node as Record<string, unknown>)[part], en) as string
-  if (!params) return message
-  return message.replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in params ? String(params[name]) : match,
-  )
+// Translator for one language: the string for a key, with {name} parameters substituted
+export function createT(locale: Locale): Translate {
+  const messages = MESSAGES[locale]
+  return (key, params) => {
+    const message = key
+      .split('.')
+      .reduce<unknown>((node, part) => (node as Record<string, unknown>)[part], messages) as string
+    if (!params) return message
+    return message.replace(/\{(\w+)\}/g, (match, name: string) =>
+      name in params ? String(params[name]) : match,
+    )
+  }
 }

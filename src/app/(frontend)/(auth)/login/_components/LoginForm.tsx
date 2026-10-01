@@ -6,12 +6,13 @@ import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH } from '@/lib/users'
 
 import { logIn } from '@front/_features/auth/actions'
 import { INITIAL_AUTH_FORM_STATE, type LogInState } from '@front/_features/auth/types'
-import { t } from '@front/_lib/i18n'
+import { useT } from '@front/_components/i18n/I18nProvider'
 
 import { AuthField } from '../../_components/AuthField'
 import { AuthSheet } from '../../_components/AuthSheet'
 
 export function LoginForm({ returnTo }: { returnTo: string }) {
+  const t = useT()
   const [state, action, pending] = useActionState<LogInState, FormData>(
     logIn,
     INITIAL_AUTH_FORM_STATE,

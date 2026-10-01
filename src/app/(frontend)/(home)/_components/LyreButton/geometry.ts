@@ -8,7 +8,7 @@ const YOKE_EDGE_Y = 86
 export const BASE_AMP = 1
 export const MAX_AMP = 3
 // On click, the chord is plucked harder
-export const CHORD_AMP = 7
+export const CHORD_AMP = 5
 
 export type LyreString = { x: number; top: number; width: number }
 

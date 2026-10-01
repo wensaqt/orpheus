@@ -1,10 +1,11 @@
 import { createComposition } from '@front/_features/compositions/actions'
-import { t } from '@front/_lib/i18n'
+import { getT } from '@front/_lib/server/i18n'
 
 import styles from './CompositionCard.module.css'
 
 // First grid cell: a blank sheet that creates a composition (POST, server action)
-export function NewCompositionCard() {
+export async function NewCompositionCard() {
+  const t = await getT()
   return (
     <li className={styles.card}>
       <form action={createComposition}>

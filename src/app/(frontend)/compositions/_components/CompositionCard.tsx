@@ -1,15 +1,17 @@
 import Link from 'next/link'
 
 import type { CompositionCardData } from '@front/_features/compositions/types'
-import { formatDateTime, formatRelative } from '@front/_lib/format'
+import { getFormatters } from '@front/_lib/format'
+import { getLocale } from '@front/_lib/server/i18n'
 import { ROUTES } from '@front/_lib/routes'
 
 import styles from './CompositionCard.module.css'
 import { CompositionActions } from './CompositionActions'
 
 // A composition shown as a sheet thumbnail; all have the same shape
-export function CompositionCard({ composition }: { composition: CompositionCardData }) {
+export async function CompositionCard({ composition }: { composition: CompositionCardData }) {
   const { id, title, updatedAt, excerpt } = composition
+  const { formatDateTime, formatRelative } = getFormatters(await getLocale())
 
   return (
     <li className={styles.card}>

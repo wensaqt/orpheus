@@ -2,7 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useId, useRef, useState } from 'react'
 
-import { t } from '@front/_lib/i18n'
+import { useT } from '@front/_components/i18n/I18nProvider'
 import { Dialog } from '@front/_components/ui/Dialog/Dialog'
 import styles from './ConfirmProvider.module.css'
 
@@ -23,6 +23,7 @@ const ConfirmContext = createContext<Confirm | null>(null)
  * resolved to true (confirmed) or false (cancelled, Escape, backdrop click).
  */
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   // Kept after closing so the content doesn't vanish during the animation
   const [options, setOptions] = useState<ConfirmOptions | null>(null)

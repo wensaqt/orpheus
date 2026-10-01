@@ -18,6 +18,9 @@ export const en = {
     logOut: 'Sign out',
     logIn: 'Sign in',
   },
+  language: {
+    menu: 'Language',
+  },
   auth: {
     fields: {
       email: 'Email',
@@ -65,6 +68,7 @@ export const en = {
   compositions: {
     heading: 'All compositions',
     create: 'New composition',
+    untitled: 'Untitled composition',
     empty: {
       title: 'No compositions yet',
       subtitle: 'Every piece begins with a blank page.',

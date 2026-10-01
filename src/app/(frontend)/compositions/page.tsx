@@ -1,5 +1,5 @@
 import { listCompositionCards } from '@front/_features/compositions/queries'
-import { t } from '@front/_lib/i18n'
+import { getT } from '@front/_lib/server/i18n'
 import { ROUTES } from '@front/_lib/routes'
 import { requireUser } from '@front/_lib/server/auth'
 
@@ -8,6 +8,7 @@ import styles from './page.module.css'
 
 export default async function CompositionsPage() {
   await requireUser(ROUTES.compositions)
+  const t = await getT()
   const compositions = await listCompositionCards()
 
   return (

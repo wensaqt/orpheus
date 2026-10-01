@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react'
 
-import { t } from '@front/_lib/i18n'
+import { useT } from '@front/_components/i18n/I18nProvider'
 import styles from './ToastProvider.module.css'
 
 type ToastTone = 'default' | 'success' | 'error'
@@ -36,6 +36,7 @@ const ToastContext = createContext<ToastApi | null>(null)
 
 // Notifications stacked at the bottom of the screen, announced to screen readers
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const t = useT()
   const [toasts, setToasts] = useState<Toast[]>([])
   const nextId = useRef(0)
 
@@ -69,6 +70,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
 // onDismiss is stable: the timer isn't restarted when other toasts arrive
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: number) => void }) {
+  const t = useT()
   const [paused, setPaused] = useState(false)
   const { id } = toast
 

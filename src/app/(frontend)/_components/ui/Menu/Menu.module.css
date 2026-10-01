@@ -54,6 +54,17 @@
   color: var(--color-accent);
 }
 
+/* Room between a decorative mark and the label */
+.icon {
+  margin-inline-end: var(--space-2);
+}
+
+/* The current choice of a radio group (e.g. the language in use) */
+.item[aria-checked='true'] {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
 .item:disabled {
   color: var(--color-text-muted);
   opacity: 0.5;
