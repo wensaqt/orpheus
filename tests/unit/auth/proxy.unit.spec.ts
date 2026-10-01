@@ -15,7 +15,7 @@ describe('proxy', () => {
     const response = proxy(request('/compositions/12?view=grid'))
     expect(response.status).toBe(307)
     expect(response.headers.get('location')).toBe(
-      'http://localhost:3000/admin/login?redirect=%2Fcompositions%2F12%3Fview%3Dgrid',
+      'http://localhost:3000/login?redirect=%2Fcompositions%2F12%3Fview%3Dgrid',
     )
   })
 
@@ -26,7 +26,7 @@ describe('proxy', () => {
   })
 
   it('leaves public routes alone', () => {
-    for (const path of ['/', '/compositionsfoo', '/admin/login']) {
+    for (const path of ['/', '/compositionsfoo', '/login', '/admin/login']) {
       expect(proxy(request(path)).headers.get('location')).toBeNull()
     }
   })

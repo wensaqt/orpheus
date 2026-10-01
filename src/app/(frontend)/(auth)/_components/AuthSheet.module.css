@@ -1,0 +1,91 @@
+/* In the page proportions of the composition thumbnails (1:√2); taller if the content needs it */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 24rem);
+  aspect-ratio: 1 / 1.414;
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-sheet);
+  box-shadow: var(--shadow-sheet);
+}
+
+/* Same title as "All compositions", underlined with a short rule */
+.heading {
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  color: var(--color-primary);
+}
+
+.heading::after {
+  content: '';
+  display: block;
+  width: 3rem;
+  height: 1.5px;
+  margin-block-start: var(--space-3);
+  background-color: var(--color-divider);
+}
+
+.subtitle {
+  margin-block-start: var(--space-3);
+  font-style: italic;
+  font-weight: 300;
+  color: var(--color-text-muted);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin-block: auto;
+  padding-block: var(--space-5);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.error {
+  min-height: 1.5em;
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+}
+
+.submit {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  font: inherit;
+  letter-spacing: 0.02em;
+  color: var(--color-on-primary);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.submit:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.submit:disabled {
+  cursor: progress;
+  opacity: 0.8;
+}
+
+/* Small screens: the sheet takes the height of its content rather than a page shape */
+@media (max-width: 30rem) {
+  .sheet {
+    aspect-ratio: auto;
+    padding: var(--space-5) var(--space-4);
+  }
+}

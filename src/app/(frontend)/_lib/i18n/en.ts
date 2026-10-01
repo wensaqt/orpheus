@@ -10,6 +10,42 @@ export const en = {
     dismiss: 'Dismiss',
     notifications: 'Notifications',
   },
+  auth: {
+    fields: {
+      email: 'Email',
+      password: 'Password',
+      confirmPassword: 'Confirm password',
+      passwordHint: 'At least {min} characters.',
+    },
+    login: {
+      pageTitle: 'Sign in to Orpheus',
+      heading: 'Sign in',
+      subtitle: 'Your compositions are waiting.',
+      submit: 'Sign in',
+      submitting: 'Signing in…',
+      switch: { question: 'No account yet?', action: 'Create one' },
+      errors: {
+        invalid: 'Incorrect email or password.',
+        locked: 'Too many attempts. Try again in a few minutes.',
+        unknown: 'Could not sign in. Please try again.',
+      },
+    },
+    signup: {
+      pageTitle: 'Create an Orpheus account',
+      heading: 'Sign up',
+      subtitle: 'A blank page is waiting for you.',
+      submit: 'Create account',
+      submitting: 'Creating account…',
+      switch: { question: 'Already have an account?', action: 'Sign in' },
+      errors: {
+        mismatch: 'The passwords do not match.',
+        weak: 'Use at least {min} characters for the password.',
+        taken: 'An account already exists for this email.',
+        invalidEmail: 'Enter a valid email address.',
+        unknown: 'Could not create the account. Please try again.',
+      },
+    },
+  },
   home: {
     create: { title: 'New composition', subtitle: 'Start a new piece' },
     browse: { title: 'All compositions', subtitle: 'Revisit your pieces' },

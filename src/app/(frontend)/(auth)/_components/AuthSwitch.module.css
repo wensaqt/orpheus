@@ -1,0 +1,23 @@
+.switch {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  transition: text-decoration-color 0.2s;
+}
+
+.link:is(:hover, :focus-visible) {
+  text-decoration-color: currentColor;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

@@ -1,0 +1,86 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/*
+ * A ruled line, like the lines of a page. On focus, ink is drawn along it from the left, with
+ * the easing of the rules on the home page.
+ */
+.line {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.line::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1.5px;
+  background-color: var(--color-divider);
+  transform-origin: left;
+  scale: 0 1;
+  transition: scale 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.line:focus-within::after {
+  scale: 1 1;
+}
+
+/* A rejected attempt leaves the line in the error colour until the next one */
+.line:has([aria-invalid])::after {
+  background-color: var(--color-accent);
+}
+
+.label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  transition: color 0.2s;
+}
+
+.line:focus-within .label {
+  color: var(--color-primary);
+}
+
+.input {
+  width: 100%;
+  padding-block: var(--space-1);
+  border: none;
+  border-block-end: 1px solid var(--color-border);
+  border-radius: 0;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: var(--text-lg);
+  font-weight: 300;
+  color: var(--color-text);
+  caret-color: var(--color-primary);
+}
+
+.input[aria-invalid] {
+  border-block-end-color: var(--color-accent);
+}
+
+/* Browser autofill paints its own background: keep the paper white */
+.input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100vmax var(--color-sheet) inset;
+  -webkit-text-fill-color: var(--color-text);
+}
+
+.hint {
+  font-size: var(--text-sm);
+  font-style: italic;
+  font-weight: 300;
+  color: var(--color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line::after,
+  .label {
+    transition: none;
+  }
+}
