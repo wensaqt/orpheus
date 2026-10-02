@@ -1,0 +1,27 @@
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-6);
+  font-style: italic;
+  font-weight: 300;
+  color: var(--color-text-muted);
+}
+
+/* A fast load shows nothing: the empty sheet only fades in after a short wait */
+.placeholder {
+  animation: reveal var(--duration) ease-out var(--delay-reveal) both;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placeholder {
+    animation-duration: 0s;
+  }
+}

@@ -4,6 +4,8 @@ import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-sc
 import { extractInstruction } from '@atlaskit/pragmatic-drag-and-drop-hitbox/list-item'
 import { type RefObject, useEffect, useEffectEvent } from 'react'
 
+import type { Id } from '@/lib/ids'
+
 import type { DropOperation } from '../rows'
 import { isBinderDrag, isBinderDrop } from './dragData'
 
@@ -13,7 +15,7 @@ import { isBinderDrag, isBinderDrop } from './dragData'
  */
 export function useBinderDropMonitor(
   tree: RefObject<HTMLElement | null>,
-  onDrop: (draggedId: number, targetId: number, operation: DropOperation) => void,
+  onDrop: (draggedId: Id, targetId: Id, operation: DropOperation) => void,
 ) {
   const handleDrop = useEffectEvent(onDrop)
 

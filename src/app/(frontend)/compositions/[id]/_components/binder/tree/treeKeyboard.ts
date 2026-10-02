@@ -1,14 +1,16 @@
+import type { Id } from '@/lib/ids'
+
 import type { BinderRow } from '../rows'
 
 // What a key does in the binder tree, decided without touching the DOM
 export type TreeCommand =
-  | { type: 'focus'; id: number }
-  | { type: 'setOpen'; id: number; open: boolean }
-  | { type: 'activate'; id: number }
-  | { type: 'rename'; id: number }
-  | { type: 'delete'; id: number }
-  | { type: 'menu'; id: number }
-  | { type: 'reorder'; id: number; step: -1 | 1 }
+  | { type: 'focus'; id: Id }
+  | { type: 'setOpen'; id: Id; open: boolean }
+  | { type: 'activate'; id: Id }
+  | { type: 'rename'; id: Id }
+  | { type: 'delete'; id: Id }
+  | { type: 'menu'; id: Id }
+  | { type: 'reorder'; id: Id; step: -1 | 1 }
 
 type Keystroke = Pick<KeyboardEvent, 'key' | 'shiftKey' | 'altKey' | 'metaKey' | 'ctrlKey'>
 
@@ -20,7 +22,7 @@ type Keystroke = Pick<KeyboardEvent, 'key' | 'shiftKey' | 'altKey' | 'metaKey' |
  */
 export function treeKeyCommand(
   rows: BinderRow[],
-  focusedId: number,
+  focusedId: Id,
   keystroke: Keystroke,
 ): TreeCommand | null {
   const index = rows.findIndex((row) => row.entry.id === focusedId)

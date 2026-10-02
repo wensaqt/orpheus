@@ -6,12 +6,13 @@ import { redirect } from 'next/navigation'
 import { MAX_COMPOSITION_TITLE_LENGTH } from '@/lib/compositions'
 import { DEFAULT_PAGE_FORMAT } from '@/lib/pageFormats'
 import { cleanTitle } from '@/lib/titles'
+import type { Id } from '@/lib/ids'
+import { isId } from '@/lib/ids'
 
 import { type ActionResult, done, failed } from '@front/_lib/actionResult'
 import { ROUTES } from '@front/_lib/routes'
 import { authedAction, requireUser } from '@front/_lib/server/auth'
 import { getT } from '@front/_lib/server/i18n'
-import { isId } from '@front/_lib/validation'
 
 import type { CompositionPatch } from './types'
 
@@ -37,7 +38,7 @@ export async function createComposition() {
 
 // Saves the composition's title (the text is saved per document); an empty one is refused
 export const saveComposition = authedAction(
-  async ({ payload, user }, id: number, { title }: CompositionPatch): Promise<ActionResult> => {
+  async ({ payload, user }, id: Id, { title }: CompositionPatch): Promise<ActionResult> => {
     const cleaned = cleanTitle(title, MAX_COMPOSITION_TITLE_LENGTH)
     if (!isId(id) || !cleaned) return failed
     try {
@@ -58,7 +59,7 @@ export const saveComposition = authedAction(
 
 // Deletes one of the user's compositions; owner access is checked by Payload
 export const deleteComposition = authedAction(
-  async ({ payload, user }, id: number): Promise<ActionResult> => {
+  async ({ payload, user }, id: Id): Promise<ActionResult> => {
     if (!isId(id)) return failed
     try {
       await payload.delete({ collection: 'compositions', id, user, overrideAccess: false })

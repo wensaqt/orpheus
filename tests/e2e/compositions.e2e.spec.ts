@@ -1,5 +1,6 @@
 import { TEST_PASSWORD } from '../helpers/testUsers'
 
+import { ID } from './binderHelpers'
 import { expect, test } from './fixtures'
 
 test.describe('Compositions', () => {
@@ -8,7 +9,7 @@ test.describe('Compositions', () => {
     await page.getByRole('button', { name: /New composition/ }).click()
     // Two redirects (the action, then the composition to its first document), each rendered by
     // the dev server: slow under the whole suite's load
-    await expect(page).toHaveURL(/\/compositions\/\d+\/\d+$/, { timeout: 15_000 })
+    await expect(page).toHaveURL(new RegExp(`/compositions/${ID}/${ID}$`), { timeout: 15_000 })
 
     const title = page.getByLabel('Composition title')
     await expect(title).toHaveValue('Untitled composition')

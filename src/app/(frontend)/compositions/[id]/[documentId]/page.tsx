@@ -5,7 +5,7 @@ import { ROUTES } from '@front/_lib/routes'
 import { requireUser } from '@front/_lib/server/auth'
 import { parseId } from '@front/_lib/validation'
 
-import { DocumentEditor } from '../_components/document/DocumentEditor'
+import { OpenDocument } from '../_components/document/OpenDocument'
 
 export default async function DocumentPage({
   params,
@@ -20,7 +20,6 @@ export default async function DocumentPage({
   const document = await getDocument(compositionId, itemId)
   if (!document) notFound()
 
-  // Keyed by document: switching documents mounts a fresh editor, and the previous one
-  // sends its pending changes as it unmounts
-  return <DocumentEditor key={document.id} document={document} />
+  // The entry point of a full load; switching documents afterwards stays on the client
+  return <OpenDocument initial={document} />
 }

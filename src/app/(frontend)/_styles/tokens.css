@@ -59,6 +59,8 @@
   --duration: 0.2s;
   --duration-slow: 0.4s;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Wait before showing that something is loading: a fast load then shows nothing */
+  --delay-reveal: 0.3s;
 
   /* Sizes of the editor's controls and side panels */
   --control-size: 1.75rem;

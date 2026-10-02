@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { BinderMove } from '@/lib/binder/tree'
+import type { Id } from '@/lib/ids'
 
 import { useBinderDropMonitor } from '../dnd/useBinderDropMonitor'
 import { MoveDialog } from '../MoveDialog'
@@ -22,11 +23,11 @@ export function BinderTree({ label }: { label: string }) {
     useBinder()
   const rows = useMemo(() => visibleRows(entries, collapsed), [entries, collapsed])
 
-  const [focusedId, setFocusedId] = useState<number | null>(null)
+  const [focusedId, setFocusedId] = useState<Id | null>(null)
   // A row to focus once it is rendered (after a move into a closed folder, a deletion…)
-  const [focusRequest, setFocusRequest] = useState<number | null>(null)
+  const [focusRequest, setFocusRequest] = useState<Id | null>(null)
   const [moving, setMoving] = useState<Row | null>(null)
-  const handles = useRef(new Map<number, RowHandle>())
+  const handles = useRef(new Map<Id, RowHandle>())
   const tree = useRef<HTMLUListElement>(null)
 
   // The focused row if it is still shown, else the open document, else the first row
@@ -35,7 +36,7 @@ export function BinderTree({ label }: { label: string }) {
     rows.find((row) => row.entry.id === activeDocumentId)?.entry.id ??
     rows[0]?.entry.id
 
-  const register = useCallback((id: number, handle: RowHandle | null) => {
+  const register = useCallback((id: Id, handle: RowHandle | null) => {
     if (handle) handles.current.set(id, handle)
     else handles.current.delete(id)
   }, [])
@@ -48,12 +49,12 @@ export function BinderTree({ label }: { label: string }) {
     setFocusRequest(null)
   }, [focusRequest, rows])
 
-  const focusRow = (id: number) => {
+  const focusRow = (id: Id) => {
     setFocusedId(id)
     setFocusRequest(id)
   }
 
-  async function move(id: number, destination: BinderMove) {
+  async function move(id: Id, destination: BinderMove) {
     // Into a closed folder, the item would vanish from sight: open it
     if (destination.parent !== null) setFolderOpen(destination.parent, true)
     await commands.move(id, destination)

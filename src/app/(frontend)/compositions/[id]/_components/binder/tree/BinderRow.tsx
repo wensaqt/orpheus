@@ -3,8 +3,10 @@
 import React, { useCallback, useRef } from 'react'
 
 import { descendantIds } from '@/lib/binder/tree'
+import type { Id } from '@/lib/ids'
 
 import type { MenuHandle } from '@front/_components/ui/Menu/Menu'
+import { prefetchDocument } from '@front/_features/binder/documentStore'
 
 import { useRowDragAndDrop } from '../dnd/useRowDragAndDrop'
 import { ChevronIcon, DocumentIcon, FolderIcon } from '../icons'
@@ -21,15 +23,22 @@ type BinderRowProps = {
   row: Row
   // Roving focus: only one row is in the tab order
   tabbable: boolean
-  register: (id: number, handle: RowHandle | null) => void
-  onFocus: (id: number) => void
+  register: (id: Id, handle: RowHandle | null) => void
+  onFocus: (id: Id) => void
   onMoveTo: (row: Row) => void
 }
 
 // One line of the binder tree: fold arrow, icon, title (or its rename field), then the ⋯ menu
 export function BinderRow({ row, tabbable, register, onFocus, onMoveTo }: BinderRowProps) {
-  const { entries, activeDocumentId, renamingId, setRenamingId, setFolderOpen, commands } =
-    useBinder()
+  const {
+    compositionId,
+    entries,
+    activeDocumentId,
+    renamingId,
+    setRenamingId,
+    setFolderOpen,
+    commands,
+  } = useBinder()
   const { entry, level, expanded } = row
   const isFolder = entry.kind === 'folder'
   const renaming = renamingId === entry.id
@@ -80,8 +89,12 @@ export function BinderRow({ row, tabbable, register, onFocus, onMoveTo }: Binder
       data-dragging={dragging}
       data-drop={drop ?? undefined}
       style={{ '--level': level - 1 } as React.CSSProperties}
+      // Likely opened next: its text is loaded ahead, so opening it is instant
+      onPointerEnter={isFolder ? undefined : () => prefetchDocument(compositionId, entry.id)}
       onFocus={(e) => {
-        if (e.target === e.currentTarget) onFocus(entry.id)
+        if (e.target !== e.currentTarget) return
+        onFocus(entry.id)
+        if (!isFolder) prefetchDocument(compositionId, entry.id)
       }}
       onClick={(e) => {
         if (isOwnControl(e.target)) return

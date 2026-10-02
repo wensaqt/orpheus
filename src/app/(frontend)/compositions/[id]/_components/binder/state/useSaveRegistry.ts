@@ -1,12 +1,14 @@
 import { useCallback, useRef } from 'react'
 
+import type { Id } from '@/lib/ids'
+
 import type { SaveControls } from '@front/_hooks/useAutosave'
 
 // The key each saver registers under, naming what it saves
 export const SAVERS = {
   compositionTitle: 'composition-title',
-  documentText: (id: number) => `document:${id}`,
-  documentTitle: (id: number) => `document-title:${id}`,
+  documentText: (id: Id) => `document:${id}`,
+  documentTitle: (id: Id) => `document-title:${id}`,
 }
 
 /*
@@ -31,7 +33,7 @@ export function useSaveRegistry() {
   }, [])
 
   // Drops what has not been saved for these documents (they are being deleted)
-  const cancelDocuments = useCallback((ids: Iterable<number>) => {
+  const cancelDocuments = useCallback((ids: Iterable<Id>) => {
     for (const id of ids) {
       // Only the open document has savers mounted
       savers.current.get(SAVERS.documentText(id))?.cancel()

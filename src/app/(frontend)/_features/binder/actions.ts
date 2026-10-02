@@ -12,11 +12,13 @@ import { type BinderItemKind, MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/const
 import { type BinderMove, planMove } from '@/lib/binder/tree'
 import { relationId } from '@/lib/relationId'
 import { cleanTitle } from '@/lib/titles'
+import type { Id } from '@/lib/ids'
+import type { BinderItem } from '@/payload-types'
+import { isId } from '@/lib/ids'
 
 import { type ActionResult, done, failed } from '@front/_lib/actionResult'
 import { authedAction } from '@front/_lib/server/auth'
 import { getT } from '@front/_lib/server/i18n'
-import { isId } from '@front/_lib/validation'
 
 import { binderEntries, toEntry } from './queries'
 import type { BinderEntry, LexicalContent } from './types'
@@ -31,7 +33,7 @@ import { isKind, isMove, isParent } from './validation'
 
 // The binder as the server has it now, to replace a copy restored from the router's cache
 export const loadBinderEntries = authedAction(
-  async (session, compositionId: number): Promise<ActionResult<BinderEntry[]>> => {
+  async (session, compositionId: Id): Promise<ActionResult<BinderEntry[]>> => {
     if (!isId(compositionId)) return failed
     try {
       return done(await binderEntries(session, compositionId))
@@ -45,7 +47,7 @@ export const loadBinderEntries = authedAction(
 export const saveDocument = authedAction(
   async (
     { payload, user },
-    id: number,
+    id: Id,
     content: LexicalContent,
   ): Promise<ActionResult<{ updatedAt: string }>> => {
     if (!isId(id)) return failed
@@ -69,10 +71,10 @@ export const saveDocument = authedAction(
 export const createBinderItem = authedAction(
   async (
     { payload, user },
-    compositionId: number,
+    compositionId: Id,
     kind: BinderItemKind,
-    parent: number | null,
-  ): Promise<ActionResult<BinderEntry>> => {
+    parent: Id | null,
+  ): Promise<ActionResult<BinderEntry & Pick<BinderItem, 'updatedAt'>>> => {
     if (!isId(compositionId) || !isKind(kind) || !isParent(parent)) return failed
     const t = await getT()
     try {
@@ -89,7 +91,7 @@ export const createBinderItem = authedAction(
         overrideAccess: false,
         depth: 0,
       })
-      return done(toEntry(item))
+      return done({ ...toEntry(item), updatedAt: item.updatedAt })
     } catch {
       return failed
     }
@@ -98,7 +100,7 @@ export const createBinderItem = authedAction(
 
 // Renames an item; an empty or overlong title is refused
 export const renameBinderItem = authedAction(
-  async ({ payload, user }, id: number, title: string): Promise<ActionResult> => {
+  async ({ payload, user }, id: Id, title: string): Promise<ActionResult> => {
     const cleaned = cleanTitle(title, MAX_BINDER_TITLE_LENGTH)
     if (!isId(id) || !cleaned) return failed
     try {
@@ -119,7 +121,7 @@ export const renameBinderItem = authedAction(
 
 // Deletes an item; a folder goes with everything inside it
 export const deleteBinderItem = authedAction(
-  async ({ payload, user }, id: number): Promise<ActionResult> => {
+  async ({ payload, user }, id: Id): Promise<ActionResult> => {
     if (!isId(id)) return failed
     try {
       // Access control limits the deletion to the user's own items
@@ -136,7 +138,7 @@ export const deleteBinderItem = authedAction(
  * binder, then written in one transaction: either every renumbered item changes, or none.
  */
 export const moveBinderItem = authedAction(
-  async (session, id: number, move: BinderMove): Promise<ActionResult> => {
+  async (session, id: Id, move: BinderMove): Promise<ActionResult> => {
     if (!isId(id) || !isMove(move)) return failed
     const { payload, user } = session
     const item = await payload
@@ -146,7 +148,7 @@ export const moveBinderItem = authedAction(
 
     let placements
     try {
-      placements = planMove(await binderEntries(session, relationId(item.composition)!), id, move)
+      placements = planMove(await binderEntries(session, relationId(item.composition)), id, move)
     } catch {
       return failed
     }

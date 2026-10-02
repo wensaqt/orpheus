@@ -1,6 +1,7 @@
 import { getPayload, type Payload } from 'payload'
 
 import config from '@payload-config'
+import type { UserRole } from '@/lib/users'
 
 // All test accounts share this prefix so they can always be found and deleted
 export const TEST_EMAIL_PREFIX = 'orpheus-test-'
@@ -9,9 +10,19 @@ export const TEST_PASSWORD = 'lyre-of-thrace-42'
 
 export const getTestPayload = () => getPayload({ config })
 
-export async function createTestUser(payload: Payload, name: string) {
+/*
+ * A temporary account with the given role. The role is set after creation: in an empty
+ * database the collection makes the first account an admin, whatever the test wants.
+ */
+export async function createTestUser(payload: Payload, name: string, role: UserRole = 'user') {
   const email = `${TEST_EMAIL_PREFIX}${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`
-  return payload.create({ collection: 'users', data: { email, password: TEST_PASSWORD } })
+  const user = await payload.create({
+    collection: 'users',
+    data: { email, password: TEST_PASSWORD },
+  })
+  return user.role === role
+    ? user
+    : payload.update({ collection: 'users', id: user.id, data: { role } })
 }
 
 // Deletes test accounts and their compositions (including those from an interrupted run)

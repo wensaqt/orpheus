@@ -3,6 +3,7 @@
 import { type ReactNode, useState } from 'react'
 
 import type { PageSettings } from '@/lib/pageFormats'
+import type { Id } from '@/lib/ids'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { IconButton } from '@front/_components/ui/IconButton/IconButton'
@@ -16,7 +17,7 @@ import styles from './EditorShell.module.css'
 import { SynonymsPanel } from './SynonymsPanel'
 
 type EditorShellProps = {
-  compositionId: number
+  compositionId: Id
   title: string
   page: PageSettings
   entries: BinderEntry[]

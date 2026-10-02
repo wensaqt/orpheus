@@ -69,6 +69,7 @@ describe('binder actions', () => {
       status: 'done',
       data: { kind: 'folder', title: 'New folder', parent: null, position: 1 },
     })
+    if (result.status === 'done') expect(typeof result.data.updatedAt).toBe('string')
   })
 
   it('refuses malformed input before touching the database', async () => {

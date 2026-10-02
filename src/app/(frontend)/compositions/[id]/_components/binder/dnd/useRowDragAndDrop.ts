@@ -6,6 +6,8 @@ import {
 } from '@atlaskit/pragmatic-drag-and-drop-hitbox/list-item'
 import { type RefObject, useEffect, useEffectEvent, useState } from 'react'
 
+import type { Id } from '@/lib/ids'
+
 import { type BinderRow, DROP, type DropOperation } from '../rows'
 import { binderDragData, isBinderDrag } from './dragData'
 
@@ -14,7 +16,7 @@ type RowDragOptions = {
   // No dragging while the title is being edited: the text field needs the mouse
   disabled: boolean
   // Itself and its contents, where it cannot be dropped
-  excludedWhenDragged: () => number[]
+  excludedWhenDragged: () => Id[]
 }
 
 /*

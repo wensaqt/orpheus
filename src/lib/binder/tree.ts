@@ -3,11 +3,12 @@
  * The whole binder of a composition is loaded at once, so they work in memory.
  */
 import type { BinderItem } from '@/payload-types'
+import type { Id } from '@/lib/ids'
 
 import { relationId } from '../relationId'
 
 export type BinderNodeData = Pick<BinderItem, 'id' | 'kind' | 'position'> & {
-  parent: number | null
+  parent: Id | null
 }
 
 // An item as Payload returns it (parent as an id or a populated item), reduced to its place
@@ -22,15 +23,18 @@ export type BinderTreeNode<Item extends BinderNodeData> = Item & {
   children: BinderTreeNode<Item>[]
 }
 
-// Sibling order: by position, ties (e.g. after concurrent writes) broken by creation order
+/*
+ * Sibling order: by position, ties (e.g. after concurrent writes) broken by creation order,
+ * which is the order of UUID v7 ids as text
+ */
 export const byPosition = (a: BinderNodeData, b: BinderNodeData) =>
-  a.position - b.position || a.id - b.id
+  a.position - b.position || a.id.localeCompare(b.id)
 
 // The items directly inside a folder (or at the root), in order, optionally leaving one out
 export const siblingsOf = <Item extends BinderNodeData>(
   items: Item[],
-  parent: number | null,
-  excluding?: number,
+  parent: Id | null,
+  excluding?: Id,
 ) => items.filter((item) => item.parent === parent && item.id !== excluding).sort(byPosition)
 
 /*
@@ -38,7 +42,7 @@ export const siblingsOf = <Item extends BinderNodeData>(
  * reference) is shown at the root rather than lost.
  */
 export function buildTree<Item extends BinderNodeData>(items: Item[]): BinderTreeNode<Item>[] {
-  const nodes = new Map<number, BinderTreeNode<Item>>(
+  const nodes = new Map<Id, BinderTreeNode<Item>>(
     items.map((item) => [item.id, { ...item, children: [] }]),
   )
   const roots: BinderTreeNode<Item>[] = []
@@ -73,13 +77,13 @@ export const firstDocument = <Item extends BinderNodeData>(items: Item[]) =>
   inReadingOrder(items).find((item) => item.kind === 'document') ?? null
 
 // Every item inside the given one, at any depth (not the item itself)
-export function descendantIds(items: BinderNodeData[], id: number): number[] {
-  const childrenOf = new Map<number, number[]>()
+export function descendantIds(items: BinderNodeData[], id: Id): Id[] {
+  const childrenOf = new Map<Id, Id[]>()
   for (const item of items) {
     if (item.parent === null) continue
     childrenOf.set(item.parent, [...(childrenOf.get(item.parent) ?? []), item.id])
   }
-  const found: number[] = []
+  const found: Id[] = []
   const stack = [...(childrenOf.get(id) ?? [])]
   while (stack.length) {
     const next = stack.pop()!
@@ -92,11 +96,11 @@ export function descendantIds(items: BinderNodeData[], id: number): number[] {
 }
 
 // Whether moving the item under this parent would put it inside itself
-export const wouldCreateCycle = (items: BinderNodeData[], id: number, parent: number | null) =>
+export const wouldCreateCycle = (items: BinderNodeData[], id: Id, parent: Id | null) =>
   parent !== null && (parent === id || descendantIds(items, id).includes(parent))
 
-export type BinderMove = { parent: number | null; index: number }
-export type BinderPlacement = { id: number; parent: number | null; position: number }
+export type BinderMove = { parent: Id | null; index: number }
+export type BinderPlacement = { id: Id; parent: Id | null; position: number }
 
 export class InvalidBinderMove extends Error {
   constructor(reason: string) {
@@ -113,7 +117,7 @@ export class InvalidBinderMove extends Error {
  */
 export function planMove(
   items: BinderNodeData[],
-  id: number,
+  id: Id,
   { parent, index }: BinderMove,
 ): BinderPlacement[] {
   const item = items.find((candidate) => candidate.id === id)

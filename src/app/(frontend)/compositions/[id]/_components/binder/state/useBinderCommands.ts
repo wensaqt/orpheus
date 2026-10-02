@@ -1,11 +1,11 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { startTransition, useMemo } from 'react'
 
 import { type BinderItemKind, MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
 import { type BinderMove, descendantIds, firstDocument } from '@/lib/binder/tree'
 import { cleanTitle } from '@/lib/titles'
+import type { Id } from '@/lib/ids'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { useConfirm } from '@front/_components/ui/Feedback/ConfirmProvider'
@@ -19,22 +19,22 @@ import {
 import type { BinderEntry } from '@front/_features/binder/types'
 import { type ActionResult, succeeded } from '@front/_lib/actionResult'
 import { ROUTES } from '@front/_lib/routes'
+import { forgetDocuments, rememberDocument } from '@front/_features/binder/documentStore'
 
 import { applyBinderOp, type BinderOp } from './binderOps'
-import { forgetDrafts } from './documentDrafts'
 
 export type BinderCommands = ReturnType<typeof useBinderCommands>
 
 type BinderCommandsOptions = {
-  compositionId: number
+  compositionId: Id
   entries: BinderEntry[]
-  activeDocumentId: number | null
+  activeDocumentId: Id | null
   // Keeps a change for good / shows it while it is being saved
   apply: (op: BinderOp) => void
   showOp: (op: BinderOp) => void
   flushAll: () => Promise<boolean>
-  cancelDocuments: (ids: Iterable<number>) => void
-  startRename: (id: number) => void
+  cancelDocuments: (ids: Iterable<Id>) => void
+  startRename: (id: Id) => void
 }
 
 /*
@@ -52,7 +52,6 @@ export function useBinderCommands({
   cancelDocuments,
   startRename,
 }: BinderCommandsOptions) {
-  const router = useRouter()
   const t = useT()
   const toast = useToast()
   const confirm = useConfirm()
@@ -69,45 +68,52 @@ export function useBinderCommands({
         })
       })
 
-    // Goes to a document (or the empty binder) once everything open is saved
-    const navigate = async (documentId: number | null, mode: 'push' | 'replace' = 'push') => {
+    /*
+     * Goes to a document (or the empty binder) once everything open is saved, on the client:
+     * the URL changes and the editor shows the cached text, with no page render. A replaced
+     * entry (the document was deleted) leaves no way back to it in the history.
+     */
+    const navigate = async (documentId: Id | null, mode: 'push' | 'replace' = 'push') => {
       if (!(await flushAll())) {
         toast.error(t('binder.saveFirst'))
         return false
       }
-      const path =
-        documentId === null
-          ? ROUTES.composition(compositionId)
-          : ROUTES.document(compositionId, documentId)
-      router[mode](path)
+      const path = ROUTES.editor(compositionId, documentId)
+      if (mode === 'push') window.history.pushState(null, '', path)
+      else window.history.replaceState(null, '', path)
       return true
     }
 
     return {
-      open: (id: number) => (id === activeDocumentId ? Promise.resolve(true) : navigate(id)),
+      open: (id: Id) => (id === activeDocumentId ? Promise.resolve(true) : navigate(id)),
 
       // A new folder is named straight away; a new document opens
-      async create(kind: BinderItemKind, parent: number | null) {
+      async create(kind: BinderItemKind, parent: Id | null) {
         const result = await createBinderItem(compositionId, kind, parent).catch(() => null)
         if (result?.status !== 'done') {
           toast.error(t('binder.error'))
           return null
         }
-        apply({ type: 'add', entry: result.data })
-        if (kind === 'folder') startRename(result.data.id)
-        else await navigate(result.data.id)
-        return result.data
+        const { updatedAt, ...entry } = result.data
+        apply({ type: 'add', entry })
+        if (kind === 'folder') startRename(entry.id)
+        else {
+          // Known to be empty: it opens without asking the server
+          rememberDocument(entry.id, { content: null, updatedAt })
+          await navigate(entry.id)
+        }
+        return entry
       },
 
       // From the tree's rename field
-      rename(id: number, title: string) {
+      rename(id: Id, title: string) {
         const cleaned = cleanTitle(title, MAX_BINDER_TITLE_LENGTH)
         if (!cleaned) return Promise.resolve(false)
         return run({ type: 'rename', id, title: cleaned }, () => renameBinderItem(id, cleaned))
       },
 
       // From a title field that saves on its own: the binder only shows the new title
-      setTitle: (id: number, title: string) => apply({ type: 'rename', id, title }),
+      setTitle: (id: Id, title: string) => apply({ type: 'rename', id, title }),
 
       async remove(entry: BinderEntry) {
         const inside = descendantIds(entries, entry.id)
@@ -131,14 +137,14 @@ export function useBinderCommands({
         const removed = [entry.id, ...inside]
         // Their pending changes would be saved to documents that no longer exist
         cancelDocuments(removed)
-        forgetDrafts(removed)
+        forgetDocuments(removed)
         toast.success(t('binder.delete.done', { title: entry.title }))
         if (activeDocumentId !== null && removed.includes(activeDocumentId)) {
           await navigate(firstDocument(applyBinderOp(entries, op))?.id ?? null, 'replace')
         }
       },
 
-      move: (id: number, move: BinderMove) =>
+      move: (id: Id, move: BinderMove) =>
         run({ type: 'move', id, move }, () => moveBinderItem(id, move)),
     }
   }, [
@@ -150,7 +156,6 @@ export function useBinderCommands({
     flushAll,
     cancelDocuments,
     startRename,
-    router,
     t,
     toast,
     confirm,

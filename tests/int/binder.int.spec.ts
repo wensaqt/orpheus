@@ -2,6 +2,7 @@ import { type Payload, type RequiredDataFromCollectionSlug, ValidationError } fr
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { BinderItem, Composition, User } from '@/payload-types'
+import type { Id } from '@/lib/ids'
 
 import { cleanupTestUsers, createTestUser, getTestPayload } from '../helpers/testUsers'
 
@@ -147,7 +148,7 @@ describe('binder items', () => {
       const composition = await newComposition(alice)
       const outer = await add(alice, composition, { kind: 'folder' })
       const inner = await add(alice, composition, { kind: 'folder', parent: outer.id })
-      const move = (id: number, parent: number) =>
+      const move = (id: Id, parent: Id) =>
         payload.update({ collection: 'binder-items', id, data: { parent }, ...as(alice) })
       await expect(move(outer.id, outer.id)).rejects.toThrow(ValidationError)
       await expect(move(outer.id, inner.id)).rejects.toThrow(ValidationError)
@@ -173,7 +174,7 @@ describe('binder items', () => {
       const inside = await add(alice, composition, { parent: folder.id })
       const loose = await add(alice, composition)
       // Like moveBinderItem: the loose document goes first in the folder, the other one second
-      const update = (id: number, parent: number, position: number) =>
+      const update = (id: Id, parent: Id, position: number) =>
         payload.update({
           collection: 'binder-items',
           id,

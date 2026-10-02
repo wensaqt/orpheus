@@ -1,6 +1,5 @@
 'use client'
 
-import { useParams } from 'next/navigation'
 import {
   createContext,
   type ReactNode,
@@ -9,34 +8,36 @@ import {
   useEffect,
   useMemo,
   useOptimistic,
+  useRef,
   useState,
 } from 'react'
 
 import type { PageSettings } from '@/lib/pageFormats'
+import type { Id } from '@/lib/ids'
 
 import { loadBinderEntries } from '@front/_features/binder/actions'
 import type { BinderEntry } from '@front/_features/binder/types'
 import type { SaveControls } from '@front/_hooks/useAutosave'
 import { useStoredState } from '@front/_hooks/useStoredState'
 import { STORAGE_KEYS } from '@front/_lib/preferences'
-import { parseId } from '@front/_lib/validation'
 
 import { applyBinderOp, type BinderOp } from './binderOps'
 import { type BinderCommands, useBinderCommands } from './useBinderCommands'
+import { useOpenDocument } from './useOpenDocument'
 import { useSaveRegistry } from './useSaveRegistry'
 
 type BinderContextValue = {
-  compositionId: number
+  compositionId: Id
   page: PageSettings
   // The binder as shown: saved entries plus the changes still being saved
   entries: BinderEntry[]
-  // The document open in the editor, from the URL
-  activeDocumentId: number | null
-  collapsed: ReadonlySet<number>
-  setFolderOpen: (id: number, open: boolean) => void
+  // The document shown in the editor (it follows the URL once everything is saved)
+  activeDocumentId: Id | null
+  collapsed: ReadonlySet<Id>
+  setFolderOpen: (id: Id, open: boolean) => void
   // The item whose title is being edited in the tree, if any
-  renamingId: number | null
-  setRenamingId: (id: number | null) => void
+  renamingId: Id | null
+  setRenamingId: (id: Id | null) => void
   registerSaver: (key: string, controls: SaveControls) => () => void
   commands: BinderCommands
 }
@@ -44,7 +45,7 @@ type BinderContextValue = {
 const BinderContext = createContext<BinderContextValue | null>(null)
 
 type BinderProviderProps = {
-  compositionId: number
+  compositionId: Id
   page: PageSettings
   entries: BinderEntry[]
   children: ReactNode
@@ -63,25 +64,32 @@ export function BinderProvider({
 }: BinderProviderProps) {
   const [saved, setSaved] = useState(serverEntries)
   const [entries, showOp] = useOptimistic(saved, applyBinderOp)
-  const apply = useCallback((op: BinderOp) => setSaved((list) => applyBinderOp(list, op)), [])
+  // Set by the first local change: from then on, this tab's binder is the newer one
+  const changedHere = useRef(false)
+  const apply = useCallback((op: BinderOp) => {
+    changedHere.current = true
+    setSaved((list) => applyBinderOp(list, op))
+  }, [])
 
-  // The layout may come back from the router's cache (browser back button): check the server
+  /*
+   * The layout may come back from the router's cache (browser back button): check the server,
+   * unless the writer has already changed something here (a title typed meanwhile)
+   */
   useEffect(() => {
     void loadBinderEntries(compositionId)
-      .then((result) => result.status === 'done' && setSaved(result.data))
+      .then((result) => {
+        if (result.status === 'done' && !changedHere.current) setSaved(result.data)
+      })
       .catch(() => {})
   }, [compositionId])
 
-  const { documentId } = useParams<{ documentId?: string }>()
-  const activeDocumentId = documentId ? parseId(documentId) : null
-
-  const [collapsedIds, setCollapsedIds] = useStoredState<number[]>(
+  const [collapsedIds, setCollapsedIds] = useStoredState<Id[]>(
     STORAGE_KEYS.collapsedFolders(compositionId),
     [],
   )
   const collapsed = useMemo(() => new Set(collapsedIds), [collapsedIds])
   const setFolderOpen = useCallback(
-    (id: number, open: boolean) => {
+    (id: Id, open: boolean) => {
       if (collapsed.has(id) !== open) return
       const next = new Set(collapsed)
       if (open) next.delete(id)
@@ -92,8 +100,9 @@ export function BinderProvider({
     [collapsed, saved, setCollapsedIds],
   )
 
-  const [renamingId, setRenamingId] = useState<number | null>(null)
+  const [renamingId, setRenamingId] = useState<Id | null>(null)
   const { register, flushAll, cancelDocuments } = useSaveRegistry()
+  const activeDocumentId = useOpenDocument(compositionId, flushAll)
 
   const commands = useBinderCommands({
     compositionId,

@@ -22,11 +22,7 @@ describe('users', () => {
     await cleanupTestUsers(payload)
     user = await createTestUser(payload, 'users')
     other = await createTestUser(payload, 'users-other')
-    admin = await payload.update({
-      collection: 'users',
-      id: (await createTestUser(payload, 'users-admin')).id,
-      data: { role: 'admin' },
-    })
+    admin = await createTestUser(payload, 'users-admin', 'admin')
   })
 
   afterAll(async () => {

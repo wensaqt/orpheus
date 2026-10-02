@@ -1,5 +1,6 @@
 import { expect as baseExpect, test as base } from '@playwright/test'
 
+import { ID } from './binderHelpers'
 import { expect, test } from './fixtures'
 
 base.describe('Language', () => {
@@ -33,7 +34,7 @@ base.describe('Language', () => {
     base('shows French from the first visit', async ({ page }) => {
       await page.goto('/')
       await baseExpect(page.getByRole('button', { name: /Nouvelle composition/ })).toBeVisible()
-      await baseExpect(page.getByRole('button', { name: 'Langue' })).toHaveText('🇫🇷')
+      await baseExpect(page.getByRole('button', { name: 'Langue', exact: true })).toHaveText('🇫🇷')
     })
   })
 })
@@ -44,7 +45,31 @@ test.describe('Language, signed in', () => {
   test('a new composition gets a French default title', async ({ page }) => {
     await page.goto('/')
     await page.getByRole('button', { name: /Nouvelle composition/ }).click()
-    await expect(page).toHaveURL(/\/compositions\/\d+\/\d+$/)
+    await expect(page).toHaveURL(new RegExp(`/compositions/${ID}/${ID}$`))
     await expect(page.getByLabel('Titre de la composition')).toHaveValue('Composition sans titre')
+  })
+
+  test('in the editor, the language changes only once confirmed', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: /Nouvelle composition/ }).click()
+    await expect(page.locator('[contenteditable="true"]')).toBeVisible()
+    await page.getByRole('button', { name: 'Langue', exact: true }).click()
+    await page
+      .getByRole('menu', { name: 'Langue' })
+      .getByRole('menuitemradio', { name: 'English' })
+      .click()
+
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toContainText('Changer de langue')
+    await dialog.getByRole('button', { name: 'Annuler' }).click()
+    await expect(page.getByLabel('Titre du document')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Langue', exact: true }).click()
+    await page
+      .getByRole('menu', { name: 'Langue' })
+      .getByRole('menuitemradio', { name: 'English' })
+      .click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Changer de langue' }).click()
+    await expect(page.getByLabel('Document title')).toBeVisible()
   })
 })

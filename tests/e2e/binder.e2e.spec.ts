@@ -1,57 +1,7 @@
-import type { Page } from '@playwright/test'
-import type { RequiredDataFromCollectionSlug } from 'payload'
+import type { Id } from '@/lib/ids'
 
-import type { BinderItem, Composition } from '@/payload-types'
-
-import { type Account, expect, test } from './fixtures'
-
-// A composition (with its automatic first document) and the extra items given, as the user
-async function seed(
-  account: Account,
-  items: { key: string; kind?: 'folder' | 'document'; title: string; parent?: string }[] = [],
-) {
-  const as = { user: account.user, overrideAccess: false, depth: 0 } as const
-  const composition: Composition = await account.payload.create({
-    collection: 'compositions',
-    data: {
-      title: 'Orphée',
-      owner: account.user.id,
-      page: { format: 'A4', orientation: 'portrait' },
-    },
-    ...as,
-  })
-  const created: Record<string, BinderItem> = {}
-  for (const { key, kind = 'document', title, parent } of items) {
-    created[key] = await account.payload.create({
-      collection: 'binder-items',
-      // Owner and position are filled in by the collection, which the types cannot know
-      data: {
-        composition: composition.id,
-        kind,
-        title,
-        parent: parent ? created[parent].id : null,
-      } as RequiredDataFromCollectionSlug<'binder-items'>,
-      ...as,
-    })
-  }
-  return { composition, items: created }
-}
-
-// The editor, once React has hydrated (the editable area is rendered on the client)
-async function openEditor(page: Page, path: string) {
-  await page.goto(path)
-  // Generous: under the whole suite's load, the dev server can be slow to render the editor
-  await expect(page.locator('[contenteditable="true"]')).toBeVisible({ timeout: 15_000 })
-  return page.getByRole('tree', { name: 'Documents and folders' })
-}
-
-const item = (page: Page, title: string) => page.getByRole('treeitem', { name: title, exact: true })
-
-async function itemMenu(page: Page, title: string, action: string) {
-  await item(page, title).hover()
-  await page.getByRole('button', { name: `Actions for ${title}` }).click()
-  await page.getByRole('menuitem', { name: action }).click()
-}
+import { ID, item, itemMenu, openEditor, seed } from './binderHelpers'
+import { expect, test } from './fixtures'
 
 test.describe('Binder', () => {
   test('each document has its own URL and text, saved before switching', async ({
@@ -61,7 +11,7 @@ test.describe('Binder', () => {
     const { composition, items } = await seed(account, [{ key: 'second', title: 'Chant II' }])
     const tree = await openEditor(page, `/compositions/${composition.id}`)
     // The composition opens its first document
-    await expect(page).toHaveURL(/\/compositions\/\d+\/\d+$/)
+    await expect(page).toHaveURL(new RegExp(`/compositions/${ID}/${ID}$`))
     await expect(tree.locator('[aria-current="page"]')).toHaveAccessibleName('Untitled document')
 
     await item(page, 'Chant II').click()
@@ -141,12 +91,46 @@ test.describe('Binder', () => {
     await expect
       .poll(async () => {
         // Depth 0: the parent as an id, not the populated folder
-        const read = (id: number) =>
+        const read = (id: Id) =>
           account.payload.findByID({ collection: 'binder-items', id, depth: 0 })
         const [moved, last] = await Promise.all([read(items.loose.id), read(items.last.id)])
         return [moved.parent, last.position]
       })
       .toEqual([items.part.id, 0])
+  })
+
+  test('a document dropped on a folder goes inside it, even a closed one', async ({
+    page,
+    account,
+  }) => {
+    const { composition, items } = await seed(account, [
+      { key: 'part', kind: 'folder', title: 'Part I' },
+      { key: 'inside', title: 'Already inside', parent: 'part' },
+      { key: 'loose', title: 'Loose page' },
+    ])
+    await openEditor(page, `/compositions/${composition.id}`)
+    // Closed: dropping on it must still work, and open it
+    await item(page, 'Part I').click()
+    await expect(item(page, 'Already inside')).toHaveCount(0)
+
+    // The middle of the folder's line means "inside"; its edges, "before" and "after"
+    const folder = item(page, 'Part I')
+    const box = (await folder.boundingBox())!
+    await item(page, 'Loose page').dragTo(folder, {
+      targetPosition: { x: box.width / 2, y: box.height / 2 },
+    })
+    await expect(item(page, 'Loose page')).toHaveAttribute('aria-level', '2')
+    await expect(item(page, 'Already inside')).toBeVisible()
+    await expect
+      .poll(async () => {
+        const moved = await account.payload.findByID({
+          collection: 'binder-items',
+          id: items.loose.id,
+          depth: 0,
+        })
+        return [moved.parent, moved.position]
+      })
+      .toEqual([items.part.id, 1])
   })
 
   test('works with the keyboard and remembers folded folders', async ({ page, account }) => {

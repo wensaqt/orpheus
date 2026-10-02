@@ -1,3 +1,5 @@
+import type { Id } from '@/lib/ids'
+
 /*
  * Display preferences kept in cookies, so the server renders the page as the writer left it
  * (no jump after loading). Set from the browser; read by layouts with cookies().
@@ -15,5 +17,5 @@ export const isPreferenceOn = (value: string | undefined) => value === '1'
 // Per-browser preferences that the server does not need, kept in localStorage
 export const STORAGE_KEYS = {
   // The folders the writer collapsed in a composition's binder
-  collapsedFolders: (compositionId: number) => `orpheus:binder:${compositionId}:collapsed`,
+  collapsedFolders: (compositionId: Id) => `orpheus:binder:${compositionId}:collapsed`,
 }

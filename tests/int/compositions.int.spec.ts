@@ -2,6 +2,7 @@ import type { Payload } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { Composition, User } from '@/payload-types'
+import type { Id } from '@/lib/ids'
 
 import { cleanupTestUsers, createTestUser, getTestPayload } from '../helpers/testUsers'
 
@@ -106,7 +107,7 @@ describe('compositions collection', () => {
   })
 
   describe('binder', () => {
-    const binderOf = (compositionId: number) =>
+    const binderOf = (compositionId: Id) =>
       payload.find({
         collection: 'binder-items',
         where: { composition: { equals: compositionId } },

@@ -1,4 +1,5 @@
 import { type BinderMove, descendantIds, InvalidBinderMove, planMove } from '@/lib/binder/tree'
+import type { Id } from '@/lib/ids'
 
 import type { BinderEntry } from '@front/_features/binder/types'
 
@@ -9,10 +10,10 @@ import type { BinderEntry } from '@front/_features/binder/types'
  */
 export type BinderOp =
   | { type: 'add'; entry: BinderEntry }
-  | { type: 'rename'; id: number; title: string }
+  | { type: 'rename'; id: Id; title: string }
   // The item and everything inside it
-  | { type: 'remove'; id: number }
-  | { type: 'move'; id: number; move: BinderMove }
+  | { type: 'remove'; id: Id }
+  | { type: 'move'; id: Id; move: BinderMove }
 
 export function applyBinderOp(entries: BinderEntry[], op: BinderOp): BinderEntry[] {
   switch (op.type) {

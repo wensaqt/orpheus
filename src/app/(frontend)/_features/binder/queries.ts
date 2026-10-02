@@ -1,9 +1,11 @@
 import 'server-only'
 
+import { Forbidden, NotFound } from 'payload'
 import { cache } from 'react'
 
 import { type BinderNodeData, firstDocument, toBinderNode } from '@/lib/binder/tree'
 import { relationId } from '@/lib/relationId'
+import type { Id } from '@/lib/ids'
 import type { BinderItem } from '@/payload-types'
 
 import { getSession, requireSession, type Session } from '@front/_lib/server/auth'
@@ -16,7 +18,7 @@ export const toEntry = (
 ): BinderEntry => ({ ...toBinderNode(item), title: item.title })
 
 // The structure of a binder (no content): what the binder column shows
-export async function binderEntries({ payload, user }: Session, compositionId: number) {
+export async function binderEntries({ payload, user }: Session, compositionId: Id) {
   const { docs } = await payload.find({
     collection: 'binder-items',
     where: { composition: { equals: compositionId } },
@@ -34,7 +36,7 @@ export async function binderEntries({ payload, user }: Session, compositionId: n
  * not found or someone else's (pages decide between login and 404). Memoised per request: the
  * editor's layout and page both need it.
  */
-export const getBinder = cache(async (compositionId: number) => {
+export const getBinder = cache(async (compositionId: Id) => {
   const { payload, user } = await getSession()
   if (!user) return null
   const composition = await payload
@@ -51,14 +53,22 @@ export const getBinder = cache(async (compositionId: number) => {
 })
 
 // A document of the composition with its text, or null (missing, a folder, or not this one)
-export async function getDocument(
-  compositionId: number,
-  documentId: number,
+/*
+ * A document of the composition with its text, or null: missing, a folder, someone else's or
+ * from another composition all read the same, so nothing is disclosed.
+ */
+export async function findDocument(
+  { payload, user }: Session,
+  compositionId: Id,
+  documentId: Id,
 ): Promise<EditorDocument | null> {
-  const { payload, user } = await requireSession()
   const item = await payload
     .findByID({ collection: 'binder-items', id: documentId, user, overrideAccess: false, depth: 0 })
-    .catch(() => null)
+    .catch((error: unknown) => {
+      // Not found or not readable is an answer; a database failure is not, and must show
+      if (error instanceof NotFound || error instanceof Forbidden) return null
+      throw error
+    })
   if (!item || item.kind !== 'document' || relationId(item.composition) !== compositionId) {
     return null
   }
@@ -71,6 +81,9 @@ export async function getDocument(
   }
 }
 
+export const getDocument = async (compositionId: Id, documentId: Id) =>
+  findDocument(await requireSession(), compositionId, documentId)
+
 /*
  * The first document of each given composition (reading order of its binder), with its content.
  * Two queries whatever the number of compositions: the structure of every binder, then the
@@ -78,8 +91,8 @@ export async function getDocument(
  */
 export async function firstDocuments(
   { payload, user }: Session,
-  compositionIds: number[],
-): Promise<Map<number, BinderItem>> {
+  compositionIds: Id[],
+): Promise<Map<Id, BinderItem>> {
   if (!compositionIds.length) return new Map()
   const { docs: structure } = await payload.find({
     collection: 'binder-items',
@@ -91,9 +104,9 @@ export async function firstDocuments(
     depth: 0,
   })
 
-  const byComposition = new Map<number, BinderNodeData[]>()
+  const byComposition = new Map<Id, BinderNodeData[]>()
   for (const item of structure) {
-    const composition = relationId(item.composition)!
+    const composition = relationId(item.composition)
     byComposition.set(composition, [...(byComposition.get(composition) ?? []), toBinderNode(item)])
   }
   const firstIds = [...byComposition.values()].flatMap((nodes) => firstDocument(nodes)?.id ?? [])
@@ -107,5 +120,5 @@ export async function firstDocuments(
     pagination: false,
     depth: 0,
   })
-  return new Map(docs.map((doc) => [relationId(doc.composition)!, doc]))
+  return new Map(docs.map((doc) => [relationId(doc.composition), doc]))
 }

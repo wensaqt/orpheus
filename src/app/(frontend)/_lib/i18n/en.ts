@@ -20,6 +20,12 @@ export const en = {
   },
   language: {
     menu: 'Language',
+    confirm: {
+      title: 'Change the language?',
+      description:
+        'Your text is saved. The editor reloads in the new language, and its undo history starts afresh.',
+      action: 'Change language',
+    },
   },
   auth: {
     fields: {
@@ -157,6 +163,10 @@ export const en = {
     },
   },
   editor: {
+    loading: 'Opening the document…',
+    loadError: 'This document could not be opened. Check your connection, then try again.',
+    retry: 'Try again',
+    documentMissing: 'This document no longer exists.',
     titleLabel: 'Composition title',
     documentTitleLabel: 'Document title',
     placeholder: 'Start writing…',

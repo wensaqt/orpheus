@@ -7,7 +7,7 @@ import { ROUTES } from '@front/_lib/routes'
 import { requireUser } from '@front/_lib/server/auth'
 import { parseId } from '@front/_lib/validation'
 
-import { EmptyBinder } from './_components/document/EmptyBinder'
+import { OpenDocument } from './_components/document/OpenDocument'
 
 // The composition itself opens its first document; an empty binder invites to create one
 export default async function CompositionPage({ params }: PageProps<'/compositions/[id]'>) {
@@ -21,5 +21,6 @@ export default async function CompositionPage({ params }: PageProps<'/compositio
 
   const first = firstDocument(binder.entries)
   if (first) redirect(ROUTES.document(compositionId, first.id))
-  return <EmptyBinder />
+  // Empty binder: a document created from here opens on the client
+  return <OpenDocument initial={null} />
 }

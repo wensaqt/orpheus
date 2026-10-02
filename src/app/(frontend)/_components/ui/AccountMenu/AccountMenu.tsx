@@ -6,6 +6,7 @@ import { useTransition } from 'react'
 
 import { Menu, type MenuItem } from '@front/_components/ui/Menu/Menu'
 import { logOut } from '@front/_features/auth/actions'
+import { clearDocuments } from '@front/_features/binder/documentStore'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { AUTH_PAGES, ROUTES } from '@front/_lib/routes'
 
@@ -52,7 +53,12 @@ export function AccountMenu({ email }: AccountMenuProps) {
     {
       label: t('account.logOut'),
       disabled: pending,
-      onSelect: () => startTransition(() => logOut()),
+      onSelect: () =>
+        startTransition(() => {
+          // Nothing of this account's writing stays in the tab's memory
+          clearDocuments()
+          return logOut()
+        }),
     },
   ]
 

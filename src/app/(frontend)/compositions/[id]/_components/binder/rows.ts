@@ -1,6 +1,7 @@
 import type { Operation } from '@atlaskit/pragmatic-drag-and-drop-hitbox/list-item'
 
 import { type BinderMove, buildTree, type BinderTreeNode, siblingsOf } from '@/lib/binder/tree'
+import type { Id } from '@/lib/ids'
 
 import type { BinderEntry } from '@front/_features/binder/types'
 
@@ -19,7 +20,7 @@ export type BinderRow = {
  * The lines shown, in reading order: the contents of a collapsed folder are hidden. A folder
  * counts as expanded unless the writer collapsed it.
  */
-export function visibleRows(entries: BinderEntry[], collapsed: ReadonlySet<number>): BinderRow[] {
+export function visibleRows(entries: BinderEntry[], collapsed: ReadonlySet<Id>): BinderRow[] {
   const rows: BinderRow[] = []
   const visit = (nodes: BinderTreeNode<BinderEntry>[], level: number) => {
     nodes.forEach(({ children, ...entry }, index) => {
@@ -40,7 +41,7 @@ export function visibleRows(entries: BinderEntry[], collapsed: ReadonlySet<numbe
 }
 
 // Folders the item could be moved into: every folder but the item itself and its contents
-export function moveDestinations(entries: BinderEntry[], excluded: ReadonlySet<number>) {
+export function moveDestinations(entries: BinderEntry[], excluded: ReadonlySet<Id>) {
   return visibleRows(entries, new Set()).filter(
     (row) => row.entry.kind === 'folder' && !excluded.has(row.entry.id),
   )
@@ -67,8 +68,8 @@ const AT_THE_END = Number.MAX_SAFE_INTEGER
  */
 export function dropDestination(
   entries: BinderEntry[],
-  draggedId: number,
-  targetId: number,
+  draggedId: Id,
+  targetId: Id,
   operation: DropOperation,
 ): BinderMove | null {
   const target = entries.find((entry) => entry.id === targetId)
@@ -81,7 +82,7 @@ export function dropDestination(
 }
 
 // Moving into a folder, from the "Move to…" dialog, puts the item last
-export const intoFolder = (parent: number | null): BinderMove => ({ parent, index: AT_THE_END })
+export const intoFolder = (parent: Id | null): BinderMove => ({ parent, index: AT_THE_END })
 
 // One step up or down among its siblings, if there is room (Alt+arrows, "Move up/down")
 export function reorderDestination(row: BinderRow, step: -1 | 1): BinderMove | null {

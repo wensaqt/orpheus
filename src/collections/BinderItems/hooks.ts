@@ -12,12 +12,13 @@ import {
   wouldCreateCycle,
 } from '@/lib/binder/tree'
 import { relationId } from '@/lib/relationId'
+import type { Id } from '@/lib/ids'
 
 const invalid = (path: string, message: string) =>
   new ValidationError({ collection: 'binder-items', errors: [{ path, message }] })
 
 // The whole binder of a composition, reduced to its structure
-async function loadStructure(req: PayloadRequest, composition: number): Promise<BinderNodeData[]> {
+async function loadStructure(req: PayloadRequest, composition: Id): Promise<BinderNodeData[]> {
   const { docs } = await req.payload.find({
     collection: 'binder-items',
     where: { composition: { equals: composition } },
@@ -100,7 +101,7 @@ export const deleteContents: CollectionBeforeDeleteHook = async ({ id, req }) =>
     .findByID({ collection: 'binder-items', id, depth: 0, req })
     .catch(() => null)
   if (!item || item.kind !== 'folder') return
-  const inside = descendantIds(await loadStructure(req, relationId(item.composition)!), item.id)
+  const inside = descendantIds(await loadStructure(req, relationId(item.composition)), item.id)
   if (!inside.length) return
   // Straight to the database: the whole subtree goes at once, without a hook per item
   await req.payload.db.deleteMany({

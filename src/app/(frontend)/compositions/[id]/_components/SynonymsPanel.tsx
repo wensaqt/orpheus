@@ -2,8 +2,9 @@
 
 import React, { useId } from 'react'
 
-import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 import { THESAURUS_CREDITS } from '@/lib/thesaurus/source'
+
+import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 
 import type { SynonymResult } from '@front/_features/lexicon/types'
 import { type SynonymStatus, useSynonyms } from '@front/_features/lexicon/useSynonyms'

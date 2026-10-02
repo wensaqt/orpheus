@@ -2,6 +2,8 @@
 
 import React, { useTransition } from 'react'
 
+import type { Id } from '@/lib/ids'
+
 import { useConfirm } from '@front/_components/ui/Feedback/ConfirmProvider'
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 import { Menu, type MenuItem } from '@front/_components/ui/Menu/Menu'
@@ -12,7 +14,7 @@ import { useT } from '@front/_components/i18n/I18nProvider'
 import styles from './CompositionActions.module.css'
 
 type CompositionActionsProps = {
-  id: number
+  id: Id
   title: string
 }
 

@@ -22,6 +22,12 @@ export const fr: Messages = {
   },
   language: {
     menu: 'Langue',
+    confirm: {
+      title: 'Changer de langue ?',
+      description:
+        'Votre texte est enregistré. L’éditeur se recharge dans la nouvelle langue, et son historique d’annulation repart de zéro.',
+      action: 'Changer de langue',
+    },
   },
   auth: {
     fields: {
@@ -161,6 +167,10 @@ export const fr: Messages = {
     },
   },
   editor: {
+    loading: 'Ouverture du document…',
+    loadError: 'Impossible d’ouvrir ce document. Vérifiez votre connexion, puis réessayez.',
+    retry: 'Réessayer',
+    documentMissing: 'Ce document n’existe plus.',
     titleLabel: 'Titre de la composition',
     documentTitleLabel: 'Titre du document',
     placeholder: 'Commencez à écrire…',

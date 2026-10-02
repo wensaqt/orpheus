@@ -90,7 +90,7 @@ export interface Config {
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: number;
+    defaultIDType: string;
   };
   fallbackLocale: null;
   globals: {};
@@ -128,7 +128,7 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: number;
+  id: string;
   role?: ('admin' | 'user') | null;
   plan?: ('free' | 'pro') | null;
   updatedAt: string;
@@ -156,7 +156,7 @@ export interface User {
  * via the `definition` "media".
  */
 export interface Media {
-  id: number;
+  id: string;
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -175,9 +175,9 @@ export interface Media {
  * via the `definition` "compositions".
  */
 export interface Composition {
-  id: number;
+  id: string;
   title: string;
-  owner: number | User;
+  owner: string | User;
   page: {
     format: 'A4' | 'A5' | 'Letter';
     orientation: 'portrait' | 'landscape';
@@ -199,12 +199,12 @@ export interface Composition {
  * via the `definition` "binder-items".
  */
 export interface BinderItem {
-  id: number;
+  id: string;
   title: string;
   kind: 'folder' | 'document';
-  composition: number | Composition;
-  owner: number | User;
-  parent?: (number | null) | BinderItem;
+  composition: string | Composition;
+  owner: string | User;
+  parent?: (string | null) | BinderItem;
   position: number;
   content?: {
     root: {
@@ -223,7 +223,7 @@ export interface BinderItem {
  * via the `definition` "thesaurus-entries".
  */
 export interface ThesaurusEntry {
-  id: number;
+  id: string;
   word: string;
   lang: 'fr';
   source: 'wiktionary' | 'dicollecte';
@@ -261,7 +261,7 @@ export interface ThesaurusEntry {
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: number;
+  id: string;
   key: string;
   data:
     | {
@@ -278,32 +278,32 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: number;
+  id: string;
   document?:
     | ({
         relationTo: 'users';
-        value: number | User;
+        value: string | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: number | Media;
+        value: string | Media;
       } | null)
     | ({
         relationTo: 'compositions';
-        value: number | Composition;
+        value: string | Composition;
       } | null)
     | ({
         relationTo: 'binder-items';
-        value: number | BinderItem;
+        value: string | BinderItem;
       } | null)
     | ({
         relationTo: 'thesaurus-entries';
-        value: number | ThesaurusEntry;
+        value: string | ThesaurusEntry;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: number | User;
+    value: string | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -313,10 +313,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: number;
+  id: string;
   user: {
     relationTo: 'users';
-    value: number | User;
+    value: string | User;
   };
   key?: string | null;
   value?:
@@ -336,7 +336,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: number;
+  id: string;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;

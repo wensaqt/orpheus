@@ -28,6 +28,9 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: postgresAdapter({
+    // Ids are UUIDs (v7: time-ordered, so they sort by creation and index well), not guessable
+    // sequential numbers in URLs
+    idType: 'uuidv7',
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },
