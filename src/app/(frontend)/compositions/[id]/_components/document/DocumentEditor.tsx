@@ -95,11 +95,11 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
     <>
       <DocumentTitle {...titleField.inputProps} />
       {/* Only save failures are reported; everything else happens silently */}
-      {(titleField.status === 'error' || autosave.status === 'error') && (
+      {(titleField.status === 'error' || autosave.status === 'error') ? (
         <p className={styles.saveError} role="alert">
           {t('editor.saveError')}
         </p>
-      )}
+      ) : null}
       <PageSheet settings={page}>
         <EditorContent placeholder={t('editor.placeholder')} />
       </PageSheet>
