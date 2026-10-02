@@ -65,3 +65,18 @@
 .underlineStrikethrough {
   text-decoration: underline line-through;
 }
+
+/*
+ * A manual page break: the page layout stretches it to the end of its page. Only a faint
+ * dashed line marks where it was put; it never prints
+ */
+.pageBreak {
+  border-block-start: 1px dashed var(--color-border);
+  cursor: default;
+}
+
+@media print {
+  .pageBreak {
+    border: none;
+  }
+}

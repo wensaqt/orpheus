@@ -86,3 +86,9 @@
     transition: none;
   }
 }
+
+@media print {
+  .region {
+    display: none;
+  }
+}

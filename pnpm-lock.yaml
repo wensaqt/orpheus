@@ -29,6 +29,9 @@ importers:
       '@lexical/rich-text':
         specifier: 0.50.0
         version: 0.50.0(typescript@5.7.3)
+      '@lexical/utils':
+        specifier: 0.50.0
+        version: 0.50.0(typescript@5.7.3)
       '@payloadcms/db-postgres':
         specifier: 3.90.1
         version: 3.90.1(payload@3.90.1(graphql@16.14.2)(supports-color@7.2.0)(typescript@5.7.3))(supports-color@7.2.0)

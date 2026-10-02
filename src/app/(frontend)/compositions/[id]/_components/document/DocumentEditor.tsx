@@ -9,7 +9,7 @@ import type { Id } from '@/lib/ids'
 
 import { EditorComposer } from '@front/_components/editor/EditorComposer'
 import { EditorContent } from '@front/_components/editor/EditorContent'
-import { PageSheet } from '@front/_components/editor/PageSheet'
+import { PagedSheet } from '@front/_components/editor/pagination/PagedSheet'
 import { useAutosavePlugin } from '@front/_components/editor/plugins/AutosavePlugin'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { renameBinderItem, saveDocument } from '@front/_features/binder/actions'
@@ -95,14 +95,14 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
     <>
       <DocumentTitle {...titleField.inputProps} />
       {/* Only save failures are reported; everything else happens silently */}
-      {(titleField.status === 'error' || autosave.status === 'error') ? (
+      {titleField.status === 'error' || autosave.status === 'error' ? (
         <p className={styles.saveError} role="alert">
           {t('editor.saveError')}
         </p>
       ) : null}
-      <PageSheet settings={page}>
+      <PagedSheet settings={page}>
         <EditorContent placeholder={t('editor.placeholder')} />
-      </PageSheet>
+      </PagedSheet>
     </>
   )
 }

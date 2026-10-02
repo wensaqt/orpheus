@@ -4,7 +4,7 @@ import { useEffect, useEffectEvent, useState } from 'react'
 
 import type { Id } from '@/lib/ids'
 
-import { PageSheet } from '@front/_components/editor/PageSheet'
+import { BlankPage } from '@front/_components/editor/pagination/BlankPage'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { Button } from '@front/_components/ui/Button/Button'
 import {
@@ -91,7 +91,7 @@ function DocumentLoader({ id, initial }: { id: Id; initial?: RenderedDocument })
       <p className="visually-hidden" role="status">
         {t('editor.loading')}
       </p>
-      <PageSheet settings={page}>{null}</PageSheet>
+      <BlankPage settings={page} />
     </div>
   )
 }

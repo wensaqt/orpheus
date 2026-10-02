@@ -7,3 +7,11 @@
   font-size: var(--text-sm);
   color: var(--color-accent);
 }
+
+/* The title stays on screen: the printed pages are the document's text */
+@media print {
+  .title,
+  .saveError {
+    display: none;
+  }
+}

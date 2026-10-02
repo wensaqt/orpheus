@@ -1,0 +1,86 @@
+/*
+ * Sizes come from the composition's page settings (set inline in px); the gap between sheets
+ * is the only free value, and print sets it to 0 so the pages follow each other on paper
+ */
+.paged {
+  --page-gap: var(--space-4);
+  position: relative;
+  flex-shrink: 0;
+  width: var(--page-w);
+  height: calc(var(--pages) * var(--page-h) + (var(--pages) - 1) * var(--page-gap));
+}
+
+.sheets {
+  position: absolute;
+  inset: 0;
+}
+
+/* Lets the layout measure the gap in pixels, whatever unit the token uses */
+.gapProbe {
+  position: absolute;
+  width: 0;
+  height: var(--page-gap);
+  visibility: hidden;
+}
+
+/* The look of a sheet of paper resting on the desk (also the blank page's, see BlankPage) */
+.paper {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-sheet);
+  box-shadow: var(--shadow-sheet);
+}
+
+.sheet {
+  composes: paper;
+  position: absolute;
+  inset-inline: 0;
+  top: calc(var(--index) * (var(--page-h) + var(--page-gap)));
+  height: var(--page-h);
+}
+
+/* No block formatting context on the way to the editor's lines, so the floats reach them */
+.flow {
+  position: relative;
+  padding: var(--page-padding);
+}
+
+.bands {
+  display: contents;
+}
+
+.boundary {
+  display: contents;
+}
+
+/* A zero-width float as tall as a text area: the next band starts where that area ends */
+.textArea {
+  float: left;
+  clear: left;
+  width: 0;
+  height: var(--page-content-h);
+}
+
+/* Full width, so no line fits beside it: lines reaching it go below, onto the next page */
+.band {
+  float: left;
+  clear: left;
+  width: 100%;
+  height: calc(var(--page-band-base) + var(--page-gap));
+}
+
+.text {
+  position: relative;
+}
+
+@media print {
+  .paged {
+    --page-gap: 0px;
+  }
+
+  .sheet {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}

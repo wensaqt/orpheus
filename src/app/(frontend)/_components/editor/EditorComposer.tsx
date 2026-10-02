@@ -7,9 +7,10 @@ import type { ReactNode } from 'react'
 
 import type { LexicalContent } from '@front/_features/binder/types'
 
+import { PageBreakNode } from './nodes/PageBreakNode'
 import { editorTheme } from './theme'
 
-const EDITOR_NODES = [HeadingNode, QuoteNode, ListNode, ListItemNode]
+const EDITOR_NODES = [HeadingNode, QuoteNode, ListNode, ListItemNode, PageBreakNode]
 
 type EditorComposerProps = {
   // Serialized Lexical state to load, or null for a new document

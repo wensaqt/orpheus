@@ -1,0 +1,6 @@
+.page {
+  composes: paper from './PagedSheet.module.css';
+  flex-shrink: 0;
+  width: var(--page-w);
+  height: var(--page-h);
+}

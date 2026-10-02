@@ -35,6 +35,17 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'], channel: 'chromium' },
     },
+    // Pagination relies on how each engine lays out lines and moves the caret: all three run it
+    {
+      name: 'firefox',
+      testMatch: /pagination\.e2e\.spec\.ts/,
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      testMatch: /pagination\.e2e\.spec\.ts/,
+      use: { ...devices['Desktop Safari'] },
+    },
   ],
   webServer: {
     command: 'pnpm dev',

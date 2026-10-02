@@ -42,3 +42,10 @@ video {
   white-space: nowrap;
   border: 0;
 }
+
+/* Printing a document prints its pages only, on plain paper */
+@media print {
+  body {
+    background: none;
+  }
+}

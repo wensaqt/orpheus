@@ -30,6 +30,7 @@
     "@lexical/markdown": "0.50.0",
     "@lexical/react": "0.50.0",
     "@lexical/rich-text": "0.50.0",
+    "@lexical/utils": "0.50.0",
     "@payloadcms/db-postgres": "3.90.1",
     "@payloadcms/next": "3.90.1",
     "@payloadcms/richtext-lexical": "3.90.1",

@@ -6,7 +6,7 @@ import { DEFAULT_PAGE, toPageSettings } from '@/lib/pageFormats'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 
-import { PageSheet } from './PageSheet'
+import { BlankPage } from './pagination/BlankPage'
 import styles from './OpeningDesk.module.css'
 
 /*
@@ -22,7 +22,7 @@ export function OpeningDesk() {
       <p className="visually-hidden" role="status">
         {t('compositions.opening')}
       </p>
-      <PageSheet settings={toPageSettings(DEFAULT_PAGE)}>{null}</PageSheet>
+      <BlankPage settings={toPageSettings(DEFAULT_PAGE)} />
     </div>,
     document.body,
   )

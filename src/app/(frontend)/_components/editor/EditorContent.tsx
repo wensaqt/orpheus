@@ -20,6 +20,7 @@ import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 
 import styles from './EditorContent.module.css'
+import { PageBreakPlugin } from './plugins/PageBreakPlugin'
 
 // Markdown shortcuts limited to the nodes the composer registers
 const TRANSFORMERS = [
@@ -54,6 +55,7 @@ export function EditorContent({ placeholder }: { placeholder: string }) {
       <HistoryPlugin />
       <ListPlugin />
       <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+      <PageBreakPlugin />
     </>
   )
 }

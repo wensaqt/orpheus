@@ -43,8 +43,28 @@
   top: var(--space-6);
 }
 
-/* No room for three columns: binder above the sheet, synonyms below (see BinderPanel) */
-@media (max-width: 78rem) {
+/* Printing a document prints its pages, and nothing around them */
+@media print {
+  .screen {
+    background: none;
+  }
+
+  .desk {
+    display: block;
+    padding: 0;
+  }
+
+  .binder,
+  .aside {
+    display: none;
+  }
+}
+
+/*
+ * No room for three columns: binder above the sheet, synonyms below (see BinderPanel). Screen
+ * only: a printed page is about as narrow, and Firefox prints a scrolling box's first page only
+ */
+@media screen and (max-width: 78rem) {
   .desk {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -58,5 +78,10 @@
 
   .binder {
     justify-self: stretch;
+  }
+
+  /* Pages have a fixed width (their line breaks must not depend on the window): scroll sideways */
+  .column {
+    overflow-x: auto;
   }
 }
