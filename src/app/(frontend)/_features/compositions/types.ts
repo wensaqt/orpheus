@@ -1,3 +1,4 @@
+import type { Id } from '@/lib/ids'
 import type { Composition } from '@/payload-types'
 
 // Types derived from the Payload schema (payload-types.ts), never redeclared by hand
@@ -8,4 +9,6 @@ export type CompositionPatch = Partial<Pick<Composition, 'title'>>
 // What a list card shows: never the full content, only its excerpt
 export type CompositionCardData = Pick<Composition, 'id' | 'title' | 'updatedAt'> & {
   excerpt: string
+  // The document the card opens (the first one), so the link goes straight to it
+  firstDocumentId: Id | null
 }

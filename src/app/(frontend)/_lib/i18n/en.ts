@@ -72,6 +72,7 @@ export const en = {
     browse: { title: 'All compositions', subtitle: 'Revisit your pieces' },
   },
   compositions: {
+    opening: 'Opening a blank page…',
     heading: 'All compositions',
     create: 'New composition',
     untitled: 'Untitled composition',

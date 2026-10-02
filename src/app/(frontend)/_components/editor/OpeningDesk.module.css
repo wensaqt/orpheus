@@ -1,0 +1,24 @@
+/* The editor's pearl desk over the page, the sheet where the editor will put it */
+.desk {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: calc(var(--space-6) + var(--text-xl) * 1.5 + var(--space-4)) var(--space-3) 0;
+  overflow: hidden;
+  background-color: var(--color-surface-raised);
+  animation: reveal var(--duration) ease-out var(--delay-reveal) both;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desk {
+    animation-duration: 0s;
+  }
+}

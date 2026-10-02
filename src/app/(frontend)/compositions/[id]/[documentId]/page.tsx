@@ -21,5 +21,6 @@ export default async function DocumentPage({
   if (!document) notFound()
 
   // The entry point of a full load; switching documents afterwards stays on the client
-  return <OpenDocument initial={document} />
+  // Rendered now: the client cache can trust this copy without asking again at once
+  return <OpenDocument initial={{ ...document, checkedAt: Date.now() }} />
 }

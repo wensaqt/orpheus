@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import { MAX_COMPOSITION_TITLE_LENGTH } from '@/lib/compositions'
-import { DEFAULT_PAGE_FORMAT } from '@/lib/pageFormats'
+import { DEFAULT_PAGE } from '@/lib/pageFormats'
 import { cleanTitle } from '@/lib/titles'
 import type { Id } from '@/lib/ids'
 import { isId } from '@/lib/ids'
@@ -16,7 +16,7 @@ import { getT } from '@front/_lib/server/i18n'
 
 import type { CompositionPatch } from './types'
 
-// Creates an empty composition for the signed-in user and opens the editor
+// Creates an empty composition for the signed-in user and opens its first document
 export async function createComposition() {
   const { payload, user } = await requireUser(ROUTES.home)
   const t = await getT()
@@ -26,14 +26,24 @@ export async function createComposition() {
       // In the user's language; the collection default is only a fallback
       title: t('compositions.untitled'),
       owner: user.id,
-      page: { format: DEFAULT_PAGE_FORMAT, orientation: 'portrait' },
+      page: DEFAULT_PAGE,
     },
     user,
     overrideAccess: false,
     // Read by the collection, which adds a first empty document under this title
     context: { firstDocumentTitle: t('binder.untitledDocument') },
   })
-  redirect(ROUTES.composition(composition.id))
+  // Straight to that document: the composition's own page would only redirect to it
+  const { docs } = await payload.find({
+    collection: 'binder-items',
+    where: { composition: { equals: composition.id } },
+    select: {},
+    limit: 1,
+    depth: 0,
+    user,
+    overrideAccess: false,
+  })
+  redirect(ROUTES.editor(composition.id, docs[0]?.id ?? null))
 }
 
 // Saves the composition's title (the text is saved per document); an empty one is refused

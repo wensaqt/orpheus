@@ -38,5 +38,6 @@ export async function listCompositionCards() {
     title: doc.title,
     updatedAt: doc.updatedAt,
     excerpt: lexicalExcerpt(firsts.get(doc.id)?.content, EXCERPT_LENGTH),
+    firstDocumentId: firsts.get(doc.id)?.id ?? null,
   }))
 }

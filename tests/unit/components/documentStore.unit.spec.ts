@@ -107,7 +107,10 @@ describe('documentStore', () => {
   it('fills an empty slot from the page, but still checks that copy with the server', async () => {
     fetchMock.mockReturnValue(respond(200, serverDocument('2026-10-02T10:00:09.000Z')))
     const { result } = renderHook(() => useDocumentSlot(id))
-    act(() => seedDocument(id, { content: null, updatedAt: '2026-10-02T10:00:00.000Z' }))
+    // Rendered long ago (or restored from the router's cache): checked again
+    act(() =>
+      seedDocument(id, { content: null, updatedAt: '2026-10-02T10:00:00.000Z', checkedAt: 0 }),
+    )
     expect(result.current?.status).toBe('ready')
     await act(() => loadDocument(composition, id))
     expect(fetchMock).toHaveBeenCalledTimes(1)
@@ -116,7 +119,11 @@ describe('documentStore', () => {
 
   it('never lets an old page copy replace what is cached, nor refresh its check', async () => {
     rememberDocument(id, { content: null, updatedAt: '2026-10-02T10:00:05.000Z' })
-    seedDocument(id, { content: null, updatedAt: '2026-10-02T10:00:00.000Z' })
+    seedDocument(id, {
+      content: null,
+      updatedAt: '2026-10-02T10:00:00.000Z',
+      checkedAt: Date.now(),
+    })
     const { result } = renderHook(() => useDocumentSlot(id))
     expect(result.current).toMatchObject({ document: { updatedAt: '2026-10-02T10:00:05.000Z' } })
   })
@@ -149,5 +156,15 @@ describe('documentStore', () => {
     await vi.waitFor(() =>
       expect(assign).toHaveBeenCalledWith('/login?redirect=%2Fcompositions%2Fx%2Fy'),
     )
+  })
+
+  it('trusts a copy the server has just rendered, without asking again', async () => {
+    seedDocument(id, {
+      content: null,
+      updatedAt: '2026-10-02T10:00:00.000Z',
+      checkedAt: Date.now(),
+    })
+    await loadDocument(composition, id)
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

@@ -29,6 +29,12 @@ type StoredPage = {
   margins?: Partial<Record<keyof PageSettings['margins'], number | null>> | null
 }
 
+// A new composition's page
+export const DEFAULT_PAGE: Pick<PageSettings, 'format' | 'orientation'> = {
+  format: DEFAULT_PAGE_FORMAT,
+  orientation: 'portrait',
+}
+
 // Normalizes stored settings (optional margins) into complete settings
 export const toPageSettings = ({ format, orientation, margins }: StoredPage): PageSettings => ({
   format,

@@ -25,6 +25,26 @@ test.describe('Compositions', () => {
     await expect(page.locator('[contenteditable="true"] p')).toHaveText('She walked behind him.')
   })
 
+  test('a slow creation shows the desk at once, then the new editor', async ({ page }) => {
+    await page.goto('/')
+    // The creation (a server action posted to the home page) takes a while
+    await page.route('**/', async (route) => {
+      if (route.request().method() === 'POST')
+        await new Promise((resolve) => setTimeout(resolve, 1_500))
+      await route.continue()
+    })
+    await page.getByRole('button', { name: /New composition/ }).click()
+    await expect(
+      page.getByRole('status').filter({ hasText: 'Opening a blank page…' }),
+    ).toBeAttached()
+    await expect(page).toHaveURL(new RegExp(`/compositions/${ID}/${ID}$`), { timeout: 15_000 })
+    await expect(page.getByLabel('Document title')).toBeVisible()
+    await expect(page.getByRole('status').filter({ hasText: 'Opening a blank page…' })).toHaveCount(
+      0,
+    )
+    await page.unrouteAll()
+  })
+
   test('pending changes are sent when leaving the editor', async ({ page, account }) => {
     const composition = await account.payload.create({
       collection: 'compositions',

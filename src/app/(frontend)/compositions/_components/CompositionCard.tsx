@@ -10,12 +10,12 @@ import { CompositionActions } from './CompositionActions'
 
 // A composition shown as a sheet thumbnail; all have the same shape
 export async function CompositionCard({ composition }: { composition: CompositionCardData }) {
-  const { id, title, updatedAt, excerpt } = composition
+  const { id, title, updatedAt, excerpt, firstDocumentId } = composition
   const { formatDateTime, formatRelative } = getFormatters(await getLocale())
 
   return (
     <li className={styles.card}>
-      <Link href={ROUTES.composition(id)} className={styles.link}>
+      <Link href={ROUTES.editor(id, firstDocumentId)} className={styles.link}>
         <span className={styles.sheet}>
           <span className={styles.excerpt}>{excerpt}</span>
         </span>

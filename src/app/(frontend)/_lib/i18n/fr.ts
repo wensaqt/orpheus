@@ -74,6 +74,7 @@ export const fr: Messages = {
     browse: { title: 'Toutes les compositions', subtitle: 'Retrouver vos pièces' },
   },
   compositions: {
+    opening: 'Ouverture d’une page blanche…',
     heading: 'Toutes les compositions',
     create: 'Nouvelle composition',
     untitled: 'Composition sans titre',

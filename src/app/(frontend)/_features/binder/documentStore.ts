@@ -4,7 +4,13 @@ import type { Id } from '@/lib/ids'
 
 import { ROUTES } from '@front/_lib/routes'
 
-import { type DocumentSlot, type DocumentText, isFresh, withSlot } from './documentCache'
+import {
+  type CachedDocument,
+  type DocumentSlot,
+  type DocumentText,
+  isFresh,
+  withSlot,
+} from './documentCache'
 import type { EditorDocument } from './types'
 
 /*
@@ -53,12 +59,14 @@ export function rememberDocument(id: Id, { content, updatedAt }: DocumentText) {
 }
 
 /*
- * A version the page was rendered with: possibly old (the page may come from the router's
- * cache), so it only fills an empty slot, and never counts as just checked.
+ * The version the page was rendered with, checked when the server rendered it. The page may
+ * come back from the router's cache much later: it then only fills an empty slot, and its old
+ * check time makes it checked again.
  */
-export function seedDocument(id: Id, { content, updatedAt }: DocumentText) {
+export function seedDocument(id: Id, document: CachedDocument) {
   if (slots.get(id)?.status === 'ready') return
-  setSlot(id, { status: 'ready', document: { content, updatedAt, checkedAt: 0 } })
+  const { content, updatedAt, checkedAt } = document
+  setSlot(id, { status: 'ready', document: { content, updatedAt, checkedAt } })
 }
 
 /*

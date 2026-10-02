@@ -4,6 +4,7 @@ import { getT } from '@front/_lib/server/i18n'
 import { ROUTES } from '@front/_lib/routes'
 
 import { LyreButton } from './_components/LyreButton/LyreButton'
+import { NewCompositionButton } from './_components/NewCompositionButton'
 import styles from './page.module.css'
 
 export default async function HomePage() {
@@ -12,10 +13,8 @@ export default async function HomePage() {
     <div className={styles.container}>
       {/* Created via POST (server action): a link would be prefetched and create documents */}
       <form action={createComposition} className={styles.section}>
-        <LyreButton
-          type="submit"
+        <NewCompositionButton
           className={styles.sectionButton}
-          side="left"
           text={t('home.create.title')}
           subtitle={t('home.create.subtitle')}
         />
