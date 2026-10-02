@@ -126,30 +126,39 @@ export async function readLayout(
         sheet.getBoundingClientRect(),
       )
       const editor = document.querySelector('[contenteditable="true"]')!
+      const left = editor.getBoundingClientRect().left
+      // Every line of text, and every empty line (a block holding only a line break)
+      const lines: { label: string; rect: DOMRect; empty: boolean }[] = []
       const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT)
-      const outside: string[] = []
-      const linesPerPage = sheets.map(() => 0)
       const range = document.createRange()
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         if (!node.textContent?.trim()) continue
         range.selectNodeContents(node)
-        for (const line of range.getClientRects()) {
-          if (line.height === 0) continue
-          const index = sheets.findIndex(
-            (sheet) => line.top >= sheet.top - 1 && line.top < sheet.bottom,
-          )
-          const sheet = sheets[index]
-          if (
-            !sheet ||
-            line.top < sheet.top + top - TOLERANCE ||
-            line.bottom > sheet.bottom - bottom + TOLERANCE
-          ) {
-            outside.push(
-              `${(node.textContent ?? '').slice(0, 30)}… at ${Math.round(line.top - (sheet?.top ?? 0))}px`,
-            )
-          } else {
-            linesPerPage[index]++
-          }
+        for (const rect of range.getClientRects())
+          lines.push({ label: node.textContent.slice(0, 30), rect, empty: false })
+      }
+      for (const br of editor.querySelectorAll('br')) {
+        if (br.parentElement?.childNodes.length === 1)
+          lines.push({ label: '(empty line)', rect: br.getBoundingClientRect(), empty: true })
+      }
+      const outside: string[] = []
+      const linesPerPage = sheets.map(() => 0)
+      for (const { label, rect: line, empty } of lines) {
+        if (line.height === 0) continue
+        const index = sheets.findIndex(
+          (sheet) => line.top >= sheet.top - 1 && line.top < sheet.bottom,
+        )
+        const sheet = sheets[index]
+        if (
+          !sheet ||
+          line.top < sheet.top + top - TOLERANCE ||
+          line.bottom > sheet.bottom - bottom + TOLERANCE ||
+          // An empty line starts where the text does, not squeezed beside a band
+          (empty && line.left > left + TOLERANCE)
+        ) {
+          outside.push(`${label}… at ${Math.round(line.top - (sheet?.top ?? 0))}px`)
+        } else {
+          linesPerPage[index]++
         }
       }
       return { pages: Number(root.dataset.pages), sheets: sheets.length, outside, linesPerPage }

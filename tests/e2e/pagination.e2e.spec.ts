@@ -66,6 +66,9 @@ test.describe('Pagination', () => {
     await page.keyboard.press(END_OF_TEXT)
     await selectionRead(page)
     for (let line = 0; line < 30; line++) await page.keyboard.press('Enter')
+    // Every new empty line is already on a page, the caret with it
+    await settle(page)
+    expect((await readLayout(page)).outside).toEqual([])
     await page.keyboard.type('Sur la page suivante.')
     await settle(page)
     const after = await readLayout(page)
