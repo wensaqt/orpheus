@@ -41,3 +41,17 @@
     transition: none;
   }
 }
+
+.title {
+  margin-block-end: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--color-primary-hover);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-block-start: var(--space-5);
+}

@@ -44,7 +44,7 @@ test.describe('Language, signed in', () => {
   test('a new composition gets a French default title', async ({ page }) => {
     await page.goto('/')
     await page.getByRole('button', { name: /Nouvelle composition/ }).click()
-    await expect(page).toHaveURL(/\/compositions\/\d+$/)
+    await expect(page).toHaveURL(/\/compositions\/\d+\/\d+$/)
     await expect(page.getByLabel('Titre de la composition')).toHaveValue('Composition sans titre')
   })
 })

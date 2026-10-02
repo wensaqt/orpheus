@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  width: 17rem;
+  width: var(--side-panel-width);
   max-height: calc(100dvh - 2 * var(--space-6));
 }
 

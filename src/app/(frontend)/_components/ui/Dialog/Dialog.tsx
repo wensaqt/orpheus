@@ -41,3 +41,17 @@ export function Dialog({ open, onClose, labelledBy, children }: DialogProps) {
     </dialog>
   )
 }
+
+// The dialog's heading, labelling it through the id given to <Dialog labelledBy>
+export function DialogTitle({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <h2 id={id} className={styles.title}>
+      {children}
+    </h2>
+  )
+}
+
+// The row of buttons at the foot of a dialog, the main action last
+export function DialogActions({ children }: { children: React.ReactNode }) {
+  return <div className={styles.actions}>{children}</div>
+}

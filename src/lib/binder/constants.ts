@@ -7,6 +7,5 @@ export type BinderItemKind = (typeof BINDER_ITEM_KINDS)[number]
 
 export const MAX_BINDER_TITLE_LENGTH = 200
 
-// Fallback titles; the app sends titles in the writer's language
+// Fallback title of a composition's first document; the app sends one in the writer's language
 export const DEFAULT_DOCUMENT_TITLE = 'Untitled document'
-export const DEFAULT_FOLDER_TITLE = 'New folder'

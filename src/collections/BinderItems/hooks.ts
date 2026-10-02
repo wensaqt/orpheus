@@ -5,7 +5,12 @@ import type {
 } from 'payload'
 import { ValidationError } from 'payload'
 
-import { type BinderNodeData, descendantIds, wouldCreateCycle } from '@/lib/binder/tree'
+import {
+  type BinderNodeData,
+  descendantIds,
+  toBinderNode,
+  wouldCreateCycle,
+} from '@/lib/binder/tree'
 import { relationId } from '@/lib/relationId'
 
 const invalid = (path: string, message: string) =>
@@ -21,12 +26,7 @@ async function loadStructure(req: PayloadRequest, composition: number): Promise<
     depth: 0,
     req,
   })
-  return docs.map((doc) => ({
-    id: doc.id,
-    kind: doc.kind,
-    parent: relationId(doc.parent),
-    position: doc.position,
-  }))
+  return docs.map(toBinderNode)
 }
 
 /*
@@ -42,6 +42,7 @@ export const keepBinderTree: CollectionBeforeValidateHook = async ({
   originalDoc,
   operation,
   req,
+  context,
 }) => {
   if (!data) return data
   const composition = relationId(data.composition ?? originalDoc?.composition)
@@ -79,8 +80,14 @@ export const keepBinderTree: CollectionBeforeValidateHook = async ({
     }
   }
 
-  // Without a new position, the item goes last (a move keeps its old position otherwise)
-  if (data.position == null || (moved && data.position === originalDoc?.position)) {
+  /*
+   * Without a new position, the item goes last: on update an unchanged position is the old one,
+   * meaningless in the new folder. A planned move (context.keepPosition) sets every position.
+   */
+  if (
+    data.position == null ||
+    (moved && !context.keepPosition && data.position === originalDoc?.position)
+  ) {
     const siblings = items.filter((item) => item.parent === parent && item.id !== originalDoc?.id)
     data.position = siblings.length ? Math.max(...siblings.map((item) => item.position)) + 1 : 0
   }

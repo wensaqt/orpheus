@@ -1,0 +1,9 @@
+.title {
+  margin-block-end: var(--space-4);
+}
+
+.saveError {
+  margin-block: calc(-1 * var(--space-3)) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+}

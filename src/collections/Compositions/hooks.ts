@@ -24,10 +24,8 @@ export const addFirstDocument: CollectionAfterChangeHook = async ({
   context,
 }) => {
   if (operation !== 'create') return doc
-  const title =
-    typeof context.firstDocumentTitle === 'string'
-      ? context.firstDocumentTitle
-      : DEFAULT_DOCUMENT_TITLE
+  // Created elsewhere (e.g. the admin panel), it has no title in the writer's language
+  const title = context.firstDocumentTitle ?? DEFAULT_DOCUMENT_TITLE
   await req.payload.create({
     collection: 'binder-items',
     // Owner and position are set by the binder's own hook; given here for the types

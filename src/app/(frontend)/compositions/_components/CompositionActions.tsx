@@ -6,6 +6,7 @@ import { useConfirm } from '@front/_components/ui/Feedback/ConfirmProvider'
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 import { Menu, type MenuItem } from '@front/_components/ui/Menu/Menu'
 import { deleteComposition } from '@front/_features/compositions/actions'
+import { succeeded } from '@front/_lib/actionResult'
 import { useT } from '@front/_components/i18n/I18nProvider'
 
 import styles from './CompositionActions.module.css'
@@ -34,11 +35,8 @@ export function CompositionActions({ id, title }: CompositionActionsProps) {
     // Transition: the list revalidated by the action shows along with the navigation
     startTransition(async () => {
       // The action throws when the session has expired; any failure ends in the same toast
-      const status = await deleteComposition(id).then(
-        (result) => result.status,
-        () => 'error' as const,
-      )
-      if (status === 'deleted') toast.success(t('compositions.delete.done', { title }))
+      if (await succeeded(deleteComposition(id)))
+        toast.success(t('compositions.delete.done', { title }))
       else toast.error(t('compositions.delete.error'))
     })
   }

@@ -6,7 +6,9 @@ test.describe('Compositions', () => {
   test('create from home, write, find it again after reload', async ({ page }) => {
     await page.goto('/')
     await page.getByRole('button', { name: /New composition/ }).click()
-    await expect(page).toHaveURL(/\/compositions\/\d+$/)
+    // Two redirects (the action, then the composition to its first document), each rendered by
+    // the dev server: slow under the whole suite's load
+    await expect(page).toHaveURL(/\/compositions\/\d+\/\d+$/, { timeout: 15_000 })
 
     const title = page.getByLabel('Composition title')
     await expect(title).toHaveValue('Untitled composition')

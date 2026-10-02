@@ -3,7 +3,8 @@
 import React, { createContext, useCallback, useContext, useId, useRef, useState } from 'react'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
-import { Dialog } from '@front/_components/ui/Dialog/Dialog'
+import { Button } from '@front/_components/ui/Button/Button'
+import { Dialog, DialogActions, DialogTitle } from '@front/_components/ui/Dialog/Dialog'
 import styles from './ConfirmProvider.module.css'
 
 export type ConfirmOptions = {
@@ -47,34 +48,30 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ConfirmContext.Provider value={confirm}>
+    <ConfirmContext value={confirm}>
       {children}
       <Dialog open={open} onClose={() => settle(false)} labelledBy={titleId}>
         {options && (
           <>
-            <h2 id={titleId} className={styles.title}>
-              {options.title}
-            </h2>
+            <DialogTitle id={titleId}>{options.title}</DialogTitle>
             {options.description && <p className={styles.description}>{options.description}</p>}
-            <div className={styles.actions}>
-              <button type="button" className={styles.cancel} onClick={() => settle(false)}>
+            <DialogActions>
+              <Button variant="ghost" onClick={() => settle(false)}>
                 {options.cancelLabel ?? t('common.cancel')}
-              </button>
-              <button
-                type="button"
-                className={styles.confirm}
-                data-tone={options.tone ?? 'default'}
+              </Button>
+              <Button
+                tone={options.tone}
                 // Confirm is the default keyboard action, like native dialogs
                 autoFocus
                 onClick={() => settle(true)}
               >
                 {options.confirmLabel ?? t('common.confirm')}
-              </button>
-            </div>
+              </Button>
+            </DialogActions>
           </>
         )}
       </Dialog>
-    </ConfirmContext.Provider>
+    </ConfirmContext>
   )
 }
 

@@ -9,5 +9,3 @@ export type CompositionPatch = Partial<Pick<Composition, 'title'>>
 export type CompositionCardData = Pick<Composition, 'id' | 'title' | 'updatedAt'> & {
   excerpt: string
 }
-
-export type DeleteCompositionResult = { status: 'deleted' | 'error' }

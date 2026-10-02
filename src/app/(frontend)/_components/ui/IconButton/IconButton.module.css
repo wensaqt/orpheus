@@ -1,0 +1,67 @@
+.button {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--control-size);
+  height: var(--control-size);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    color var(--duration),
+    background-color var(--duration);
+}
+
+.button:is(:hover, :focus-visible) {
+  background-color: var(--color-surface-accent);
+  color: var(--color-primary-hover);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Below the button, after a short delay so it does not flash while the mouse passes by */
+.tooltip {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 50%;
+  z-index: 2;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--color-surface-raised);
+  pointer-events: none;
+  opacity: 0;
+  translate: -50% calc(-1 * var(--space-1));
+  transition:
+    opacity var(--duration-fast),
+    translate var(--duration-fast);
+}
+
+.button:hover .tooltip,
+.button:focus-visible .tooltip {
+  opacity: 1;
+  translate: -50% 0;
+  transition-delay: var(--duration-slow);
+}
+
+/* Keyboard focus shows it at once: there is no mouse passing by */
+.button:focus-visible .tooltip {
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .tooltip {
+    transition: none;
+  }
+}

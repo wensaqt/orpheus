@@ -1,0 +1,39 @@
+.title {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: var(--color-primary-hover);
+  caret-color: var(--color-primary);
+}
+
+.title[data-size='xl'] {
+  font-size: var(--text-xl);
+}
+
+.title[data-size='lg'] {
+  font-size: var(--text-lg);
+}
+
+/* The short rule of the other headings, which runs the whole width while editing */
+.title[data-ruled='true'] {
+  padding-block-end: var(--space-2);
+  background: linear-gradient(var(--color-divider), var(--color-divider)) left bottom / 2rem 1.5px
+    no-repeat;
+  transition: background-size var(--duration-slow) var(--ease-out);
+}
+
+.title[data-ruled='true']:focus {
+  background-size: 100% 1.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title {
+    transition: none;
+  }
+}

@@ -1,0 +1,160 @@
+/* One line: fold arrow, icon, title, then the ⋯ menu; indented by its depth */
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-1) var(--space-1)
+    calc(var(--space-1) + var(--level) * var(--space-3));
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  transition: background-color var(--duration-fast);
+}
+
+.row:hover {
+  background-color: var(--color-sheet);
+}
+
+.row:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+/* The document open on the sheet */
+.row[aria-current='page'] {
+  background-color: var(--color-surface-accent);
+  color: var(--color-primary-hover);
+}
+
+.row[data-dragging='true'] {
+  opacity: 0.4;
+}
+
+/*
+ * Drop markers, one per DROP operation of rows.ts: a line before or after the row, or the whole
+ * folder lit up
+ */
+.row[data-drop='reorder-before']::before,
+.row[data-drop='reorder-after']::after {
+  content: '';
+  position: absolute;
+  inset-inline: calc(var(--level) * var(--space-3)) 0;
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--color-primary);
+}
+
+.row[data-drop='reorder-before']::before {
+  top: -1px;
+}
+
+.row[data-drop='reorder-after']::after {
+  bottom: -1px;
+}
+
+.row[data-drop='combine'] {
+  background-color: var(--color-surface-accent);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+/* The fold arrow, or the same room left empty for a document */
+.chevron {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--space-3);
+  height: var(--space-3);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: rotate var(--duration);
+}
+
+.chevron[data-open='true'] {
+  rotate: 90deg;
+}
+
+.icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  color: var(--color-primary);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rename {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid var(--color-primary);
+  outline: none;
+  background: none;
+  font: inherit;
+  color: var(--color-text);
+}
+
+/* The ⋯ menu shows on the hovered or focused line */
+.more {
+  flex-shrink: 0;
+  width: var(--control-size);
+  height: var(--control-size);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  line-height: 1;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast),
+    background-color var(--duration-fast);
+}
+
+.row:is(:hover, :focus-visible, :focus-within) .more,
+.more[aria-expanded='true'] {
+  opacity: 1;
+}
+
+.more:hover {
+  background-color: var(--color-surface-accent);
+  color: var(--color-primary-hover);
+}
+
+/* The browser's own ring otherwise shows when the menu hands the focus back */
+.more:focus {
+  outline: none;
+}
+
+.more:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+/* On touch devices there is no hover: always visible */
+@media (hover: none) {
+  .more {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .chevron,
+  .more {
+    transition: none;
+  }
+}

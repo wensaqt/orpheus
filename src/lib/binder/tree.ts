@@ -2,20 +2,36 @@
  * Pure functions on a binder's flat list of items (as stored: each item points to its parent).
  * The whole binder of a composition is loaded at once, so they work in memory.
  */
-import type { BinderItemKind } from './constants'
+import type { BinderItem } from '@/payload-types'
 
-export type BinderNodeData = {
-  id: number
-  kind: BinderItemKind
+import { relationId } from '../relationId'
+
+export type BinderNodeData = Pick<BinderItem, 'id' | 'kind' | 'position'> & {
   parent: number | null
-  position: number
 }
+
+// An item as Payload returns it (parent as an id or a populated item), reduced to its place
+export const toBinderNode = (item: Pick<BinderItem, 'id' | 'kind' | 'parent' | 'position'>) => ({
+  id: item.id,
+  kind: item.kind,
+  parent: relationId(item.parent),
+  position: item.position,
+})
 
 export type BinderTreeNode<Item extends BinderNodeData> = Item & {
   children: BinderTreeNode<Item>[]
 }
 
-const byPosition = (a: BinderNodeData, b: BinderNodeData) => a.position - b.position || a.id - b.id
+// Sibling order: by position, ties (e.g. after concurrent writes) broken by creation order
+export const byPosition = (a: BinderNodeData, b: BinderNodeData) =>
+  a.position - b.position || a.id - b.id
+
+// The items directly inside a folder (or at the root), in order, optionally leaving one out
+export const siblingsOf = <Item extends BinderNodeData>(
+  items: Item[],
+  parent: number | null,
+  excluding?: number,
+) => items.filter((item) => item.parent === parent && item.id !== excluding).sort(byPosition)
 
 /*
  * Nested tree, siblings in their order. An item whose parent is missing (e.g. a dangling
@@ -78,3 +94,51 @@ export function descendantIds(items: BinderNodeData[], id: number): number[] {
 // Whether moving the item under this parent would put it inside itself
 export const wouldCreateCycle = (items: BinderNodeData[], id: number, parent: number | null) =>
   parent !== null && (parent === id || descendantIds(items, id).includes(parent))
+
+export type BinderMove = { parent: number | null; index: number }
+export type BinderPlacement = { id: number; parent: number | null; position: number }
+
+export class InvalidBinderMove extends Error {
+  constructor(reason: string) {
+    super(reason)
+    this.name = 'InvalidBinderMove'
+  }
+}
+
+/*
+ * The writes needed to move an item to an index among the children of a folder (or the root),
+ * the index counting the destination's items without the moved one (so it can be past the end):
+ * the destination's items are renumbered 0..n with the item inserted, and the origin's closes
+ * its gap. Only items whose parent or position actually changes are returned.
+ */
+export function planMove(
+  items: BinderNodeData[],
+  id: number,
+  { parent, index }: BinderMove,
+): BinderPlacement[] {
+  const item = items.find((candidate) => candidate.id === id)
+  if (!item) throw new InvalidBinderMove('Unknown item')
+  if (!Number.isInteger(index)) throw new InvalidBinderMove('The index must be an integer')
+  if (parent !== null && items.find((candidate) => candidate.id === parent)?.kind !== 'folder') {
+    throw new InvalidBinderMove('Items can only go into a folder')
+  }
+  if (wouldCreateCycle(items, id, parent)) {
+    throw new InvalidBinderMove('A folder cannot go inside itself')
+  }
+
+  const destination = siblingsOf(items, parent, id)
+  const at = Math.min(Math.max(index, 0), destination.length)
+  destination.splice(at, 0, item)
+
+  const placements = destination.map((node, position) => ({ id: node.id, parent, position }))
+  if (item.parent !== parent) {
+    siblingsOf(items, item.parent, id).forEach((node, position) =>
+      placements.push({ id: node.id, parent: item.parent, position }),
+    )
+  }
+  const before = new Map(items.map((node) => [node.id, node]))
+  return placements.filter(({ id: placed, parent: to, position }) => {
+    const was = before.get(placed)!
+    return was.parent !== to || was.position !== position
+  })
+}

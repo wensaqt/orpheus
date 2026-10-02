@@ -1,7 +1,5 @@
 import 'server-only'
 
-import { toPageSettings } from '@/lib/pageFormats'
-
 import { firstDocuments } from '@front/_features/binder/queries'
 import { requireSession } from '@front/_lib/server/auth'
 
@@ -41,28 +39,4 @@ export async function listCompositionCards() {
     updatedAt: doc.updatedAt,
     excerpt: lexicalExcerpt(firsts.get(doc.id)?.content, EXCERPT_LENGTH),
   }))
-}
-
-// Composition to edit with its first document, or null if not found or owned by someone else
-export async function getCompositionForEditor(id: number) {
-  const session = await requireSession()
-  const composition = await session.payload
-    .findByID({
-      collection: 'compositions',
-      id,
-      user: session.user,
-      overrideAccess: false,
-      depth: 0,
-    })
-    .catch(() => null)
-  if (!composition) return null
-  const first = (await firstDocuments(session, [composition.id])).get(composition.id)
-
-  return {
-    id: composition.id,
-    title: composition.title,
-    page: toPageSettings(composition.page),
-    // Shape guaranteed on write by the field's jsonSchema
-    document: first ? { id: first.id, title: first.title, content: first.content ?? null } : null,
-  }
 }

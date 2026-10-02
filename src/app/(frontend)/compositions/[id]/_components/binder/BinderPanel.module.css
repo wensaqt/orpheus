@@ -1,0 +1,41 @@
+/* Stays visible while the sheet scrolls, like the synonyms panel opposite */
+.panel {
+  position: sticky;
+  top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: var(--binder-width);
+  max-height: calc(100dvh - 2 * var(--space-6));
+}
+
+.error {
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+}
+
+/* Add buttons on the left, the fold button pushed to the right */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-block-start: calc(-1 * var(--space-2));
+}
+
+/* The binder's chevron, pointing back to the edge it folds to */
+.hide {
+  margin-inline-start: auto;
+}
+
+.hide > svg {
+  rotate: 180deg;
+}
+
+/* Small screens (see EditorShell): the binder spans the width above the sheet */
+@media (max-width: 78rem) {
+  .panel {
+    position: static;
+    width: 100%;
+    max-height: none;
+  }
+}

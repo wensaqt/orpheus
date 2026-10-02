@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useId, useRef, useState } from 'react'
+import React, { type Ref, useId, useImperativeHandle, useRef, useState } from 'react'
 
 import styles from './Menu.module.css'
 
@@ -20,13 +20,21 @@ export type MenuItem = {
   lang?: string
 }
 
+// Opens the menu from elsewhere, e.g. a keyboard shortcut on the element it belongs to
+export type MenuHandle = { open: () => void }
+
 type MenuProps = {
+  ref?: Ref<MenuHandle>
+  // Called once the menu has closed, whatever closed it
+  onClose?: () => void
   // Accessible name of the trigger button
   label: string
   // Non-interactive content above the items, e.g. who is signed in
   header?: React.ReactNode
   items: MenuItem[]
   triggerClassName?: string
+  // -1 when the trigger sits inside an element that takes the focus itself (a tree row)
+  triggerTabIndex?: number
   children: React.ReactNode
 }
 
@@ -37,7 +45,16 @@ const OFFSET = 4
  * Floating menu built on the native Popover API: top layer, light dismiss and Escape are
  * provided by the browser. We add placement below the trigger and arrow-key navigation.
  */
-export function Menu({ label, header, items, triggerClassName, children }: MenuProps) {
+export function Menu({
+  ref,
+  onClose,
+  label,
+  header,
+  items,
+  triggerClassName,
+  triggerTabIndex,
+  children,
+}: MenuProps) {
   const id = useId()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -61,6 +78,8 @@ export function Menu({ label, header, items, triggerClassName, children }: MenuP
 
   const hide = () => menuRef.current?.hidePopover()
 
+  useImperativeHandle(ref, () => ({ open: () => menuRef.current?.showPopover() }), [])
+
   function handleToggle(e: React.ToggleEvent<HTMLDivElement>) {
     const isOpen = e.newState === 'open'
     setOpen(isOpen)
@@ -70,6 +89,7 @@ export function Menu({ label, header, items, triggerClassName, children }: MenuP
       window.addEventListener('scroll', hide, { capture: true, once: true, passive: true })
     } else {
       window.removeEventListener('scroll', hide, { capture: true })
+      onClose?.()
     }
   }
 
@@ -94,6 +114,7 @@ export function Menu({ label, header, items, triggerClassName, children }: MenuP
         ref={triggerRef}
         type="button"
         className={triggerClassName}
+        tabIndex={triggerTabIndex}
         popoverTarget={id}
         aria-haspopup="menu"
         aria-expanded={open}

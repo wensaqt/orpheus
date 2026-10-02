@@ -1,4 +1,4 @@
-import { type Payload, ValidationError } from 'payload'
+import { type Payload, type RequiredDataFromCollectionSlug, ValidationError } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { BinderItem, Composition, User } from '@/payload-types'
@@ -36,7 +36,8 @@ const add = (
       kind: 'document',
       title: 'Chant',
       ...data,
-    } as never,
+      // Owner and position are filled in by the collection, which the types cannot know
+    } as RequiredDataFromCollectionSlug<'binder-items'>,
     ...as(user),
   })
 
@@ -164,6 +165,29 @@ describe('binder items', () => {
         ...as(alice),
       })
       expect(moved).toMatchObject({ parent: folder.id, position: 1 })
+    })
+
+    it('keeps the positions of a planned move', async () => {
+      const composition = await newComposition(alice)
+      const folder = await add(alice, composition, { kind: 'folder' })
+      const inside = await add(alice, composition, { parent: folder.id })
+      const loose = await add(alice, composition)
+      // Like moveBinderItem: the loose document goes first in the folder, the other one second
+      const update = (id: number, parent: number, position: number) =>
+        payload.update({
+          collection: 'binder-items',
+          id,
+          data: { parent, position },
+          context: { keepPosition: true },
+          ...as(alice),
+        })
+      await update(loose.id, folder.id, 0)
+      await update(inside.id, folder.id, 1)
+      const placed = (await itemsOf(composition)).filter((item) => item.parent === folder.id)
+      expect(placed.map((item) => [item.id, item.position])).toEqual([
+        [loose.id, 0],
+        [inside.id, 1],
+      ])
     })
 
     it('deletes everything inside a folder, at any depth, and nothing else', async () => {

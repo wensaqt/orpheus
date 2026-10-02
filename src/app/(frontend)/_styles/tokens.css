@@ -54,6 +54,17 @@
   --space-5: 2rem;
   --space-6: 3rem;
 
+  /* Motion: quick feedback, standard transitions, slower reveals */
+  --duration-fast: 0.15s;
+  --duration: 0.2s;
+  --duration-slow: 0.4s;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Sizes of the editor's controls and side panels */
+  --control-size: 1.75rem;
+  --binder-width: 15rem;
+  --side-panel-width: 17rem;
+
   /* Radii */
   --radius-sm: 4px;
   --radius-md: 8px;

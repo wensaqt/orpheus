@@ -6,6 +6,9 @@ import {
   descendantIds,
   firstDocument,
   inReadingOrder,
+  InvalidBinderMove,
+  planMove,
+  toBinderNode,
   wouldCreateCycle,
 } from '@/lib/binder/tree'
 
@@ -66,5 +69,67 @@ describe('binder tree', () => {
       { id: 2, kind: 'folder', parent: 1, position: 0 },
     ]
     expect(descendantIds(looped, 1).sort()).toEqual([2])
+  })
+})
+
+describe('planMove', () => {
+  const placementsOf = (moves: ReturnType<typeof planMove>) =>
+    Object.fromEntries(moves.map(({ id, parent, position }) => [id, [parent, position]]))
+
+  it('reorders among siblings, renumbering only what changes', () => {
+    // Chant II (4) before Notes (3) inside Part I (1)
+    expect(placementsOf(planMove(items, 4, { parent: 1, index: 0 }))).toEqual({
+      4: [1, 0],
+      3: [1, 1],
+    })
+  })
+
+  it('moves into another folder and closes the gap left behind', () => {
+    // Chant I (2) leaves the root for the end of Part I (1)
+    expect(placementsOf(planMove(items, 2, { parent: 1, index: 99 }))).toEqual({
+      2: [1, 2],
+      1: [null, 0],
+    })
+  })
+
+  it('moves a folder with its contents, which keep their place inside it', () => {
+    expect(placementsOf(planMove(items, 3, { parent: null, index: 0 }))).toEqual({
+      3: [null, 0],
+      2: [null, 1],
+      1: [null, 2],
+      4: [1, 0],
+    })
+  })
+
+  it('returns nothing when the item stays where it is', () => {
+    expect(planMove(items, 2, { parent: null, index: 0 })).toEqual([])
+  })
+
+  it('counts the index without the moved item when it moves down among its siblings', () => {
+    // Notes (3) then Chant II (4) inside Part I: index 1 puts Notes after Chant II
+    expect(placementsOf(planMove(items, 3, { parent: 1, index: 1 }))).toEqual({
+      4: [1, 0],
+      3: [1, 1],
+    })
+  })
+
+  it('refuses an index that is not an integer', () => {
+    expect(() => planMove(items, 4, { parent: 1, index: Number.NaN })).toThrow(InvalidBinderMove)
+    expect(() => planMove(items, 4, { parent: 1, index: 0.5 })).toThrow(InvalidBinderMove)
+  })
+
+  it('refuses a document as destination, or a folder inside itself', () => {
+    expect(() => planMove(items, 4, { parent: 2, index: 0 })).toThrow(InvalidBinderMove)
+    expect(() => planMove(items, 1, { parent: 3, index: 0 })).toThrow(InvalidBinderMove)
+    expect(() => planMove(items, 99, { parent: null, index: 0 })).toThrow(InvalidBinderMove)
+  })
+})
+
+describe('toBinderNode', () => {
+  it('keeps the place of an item, its parent as an id whether populated or not', () => {
+    const node = { id: 3, kind: 'document', position: 2 } as const
+    expect(toBinderNode({ ...node, parent: 7 })).toEqual({ ...node, parent: 7 })
+    expect(toBinderNode({ ...node, parent: null })).toEqual({ ...node, parent: null })
+    expect(toBinderNode({ ...node, parent: undefined })).toEqual({ ...node, parent: null })
   })
 })

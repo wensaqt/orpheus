@@ -119,12 +119,51 @@ export const fr: Messages = {
     },
   },
   binder: {
+    label: 'Chutier',
+    toolbar: 'Actions du chutier',
+    treeLabel: 'Documents et dossiers',
     untitledDocument: 'Document sans titre',
+    untitledFolder: 'Nouveau dossier',
     empty: 'Cette composition n’a pas encore de document.',
+    newDocument: 'Nouveau document',
+    newFolder: 'Nouveau dossier',
+    hide: 'Masquer le chutier',
+    show: 'Afficher le chutier',
+    renameLabel: 'Nouveau titre pour « {title} »',
+    error: 'Impossible de modifier le chutier. Veuillez réessayer.',
+    saveFirst:
+      'Vos modifications n’ont pas pu être enregistrées. Vérifiez votre connexion, puis réessayez.',
+    actions: {
+      open: 'Actions pour {title}',
+      newDocumentInside: 'Nouveau document dedans',
+      newFolderInside: 'Nouveau dossier dedans',
+      rename: 'Renommer',
+      moveUp: 'Monter',
+      moveDown: 'Descendre',
+      moveTo: 'Déplacer vers…',
+      delete: 'Supprimer',
+    },
+    move: {
+      title: 'Déplacer « {title} » vers…',
+      root: 'Racine du chutier',
+      confirm: 'Déplacer ici',
+    },
+    delete: {
+      title: 'Supprimer « {title} » ?',
+      document: 'Ce document sera supprimé. Cette action est irréversible.',
+      folderEmpty: 'Ce dossier vide sera supprimé.',
+      folderOne:
+        'Ce dossier et l’élément qu’il contient seront supprimés. Cette action est irréversible.',
+      folderMany:
+        'Ce dossier et les {count} éléments qu’il contient seront supprimés. Cette action est irréversible.',
+      confirm: 'Supprimer',
+      done: '« {title} » supprimé',
+    },
   },
   editor: {
     titleLabel: 'Titre de la composition',
+    documentTitleLabel: 'Titre du document',
     placeholder: 'Commencez à écrire…',
-    saveError: 'Échec de l’enregistrement — nouvel essai à la prochaine modification',
+    saveError: 'Échec de l’enregistrement — nouvel essai…',
   },
 }
