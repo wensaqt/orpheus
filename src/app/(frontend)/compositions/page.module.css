@@ -1,11 +1,17 @@
 /* Pearl, like the editor and the home buttons on hover */
 .page {
+  display: flex;
+  flex-direction: column;
   flex-grow: 1;
   padding: var(--space-6) var(--space-5);
   background-color: var(--color-surface-raised);
 }
 
+/* Fills the page's height, so the empty state can sit in the space left under the title */
 .inner {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
   width: min(100%, 64rem);
   margin-inline: auto;
 }
