@@ -15,6 +15,7 @@ import {
   LINE_END,
   LINE_START,
   openDocument,
+  pdfPageCount,
   readLayout,
   selectionRead,
   settle,
@@ -25,16 +26,7 @@ import {
 
 test.describe('Pagination', () => {
   test('an empty document is one page of its format', async ({ page, account }) => {
-    await openDocument(page, account, {
-      root: {
-        type: 'root',
-        version: 1,
-        children: [paragraphNode('')],
-        direction: null,
-        format: '',
-        indent: 0,
-      },
-    })
+    await openDocument(page, account, documentOf([paragraphNode('')]))
     const layout = await readLayout(page)
     expect([layout.pages, layout.sheets]).toEqual([1, 1])
     const sheet = (await page.locator(sheetSelector).first().boundingBox())!
@@ -89,7 +81,7 @@ test.describe('Pagination', () => {
     account,
   }) => {
     await openDocument(page, account, prose(30))
-    const last = (await lastLineOf(page, 1))!
+    const last = await lastLineOf(page, 1)
     await page.mouse.click(last.x, last.y)
     const onPage1 = await caretTop(page)
     expect(onPage1).toBeLessThan(last.pageBottomInPages)
@@ -115,7 +107,7 @@ test.describe('Pagination', () => {
     await openDocument(page, account, prose(30))
     const textBefore = await page.locator(editable).textContent()
     const pagesBefore = (await readLayout(page)).pages
-    const last = (await lastLineOf(page, 1))!
+    const last = await lastLineOf(page, 1)
     await page.mouse.click(last.x, last.y)
     // Select from the end of page 1 into page 2, and delete it
     await page.keyboard.down('Shift')
@@ -163,7 +155,7 @@ test.describe('Pagination', () => {
     account,
   }) => {
     await openDocument(page, account, prose(30))
-    const last = (await lastLineOf(page, 1))!
+    const last = await lastLineOf(page, 1)
     // Between the bottom of page 1 and the top of page 2
     await page.mouse.click(last.x, last.pageBottom + 8)
     const length = (await page.locator(editable).textContent())!.length
@@ -284,6 +276,11 @@ test.describe('Pagination', () => {
     expect((await readLayout(page)).pages).toBe(3)
     expect(await sheetOf(page, 'Première page.')).toBe(1)
     expect(await sheetOf(page, 'Troisième page.')).toBe(3)
+
+    // A click on the blank page goes back to the text before both breaks
+    await page.locator(sheetSelector).nth(1).click({ force: true })
+    await page.keyboard.insertText('!')
+    await expect(page.getByText('Première page.!')).toBeVisible()
   })
 
   test('Backspace after a page break removes it; undoing puts it back', async ({
@@ -359,9 +356,7 @@ test.describe('Printing', () => {
     expect(print.linesPerPage).toEqual(screen.linesPerPage)
     expect(print.outside).toEqual([])
 
-    const pdf = (await page.pdf({ preferCSSPageSize: true })).toString('latin1')
-    const pdfPages = pdf.match(/\/Type\s*\/Page(?!s)/g)?.length
-    expect(pdfPages).toBe(screen.pages)
+    expect(await pdfPageCount(page)).toBe(screen.pages)
   })
 
   test('prints manual page breaks as new pages, and nothing more', async ({ page, account }) => {
@@ -379,7 +374,6 @@ test.describe('Printing', () => {
     const screen = await readLayout(page)
     expect(await sheetOf(page, 'Après le second saut.')).toBe(screen.pages)
     // Straight to paper, as the browser's print does: no screen emulation first
-    const pdf = (await page.pdf({ preferCSSPageSize: true })).toString('latin1')
-    expect(pdf.match(/\/Type\s*\/Page(?!s)/g)?.length).toBe(screen.pages)
+    expect(await pdfPageCount(page)).toBe(screen.pages)
   })
 })

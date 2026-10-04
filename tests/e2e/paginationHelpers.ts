@@ -3,51 +3,52 @@ import type { Page } from '@playwright/test'
 import { DEFAULT_PAGE, toPageSettings } from '@/lib/pageFormats'
 import type { Composition } from '@/payload-types'
 
+import {
+  PAGE_SHEET_ATTRIBUTE,
+  PAGES_ATTRIBUTE,
+} from '@front/_components/editor/pagination/pageAttributes'
 import { type PageGeometry, toGeometry } from '@front/_components/editor/pagination/pageGeometry'
 
+import type { DocumentContent } from '../helpers/lexicalContent'
+import {
+  classifyLines,
+  type Layout,
+  lastLineOn,
+  type Screen,
+  sheetIndexAt,
+} from '../helpers/pageLayout'
 import { type Account, expect } from './fixtures'
 
 // Helpers for the pagination tests: open a document, wait for its layout, read what is on screen
 
 export const editable = '[contenteditable="true"]'
-// To the end of the text, and to the start of a line: macOS has its own shortcuts
+const pagesSelector = `[${PAGES_ATTRIBUTE}]`
+// The sheets drawn behind the text, in order
+export const sheetSelector = `[${PAGE_SHEET_ATTRIBUTE}]`
+const selectors = {
+  editable,
+  pages: pagesSelector,
+  pagesAttribute: PAGES_ATTRIBUTE,
+  sheets: sheetSelector,
+}
+
+// To the end of the text, and to the start or end of a line: macOS has its own shortcuts
 export const END_OF_TEXT = process.platform === 'darwin' ? 'Meta+ArrowDown' : 'Control+End'
 export const LINE_START = process.platform === 'darwin' ? 'Meta+ArrowLeft' : 'Home'
 export const LINE_END = process.platform === 'darwin' ? 'Meta+ArrowRight' : 'End'
-// The sheets drawn behind the text, in order
-export const sheetSelector = '[data-pages] > div[aria-hidden] > div'
+
+// The default page (A4 portrait, default margins), in CSS pixels
+export const A4 = toGeometry(toPageSettings(DEFAULT_PAGE))
 
 // The editor reads a moved selection a frame later: a hand is never faster than that
 export const selectionRead = (page: Page) =>
   page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
 
-// The sheet (1-based) a text is on
-export const sheetOf = (page: Page, text: string) =>
-  page.evaluate(
-    ({ text, sheetSelector }) => {
-      const element = [...document.querySelectorAll('[contenteditable="true"] *')].find(
-        (candidate) => candidate.childElementCount === 0 && candidate.textContent === text,
-      )!
-      const top = element.getBoundingClientRect().top
-      const sheets = [...document.querySelectorAll(sheetSelector)]
-      return (
-        1 +
-        sheets.findIndex((sheet) => {
-          const bounds = sheet.getBoundingClientRect()
-          return top >= bounds.top && top < bounds.bottom
-        })
-      )
-    },
-    { text, sheetSelector },
-  )
-// The default page (A4 portrait, default margins), in CSS pixels
-export const A4 = toGeometry(toPageSettings(DEFAULT_PAGE))
-
 // A composition whose first document holds this content, opened in the editor
 export async function openDocument(
   page: Page,
   account: Account,
-  content: object,
+  content: DocumentContent,
   pageSettings?: Partial<Composition['page']>,
 ) {
   const as = { user: account.user, overrideAccess: false, depth: 0 } as const
@@ -68,12 +69,24 @@ export async function openDocument(
   await account.payload.update({
     collection: 'binder-items',
     id: docs[0].id,
-    data: { content: content as never },
+    data: { content },
     ...as,
   })
   await page.goto(`/compositions/${composition.id}/${docs[0].id}`)
   await waitForEditor(page)
   return { composition, document: docs[0] }
+}
+
+// The editor of a page just loaded or reloaded, once its pages are laid out
+export async function waitForEditor(page: Page) {
+  /*
+   * Lexical marks its root once it runs in the page: before that (scripts still loading), the
+   * server's markup shows, with no layout yet, and would look settled
+   */
+  await expect(page.locator(`${editable}[data-lexical-editor="true"]`)).toBeVisible({
+    timeout: 20_000,
+  })
+  await settle(page)
 }
 
 /*
@@ -103,68 +116,89 @@ export async function settle(page: Page) {
     .toBe(true)
 }
 
-export type Layout = { pages: number; sheets: number; outside: string[]; linesPerPage: number[] }
+// Everything the layout tests judge, measured in one pass: sheets, and every line of text
+const readScreen = (page: Page): Promise<Screen> =>
+  page.evaluate(({ editable, pages, pagesAttribute, sheets }) => {
+    // No named functions in here: the test runner's transpiler would wrap them with a helper
+    // the browser does not have. Plain rectangles come from DOMRect's own toJSON
+    const root = document.querySelector<HTMLElement>(pages)!
+    const editor = document.querySelector(editable)!
+    const lines: Screen['lines'] = []
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT)
+    const range = document.createRange()
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const text = node.textContent ?? ''
+      if (!text.trim()) continue
+      range.selectNodeContents(node)
+      for (const rect of range.getClientRects())
+        lines.push({ text, box: rect.toJSON(), empty: false })
+    }
+    // An empty block holds only a line break
+    for (const br of editor.querySelectorAll('br')) {
+      if (br.parentElement?.childNodes.length === 1)
+        lines.push({ text: '', box: br.getBoundingClientRect().toJSON(), empty: true })
+    }
+    return {
+      pages: Number(root.getAttribute(pagesAttribute)),
+      pagesTop: root.getBoundingClientRect().top,
+      sheets: [...document.querySelectorAll(sheets)].map((sheet) =>
+        sheet.getBoundingClientRect().toJSON(),
+      ),
+      textLeft: editor.getBoundingClientRect().left,
+      lines,
+    }
+  }, selectors)
 
 /*
- * What the reader sees: the sheets drawn, and every line of text with the sheet it sits on.
- * A line is "outside" when it is not fully within its sheet's text area (between the top and
- * bottom margins): exactly what pagination must never let happen.
+ * The pages and every line of text with the sheet it sits on; `outside` lists the lines that
+ * are not within a text area (see classifyLines)
  */
-export async function readLayout(
+export const readLayout = async (
   page: Page,
   margins: Pick<PageGeometry, 'top' | 'bottom'> = A4,
-): Promise<Layout> {
-  return page.evaluate(
-    ({ margins: { top, bottom }, sheetSelector }) => {
-      /*
-       * A text rectangle spans the font's height, which engines place a pixel or two apart
-       * within the line box (more for a large heading): a real overflow is a line's height
-       */
-      const TOLERANCE = 4
-      const root = document.querySelector<HTMLElement>('[data-pages]')!
-      const sheets = [...document.querySelectorAll<HTMLElement>(sheetSelector)].map((sheet) =>
-        sheet.getBoundingClientRect(),
-      )
-      const editor = document.querySelector('[contenteditable="true"]')!
-      const left = editor.getBoundingClientRect().left
-      // Every line of text, and every empty line (a block holding only a line break)
-      const lines: { label: string; rect: DOMRect; empty: boolean }[] = []
-      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT)
-      const range = document.createRange()
-      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-        if (!node.textContent?.trim()) continue
-        range.selectNodeContents(node)
-        for (const rect of range.getClientRects())
-          lines.push({ label: node.textContent.slice(0, 30), rect, empty: false })
-      }
-      for (const br of editor.querySelectorAll('br')) {
-        if (br.parentElement?.childNodes.length === 1)
-          lines.push({ label: '(empty line)', rect: br.getBoundingClientRect(), empty: true })
-      }
-      const outside: string[] = []
-      const linesPerPage = sheets.map(() => 0)
-      for (const { label, rect: line, empty } of lines) {
-        if (line.height === 0) continue
-        const index = sheets.findIndex(
-          (sheet) => line.top >= sheet.top - 1 && line.top < sheet.bottom,
+): Promise<Layout> => classifyLines(await readScreen(page), margins)
+
+// The sheet (1-based) a text is on
+export async function sheetOf(page: Page, text: string) {
+  const { sheets, lines } = await readScreen(page)
+  const line = lines.find((candidate) => candidate.text === text)
+  if (!line) throw new Error(`No line of text reads “${text}”`)
+  return 1 + sheetIndexAt(sheets, line.box.top)
+}
+
+/*
+ * The middle of the last line of page n (1-based), in viewport coordinates, scrolled so the
+ * end of that page and the gap below it are on screen
+ */
+export async function lastLineOf(page: Page, n: number) {
+  await page.evaluate(
+    ({ n, sheets }) => {
+      const sheet = document.querySelectorAll(sheets)[n - 1]
+      sheet.scrollIntoView({ block: 'end' })
+      // Then a third of a screen further, through whatever scrolls the pages
+      let scroller = sheet.parentElement
+      while (
+        scroller &&
+        !(
+          scroller.scrollHeight > scroller.clientHeight + 1 &&
+          /auto|scroll/.test(getComputedStyle(scroller).overflowY)
         )
-        const sheet = sheets[index]
-        if (
-          !sheet ||
-          line.top < sheet.top + top - TOLERANCE ||
-          line.bottom > sheet.bottom - bottom + TOLERANCE ||
-          // An empty line starts where the text does, not squeezed beside a band
-          (empty && line.left > left + TOLERANCE)
-        ) {
-          outside.push(`${label}… at ${Math.round(line.top - (sheet?.top ?? 0))}px`)
-        } else {
-          linesPerPage[index]++
-        }
-      }
-      return { pages: Number(root.dataset.pages), sheets: sheets.length, outside, linesPerPage }
+      )
+        scroller = scroller.parentElement
+      ;(scroller ?? document.scrollingElement)?.scrollBy(0, window.innerHeight / 3)
     },
-    { margins: { top: margins.top, bottom: margins.bottom }, sheetSelector },
+    { n, ...selectors },
   )
+  const screen = await readScreen(page)
+  const last = lastLineOn(screen, n)
+  if (!last) throw new Error(`No line of text on page ${n}`)
+  const sheet = screen.sheets[n - 1]
+  return {
+    x: last.box.left + Math.min(40, last.box.width / 2),
+    y: last.box.top + last.box.height / 2,
+    pageBottom: sheet.bottom,
+    pageBottomInPages: sheet.bottom - screen.pagesTop,
+  }
 }
 
 /*
@@ -173,8 +207,8 @@ export async function readLayout(
  * inserting a probe would change the editor's text.
  */
 export const caretTop = (page: Page) =>
-  page.evaluate(() => {
-    const origin = document.querySelector('[data-pages]')!.getBoundingClientRect().top
+  page.evaluate((pages) => {
+    const origin = document.querySelector(pages)!.getBoundingClientRect().top
     const range = window.getSelection()!.getRangeAt(0).cloneRange()
     const direct = range.getClientRects()[0]
     if (direct && direct.height > 0) return direct.top - origin
@@ -184,58 +218,10 @@ export const caretTop = (page: Page) =>
     if (offset < length) range.setEnd(node, offset + 1)
     else if (offset > 0) range.setStart(node, offset - 1)
     return range.getBoundingClientRect().top - origin
-  })
+  }, pagesSelector)
 
-/*
- * The middle of the last line of page n (1-based), in viewport coordinates, scrolled so the
- * end of that page and the gap below it are on screen
- */
-export const lastLineOf = (page: Page, n: number) =>
-  page.evaluate(
-    ({ n, sheetSelector }) => {
-      const root = document.querySelector<HTMLElement>('[data-pages]')!
-      const sheet = document.querySelectorAll<HTMLElement>(sheetSelector)[n - 1]
-      sheet.scrollIntoView({ block: 'end' })
-      let scroller: Element | null = root.parentElement
-      while (
-        scroller &&
-        !(
-          scroller.scrollHeight > scroller.clientHeight + 1 &&
-          /auto|scroll/.test(getComputedStyle(scroller).overflowY)
-        )
-      )
-        scroller = scroller.parentElement
-      ;(scroller ?? document.scrollingElement!).scrollBy(0, window.innerHeight / 3)
-      const bounds = sheet.getBoundingClientRect()
-      const editor = document.querySelector('[contenteditable="true"]')!
-      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT)
-      let last: DOMRect | null = null
-      const range = document.createRange()
-      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-        range.selectNodeContents(node)
-        for (const line of range.getClientRects()) {
-          if (
-            line.top >= bounds.top &&
-            line.bottom <= bounds.bottom &&
-            (!last || line.top > last.top)
-          )
-            last = line
-        }
-      }
-      return (
-        last && {
-          x: last.left + Math.min(40, last.width / 2),
-          y: last.top + last.height / 2,
-          pageBottom: bounds.bottom,
-          pageBottomInPages: bounds.bottom - root.getBoundingClientRect().top,
-        }
-      )
-    },
-    { n, sheetSelector },
-  )
-
-// The editor of a page just loaded or reloaded, once its pages are laid out
-export async function waitForEditor(page: Page) {
-  await expect(page.locator(editable)).toBeVisible({ timeout: 20_000 })
-  await settle(page)
+// The pages of the page printed to PDF (Chromium only)
+export async function pdfPageCount(page: Page) {
+  const pdf = (await page.pdf({ preferCSSPageSize: true })).toString('latin1')
+  return pdf.match(/\/Type\s*\/Page(?!s)/g)?.length ?? 0
 }

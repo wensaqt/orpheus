@@ -4,6 +4,7 @@ import {
   DecoratorNode,
   type DOMExportOutput,
   type EditorConfig,
+  type SerializedLexicalNode,
 } from 'lexical'
 
 // The node's type in saved documents
@@ -27,8 +28,8 @@ export class PageBreakNode extends DecoratorNode<null> {
     return new PageBreakNode(node.__key)
   }
 
-  static importJSON(): PageBreakNode {
-    return $createPageBreakNode()
+  static importJSON(serialized: SerializedLexicalNode): PageBreakNode {
+    return $createPageBreakNode().updateFromJSON(serialized)
   }
 
   createDOM(config: EditorConfig): HTMLElement {
