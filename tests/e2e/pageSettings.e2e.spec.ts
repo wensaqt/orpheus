@@ -105,7 +105,10 @@ test.describe('Editor header', () => {
     await expect(page.getByRole('group', { name: 'Ruler' })).toHaveCount(0)
 
     // A new document takes its place in the header
-    await page.getByRole('button', { name: 'New document' }).click()
+    await page
+      .getByRole('navigation', { name: 'Binder' })
+      .getByRole('button', { name: 'New document' })
+      .click()
     await expect(page.getByLabel('Document title')).toBeVisible()
     await expect(page.locator('header').getByText('›')).toBeVisible()
   })
