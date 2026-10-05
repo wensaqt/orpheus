@@ -94,6 +94,8 @@
   --layer-ruler: 1;
   /* The editor's sticky header, over the ruler: its tooltips show over it */
   --layer-header: 2;
+  /* A side panel opened over the page, for want of room beside it (the synonyms) */
+  --layer-drawer: 2;
   /* The logo and the corner actions, fixed over the header, which leaves them room */
   --layer-corner: 3;
   /* The opening desk, standing in for the whole editor while it loads, corners included */

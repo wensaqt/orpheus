@@ -28,7 +28,7 @@ describe('SynonymsPanel', () => {
     findSynonyms.mockReset().mockResolvedValue(found)
     render(
       <ToastProvider>
-        <SynonymsPanel />
+        <SynonymsPanel onHide={() => {}} />
       </ToastProvider>,
     )
   })

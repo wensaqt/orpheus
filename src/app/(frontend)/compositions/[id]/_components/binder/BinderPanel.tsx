@@ -4,7 +4,7 @@ import { useT } from '@front/_components/i18n/I18nProvider'
 import { IconButton } from '@front/_components/ui/IconButton/IconButton'
 
 import styles from './BinderPanel.module.css'
-import { ChevronIcon, NewDocumentIcon, NewFolderIcon } from './icons'
+import { ChevronIcon, NewDocumentIcon, NewFolderIcon } from '../icons'
 import { useBinder } from './state/BinderProvider'
 import { BinderTree } from './tree/BinderTree'
 

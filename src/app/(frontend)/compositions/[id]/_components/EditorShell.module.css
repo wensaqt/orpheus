@@ -37,7 +37,31 @@
   align-self: stretch;
 }
 
-/* The hidden binder leaves a small button to bring it back */
+/* As wide as the open synonyms panel, unseen: to measure whether it fits beside the sheet */
+.panelProbe {
+  position: absolute;
+  width: var(--side-panel-width);
+  height: 0;
+  visibility: hidden;
+}
+
+/*
+ * Opened over the page, for want of room beside it: against the right edge, under the
+ * header, on a sheet of its own
+ */
+.synonyms[data-over='true'] {
+  position: fixed;
+  top: calc(var(--editor-header-height) + var(--space-4));
+  right: var(--space-3);
+  z-index: var(--layer-drawer);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  box-shadow: var(--shadow-sheet);
+}
+
+/* The folded panels leave a small button to bring them back */
 .show {
   position: sticky;
   /* Below the editor's header, which stays on top */
@@ -72,9 +96,19 @@
   }
 
   .binder,
-  .column,
-  .aside {
+  .column {
     grid-column: 1;
+  }
+
+  /*
+   * No room beside the sheet: the synonyms' button stays in reach, in the bottom right corner
+   * (the binder, above the sheet, has its own buttons on the right)
+   */
+  .aside {
+    position: fixed;
+    right: var(--space-3);
+    bottom: var(--space-4);
+    z-index: var(--layer-drawer);
   }
 
   .binder {

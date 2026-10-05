@@ -5,6 +5,7 @@ import type { Id } from '@/lib/ids'
  * (no jump after loading). Set from the browser; read by layouts with cookies().
  */
 export const BINDER_HIDDEN_COOKIE = 'orpheus-binder-hidden'
+export const SYNONYMS_HIDDEN_COOKIE = 'orpheus-synonyms-hidden'
 
 const ONE_YEAR = 60 * 60 * 24 * 365
 

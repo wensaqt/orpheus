@@ -96,6 +96,8 @@ export const en = {
   },
   synonyms: {
     title: 'Synonyms',
+    hide: 'Hide synonyms',
+    show: 'Show synonyms',
     searchLabel: 'Find synonyms',
     placeholder: 'Type a word…',
     hint: 'Type a word to see its synonyms. Click one to copy it.',

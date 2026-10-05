@@ -98,6 +98,8 @@ export const fr: Messages = {
   },
   synonyms: {
     title: 'Synonymes',
+    hide: 'Masquer les synonymes',
+    show: 'Afficher les synonymes',
     searchLabel: 'Chercher des synonymes',
     placeholder: 'Tapez un mot…',
     hint: 'Tapez un mot pour voir ses synonymes. Cliquez sur l’un d’eux pour le copier.',

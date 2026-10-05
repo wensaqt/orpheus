@@ -9,7 +9,7 @@ import type { MenuHandle } from '@front/_components/ui/Menu/Menu'
 import { prefetchDocument } from '@front/_features/binder/documentStore'
 
 import { useRowDragAndDrop } from '../dnd/useRowDragAndDrop'
-import { ChevronIcon, DocumentIcon, FolderIcon } from '../icons'
+import { ChevronIcon, DocumentIcon, FolderIcon } from '../../icons'
 import type { BinderRow as Row } from '../rows'
 import { useBinder } from '../state/BinderProvider'
 import styles from './BinderRow.module.css'

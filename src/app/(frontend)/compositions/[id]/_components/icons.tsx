@@ -1,4 +1,4 @@
-// Line icons drawn with the stroke of the lyre (currentColor), decorative only
+// The editor's line icons, drawn with the stroke of the lyre (currentColor), decorative only
 
 const common = {
   viewBox: '0 0 16 16',
@@ -54,5 +54,13 @@ export const NewFolderIcon = () => (
   <svg {...common}>
     <path d="M8.5 12.75H1.75v-9h4l1.5 1.5h7v3" />
     <path d="M12.5 10.5v4M10.5 12.5h4" />
+  </svg>
+)
+
+// Two words facing each other: the synonyms, shown or hidden
+export const SynonymsIcon = () => (
+  <svg {...common}>
+    <path d="M2 4.5h6M2 7.5h4M8 11.5h6M10 8.5h4" />
+    <path d="M11 2.5l2 2-2 2M5 9.5l-2 2 2 2" />
   </svg>
 )

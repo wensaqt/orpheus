@@ -9,7 +9,7 @@ import { Button } from '@front/_components/ui/Button/Button'
 import { Dialog, DialogActions, DialogTitle } from '@front/_components/ui/Dialog/Dialog'
 import type { BinderEntry } from '@front/_features/binder/types'
 
-import { FolderIcon } from './icons'
+import { FolderIcon } from '../icons'
 import styles from './MoveDialog.module.css'
 import { intoFolder, moveDestinations } from './rows'
 import { useBinder } from './state/BinderProvider'

@@ -4,7 +4,11 @@ import { notFound } from 'next/navigation'
 import { toLayout } from '@/lib/layout'
 
 import { getBinder } from '@front/_features/binder/queries'
-import { BINDER_HIDDEN_COOKIE, isPreferenceOn } from '@front/_lib/preferences'
+import {
+  BINDER_HIDDEN_COOKIE,
+  isPreferenceOn,
+  SYNONYMS_HIDDEN_COOKIE,
+} from '@front/_lib/preferences'
 import { parseId } from '@front/_lib/validation'
 
 import { EditorShell } from './_components/EditorShell'
@@ -28,6 +32,7 @@ export default async function CompositionLayout({
    */
   const binder = await getBinder(compositionId)
   if (!binder) return children
+  const cookieStore = await cookies()
 
   return (
     <EditorShell
@@ -35,7 +40,8 @@ export default async function CompositionLayout({
       title={binder.composition.title}
       layout={toLayout(binder.composition)}
       entries={binder.entries}
-      binderHidden={isPreferenceOn((await cookies()).get(BINDER_HIDDEN_COOKIE)?.value)}
+      binderHidden={isPreferenceOn(cookieStore.get(BINDER_HIDDEN_COOKIE)?.value)}
+      synonymsHidden={isPreferenceOn(cookieStore.get(SYNONYMS_HIDDEN_COOKIE)?.value)}
     >
       {children}
     </EditorShell>

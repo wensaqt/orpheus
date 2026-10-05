@@ -3,7 +3,7 @@
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { Button } from '@front/_components/ui/Button/Button'
 
-import { DocumentIcon } from '../binder/icons'
+import { DocumentIcon } from '../icons'
 import { useBinder } from '../binder/state/BinderProvider'
 import styles from './EmptyBinder.module.css'
 

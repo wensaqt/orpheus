@@ -5,16 +5,18 @@ import React, { useId } from 'react'
 import { THESAURUS_CREDITS } from '@/lib/thesaurus/source'
 
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
+import { IconButton } from '@front/_components/ui/IconButton/IconButton'
 
 import type { SynonymResult } from '@front/_features/lexicon/types'
 import { type SynonymStatus, useSynonyms } from '@front/_features/lexicon/useSynonyms'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import type { Translate } from '@front/_lib/i18n'
 
+import { ChevronIcon } from './icons'
 import styles from './SynonymsPanel.module.css'
 
-// Panel beside the sheet: synonyms of a word; clicking one copies it
-export function SynonymsPanel() {
+// Panel beside the sheet: synonyms of a word; clicking one copies it. It folds away (onHide)
+export function SynonymsPanel({ onHide }: { onHide: () => void }) {
   const t = useT()
   const { query, status, result, setQuery, searchNow } = useSynonyms()
   const titleId = useId()
@@ -32,9 +34,12 @@ export function SynonymsPanel() {
 
   return (
     <aside className={styles.panel} aria-labelledby={titleId}>
-      <h2 id={titleId} className={styles.title}>
-        {t('synonyms.title')}
-      </h2>
+      <div className={styles.heading}>
+        <h2 id={titleId} className={styles.title}>
+          {t('synonyms.title')}
+        </h2>
+        <IconButton label={t('synonyms.hide')} icon={<ChevronIcon />} onClick={onHide} />
+      </div>
 
       <input
         type="search"

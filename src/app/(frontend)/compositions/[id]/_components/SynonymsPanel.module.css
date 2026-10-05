@@ -10,6 +10,14 @@
   max-height: calc(100dvh - var(--editor-header-height) - 2 * var(--space-4));
 }
 
+/* The title, and the button that folds the panel away to the right */
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
 /* Panel title, underlined with a short rule as on the other pages */
 .title {
   font-size: var(--text-lg);
