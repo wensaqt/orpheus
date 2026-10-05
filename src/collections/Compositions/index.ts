@@ -2,16 +2,26 @@ import type { CollectionConfig } from 'payload'
 
 import { isLoggedIn } from '@/access/isLoggedIn'
 import { DEFAULT_COMPOSITION_TITLE, MAX_COMPOSITION_TITLE_LENGTH } from '@/lib/compositions'
-import { DEFAULT_PAGE_FORMAT, DEFAULT_PAGE_MARGIN, PAGE_FORMATS } from '@/lib/pageFormats'
+import {
+  DEFAULT_PAGE_FORMAT,
+  DEFAULT_PAGE_MARGIN,
+  MAX_FIRST_LINE_INDENT,
+  MAX_PAGE_MARGIN,
+  PAGE_FORMATS,
+  PAGE_ORIENTATIONS,
+  type PageMargin,
+} from '@/lib/pageFormats'
 
 import { ownCompositions } from './access'
 import { addFirstDocument, deleteBinder, setOwnerOnCreate } from './hooks'
 import { validateTitle } from './validators'
 
-const margin = (name: 'top' | 'right' | 'bottom' | 'left') => ({
+// Each margin alone; whether they leave enough text together is checked when they are saved
+const margin = (name: PageMargin) => ({
   name,
   type: 'number' as const,
   min: 0,
+  max: MAX_PAGE_MARGIN,
   defaultValue: DEFAULT_PAGE_MARGIN,
   admin: { width: '25%' },
 })
@@ -71,7 +81,7 @@ export const Compositions: CollectionConfig = {
               type: 'select',
               required: true,
               defaultValue: 'portrait',
-              options: ['portrait', 'landscape'],
+              options: [...PAGE_ORIENTATIONS],
             },
           ],
         },
@@ -85,6 +95,14 @@ export const Compositions: CollectionConfig = {
               fields: [margin('top'), margin('right'), margin('bottom'), margin('left')],
             },
           ],
+        },
+        {
+          name: 'firstLineIndent',
+          type: 'number',
+          min: 0,
+          max: MAX_FIRST_LINE_INDENT,
+          defaultValue: 0,
+          admin: { description: 'Where each paragraph’s first line starts, in millimetres' },
         },
       ],
     },

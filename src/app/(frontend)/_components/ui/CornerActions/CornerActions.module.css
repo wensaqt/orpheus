@@ -3,7 +3,8 @@
   position: fixed;
   top: var(--space-3);
   right: var(--space-4);
-  z-index: 1;
+  /* Over the editor's sticky header, which leaves them room */
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: var(--space-2);

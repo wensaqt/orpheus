@@ -1,16 +1,11 @@
-.title {
-  margin-block-end: var(--space-4);
-}
-
 .saveError {
-  margin-block: calc(-1 * var(--space-3)) var(--space-3);
+  margin-block-end: var(--space-3);
   font-size: var(--text-sm);
   color: var(--color-accent);
 }
 
-/* The title stays on screen: the printed pages are the document's text */
+/* The printed pages are the document's text */
 @media print {
-  .title,
   .saveError {
     display: none;
   }

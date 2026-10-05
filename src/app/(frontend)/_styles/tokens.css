@@ -40,6 +40,7 @@
 
   /* Typography */
   --font-sans: var(--font-nunito-sans), system-ui, sans-serif;
+  --text-xs: 0.6875rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
   --text-lg: 1.25rem;
@@ -66,6 +67,11 @@
   --control-size: 1.75rem;
   --binder-width: 15rem;
   --side-panel-width: 17rem;
+  /* Room the fixed logo and corner actions take on either side of the editor's header */
+  --header-inset: 6rem;
+  /* Height of the ruler over the sheet, and of the editor's header that holds it */
+  --ruler-size: 1.25rem;
+  --editor-header-height: 7rem;
 
   /* Radii */
   --radius-sm: 4px;

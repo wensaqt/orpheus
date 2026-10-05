@@ -3,6 +3,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { CLEAR_HISTORY_COMMAND, HISTORY_MERGE_TAG } from 'lexical'
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 import { MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
 import type { Id } from '@/lib/ids'
@@ -20,6 +21,8 @@ import { useTitleField } from '@front/_hooks/useTitleField'
 
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
 import { SAVERS } from '../binder/state/useSaveRegistry'
+import { useDocumentTitleSlot } from '../header/documentTitleSlot'
+import { usePageSettings } from '../page/PageSettingsProvider'
 import styles from './DocumentEditor.module.css'
 import { DocumentTitle } from './DocumentTitle'
 
@@ -32,8 +35,8 @@ type DocumentEditorProps = {
 }
 
 /*
- * The open document: its title above the sheet, then its text, in one Lexical composer (the
- * title hands the caret to the text and back).
+ * The open document: its title (shown in the editor's header), then its text on its pages, in
+ * one Lexical composer (the title hands the caret to the text and back).
  */
 export function DocumentEditor({ id, title, text }: DocumentEditorProps) {
   return (
@@ -50,7 +53,9 @@ export function DocumentEditor({ id, title, text }: DocumentEditorProps) {
 function DocumentPage({ id, title, text }: DocumentEditorProps) {
   const t = useT()
   const [editor] = useLexicalComposerContext()
-  const { page, commands } = useBinder()
+  const { commands } = useBinder()
+  const { settings: page } = usePageSettings()
+  const titleSlot = useDocumentTitleSlot()
   // The version shown, to tell a newer one from elsewhere (another tab) from this tab's saves
   const shownVersion = useRef(text.updatedAt)
 
@@ -93,7 +98,7 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
 
   return (
     <>
-      <DocumentTitle {...titleField.inputProps} />
+      {titleSlot && createPortal(<DocumentTitle {...titleField.inputProps} />, titleSlot)}
       {/* Only save failures are reported; everything else happens silently */}
       {titleField.status === 'error' || autosave.status === 'error' ? (
         <p className={styles.saveError} role="alert">

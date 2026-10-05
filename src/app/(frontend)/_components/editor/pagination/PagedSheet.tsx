@@ -62,6 +62,8 @@ export function PagedSheet({
     '--page-content-h': `${contentHeight(page)}px`,
     '--page-band-base': `${bandHeight(page, 0)}px`,
     '--page-padding': `${page.top}px ${page.right}px ${page.bottom}px ${page.left}px`,
+    // Read by the paragraphs of the text (see the editor's theme)
+    '--first-line-indent': `${settings.firstLineIndent}mm`,
     '--pages': pages,
   } as CSSProperties
   const paper = pageSize(settings)

@@ -10,8 +10,8 @@ export type Screen = {
   pages: number
   pagesTop: number
   sheets: Box[]
-  // Where the text's lines start
-  textLeft: number
+  // Where the text's lines end on the right
+  textRight: number
   lines: ScreenLine[]
 }
 
@@ -30,10 +30,10 @@ export const sheetIndexAt = (sheets: Box[], top: number) =>
 /*
  * Every line with the sheet it sits on. A line is "outside" when it is not fully within its
  * sheet's text area (between the top and bottom margins), or when an empty line is squeezed
- * beside a band rather than starting where the text does: what pagination must never allow.
+ * beside a band, against the text's right edge: what pagination must never allow.
  */
 export function classifyLines(
-  { pages, sheets, textLeft, lines }: Screen,
+  { pages, sheets, textRight, lines }: Screen,
   margins: { top: number; bottom: number },
 ): Layout {
   const outside: string[] = []
@@ -46,7 +46,7 @@ export function classifyLines(
       !sheet ||
       box.top < sheet.top + margins.top - TOLERANCE ||
       box.bottom > sheet.bottom - margins.bottom + TOLERANCE ||
-      (empty && box.left > textLeft + TOLERANCE)
+      (empty && box.left >= textRight - TOLERANCE)
     ) {
       const label = empty ? '(empty line)' : text.slice(0, 30)
       outside.push(`${label}… at ${Math.round(box.top - (sheet?.top ?? 0))}px`)

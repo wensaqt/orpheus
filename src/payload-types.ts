@@ -190,6 +190,10 @@ export interface Composition {
       bottom?: number | null;
       left?: number | null;
     };
+    /**
+     * Where each paragraph’s first line starts, in millimetres
+     */
+    firstLineIndent?: number | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -405,6 +409,7 @@ export interface CompositionsSelect<T extends boolean = true> {
               bottom?: T;
               left?: T;
             };
+        firstLineIndent?: T;
       };
   updatedAt?: T;
   createdAt?: T;

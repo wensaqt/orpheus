@@ -1,5 +1,7 @@
 .paragraph {
   margin-block-end: 0.75em;
+  /* The composition's first-line indent (set on the pages), for body paragraphs only */
+  text-indent: var(--first-line-indent, 0);
 }
 
 .h1,
