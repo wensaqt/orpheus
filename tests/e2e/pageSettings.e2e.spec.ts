@@ -24,6 +24,9 @@ const savedPage = (account: Account, id: string) =>
     .findByID({ collection: 'compositions', id, depth: 0, overrideAccess: true })
     .then(({ page }) => page)
 
+// Saving waits for a pause in the changes, then for the server: slower on a busy dev server
+const SAVED = { timeout: 15_000 }
+
 const firstSheet = async (page: Page) => (await page.locator(sheetSelector).first().boundingBox())!
 
 /*
@@ -95,7 +98,9 @@ test.describe('Page setup', () => {
     const a5 = toGeometry(toPageSettings({ format: 'A5', orientation: 'portrait' }))
     await expect.poll(async () => (await firstSheet(page)).width).toBeCloseTo(a5.width, 0)
     await expect(page.getByRole('button', { name: /Page setup/ })).toContainText('A5 · Portrait')
-    await expect.poll(async () => (await savedPage(account, composition.id)).format).toBe('A5')
+    await expect
+      .poll(async () => (await savedPage(account, composition.id)).format, SAVED)
+      .toBe('A5')
 
     await page.reload()
     await waitForEditor(page)
@@ -112,7 +117,7 @@ test.describe('Page setup', () => {
     await settle(page)
     expect((await readLayout(page)).outside).toEqual([])
     await expect
-      .poll(async () => (await savedPage(account, composition.id)).orientation)
+      .poll(async () => (await savedPage(account, composition.id)).orientation, SAVED)
       .toBe('landscape')
   })
 
@@ -126,7 +131,9 @@ test.describe('Page setup', () => {
     const sheet = await firstSheet(page)
     const text = (await page.locator(editable).boundingBox())!
     expect(text.y - sheet.y).toBeGreaterThanOrEqual(40 * MM_TO_PX - 1)
-    await expect.poll(async () => (await savedPage(account, composition.id)).margins?.top).toBe(40)
+    await expect
+      .poll(async () => (await savedPage(account, composition.id)).margins?.top, SAVED)
+      .toBe(40)
   })
 
   test('a smaller format shrinks margins that no longer fit', async ({ page, account }) => {
@@ -136,7 +143,7 @@ test.describe('Page setup', () => {
     await choose(page, 'A5')
     await expect(page.getByRole('radio', { name: 'A5' })).toBeChecked()
     await expect
-      .poll(async () => (await savedPage(account, composition.id)).margins?.left)
+      .poll(async () => (await savedPage(account, composition.id)).margins?.left, SAVED)
       .toBe((148 - MIN_TEXT_AREA) / 2)
   })
 })
@@ -162,7 +169,7 @@ test.describe('Ruler', () => {
     expect(text.x - sheet.x).toBeCloseTo(left * MM_TO_PX, 0)
     expect((await readLayout(page)).outside).toEqual([])
     await expect
-      .poll(async () => (await savedPage(account, composition.id)).margins?.left)
+      .poll(async () => (await savedPage(account, composition.id)).margins?.left, SAVED)
       .toBe(left)
   })
 
@@ -182,7 +189,7 @@ test.describe('Ruler', () => {
     await page.keyboard.press('ArrowLeft')
     await expect(handle).toHaveAttribute('aria-valuenow', String(max))
     await expect
-      .poll(async () => (await savedPage(account, composition.id)).margins?.right)
+      .poll(async () => (await savedPage(account, composition.id)).margins?.right, SAVED)
       .toBe(max)
   })
 
@@ -223,7 +230,7 @@ test.describe('Ruler', () => {
     expect(newFirst).toBeCloseTo(indent, 0)
     expect(newSecond).toBeCloseTo(0, 0)
     await expect
-      .poll(async () => (await savedPage(account, composition.id)).firstLineIndent)
+      .poll(async () => (await savedPage(account, composition.id)).firstLineIndent, SAVED)
       .toBe(indent)
   })
 
