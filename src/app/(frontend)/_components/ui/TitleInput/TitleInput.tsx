@@ -3,8 +3,8 @@ import type { ComponentProps } from 'react'
 import styles from './TitleInput.module.css'
 
 type TitleInputProps = Omit<ComponentProps<'input'>, 'size'> & {
-  // xl: a document's title above the sheet; lg: a smaller heading (the binder's)
-  size?: 'lg' | 'xl'
+  // xl: a page's main title; lg: a smaller heading; md: a title in running text (a header)
+  size?: 'md' | 'lg' | 'xl'
   // A short rule under the title, drawn across while editing
   ruled?: boolean
 }

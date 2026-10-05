@@ -5,7 +5,8 @@
   z-index: 2;
   display: flex;
   justify-content: center;
-  padding: calc(var(--space-6) + var(--text-xl) * 1.5 + var(--space-4)) var(--space-3) 0;
+  /* Where the editor puts the sheet: under its header and ruler */
+  padding: calc(var(--editor-header-height) + var(--ruler-size) + var(--space-3)) var(--space-3) 0;
   overflow: hidden;
   background-color: var(--color-surface-raised);
   animation: reveal var(--duration) ease-out var(--delay-reveal) both;

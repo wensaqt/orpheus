@@ -144,7 +144,7 @@ const readScreen = (page: Page): Promise<Screen> =>
       sheets: [...document.querySelectorAll(sheets)].map((sheet) =>
         sheet.getBoundingClientRect().toJSON(),
       ),
-      textLeft: editor.getBoundingClientRect().left,
+      textRight: editor.getBoundingClientRect().right,
       lines,
     }
   }, selectors)

@@ -16,7 +16,7 @@ const screen = (lines: Screen['lines']): Screen => ({
   pages: 2,
   pagesTop: 0,
   sheets,
-  textLeft: 100,
+  textRight: 600,
   lines,
 })
 
@@ -47,7 +47,8 @@ describe('classifyLines', () => {
   it('reports an empty line squeezed beside a band', () => {
     const { outside } = classifyLines(
       screen([
-        { text: '', box: box(1120), empty: true },
+        // Indented by the first-line indent: still where text goes
+        { text: '', box: box(1120, 20, 140), empty: true },
         { text: '', box: box(500, 20, 600), empty: true },
       ]),
       margins,

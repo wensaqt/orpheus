@@ -6,7 +6,8 @@ export const PAGE_FORMATS = {
 } as const
 
 export type PageFormat = keyof typeof PAGE_FORMATS
-export type PageOrientation = 'portrait' | 'landscape'
+export const PAGE_ORIENTATIONS = ['portrait', 'landscape'] as const
+export type PageOrientation = (typeof PAGE_ORIENTATIONS)[number]
 
 export const DEFAULT_PAGE_FORMAT: PageFormat = 'A4'
 export const DEFAULT_PAGE_MARGIN = 25
@@ -17,16 +18,21 @@ export type PageSettings = {
   margins: { top: number; right: number; bottom: number; left: number }
 }
 
+export type PageMargin = keyof PageSettings['margins']
+
+// The formats offered, in their order
+export const PAGE_FORMAT_NAMES = Object.keys(PAGE_FORMATS) as PageFormat[]
+
 // Actual page dimensions for the given orientation
 export const pageSize = ({ format, orientation }: Pick<PageSettings, 'format' | 'orientation'>) => {
   const { width, height } = PAGE_FORMATS[format]
   return orientation === 'landscape' ? { width: height, height: width } : { width, height }
 }
 
-type StoredPage = {
+export type StoredPage = {
   format: PageFormat
   orientation: PageOrientation
-  margins?: Partial<Record<keyof PageSettings['margins'], number | null>> | null
+  margins?: Partial<Record<PageMargin, number | null>> | null
 }
 
 // A new composition's page
@@ -35,14 +41,109 @@ export const DEFAULT_PAGE: Pick<PageSettings, 'format' | 'orientation'> = {
   orientation: 'portrait',
 }
 
-// Normalizes stored settings (optional margins) into complete settings
-export const toPageSettings = ({ format, orientation, margins }: StoredPage): PageSettings => ({
-  format,
-  orientation,
-  margins: {
-    top: margins?.top ?? DEFAULT_PAGE_MARGIN,
-    right: margins?.right ?? DEFAULT_PAGE_MARGIN,
-    bottom: margins?.bottom ?? DEFAULT_PAGE_MARGIN,
-    left: margins?.left ?? DEFAULT_PAGE_MARGIN,
-  },
-})
+// The smallest text area the margins may leave, across and down, in millimetres
+export const MIN_TEXT_AREA = 40
+
+// Margins (and indents) are set to the half millimetre
+export const MARGIN_STEP = 0.5
+
+// The longest side of any format offered
+export const LONGEST_PAGE_SIDE = Math.max(
+  ...Object.values(PAGE_FORMATS).map(({ height }) => height),
+)
+
+// The largest margin any page allows (the stored value's upper bound), in millimetres
+export const MAX_PAGE_MARGIN = LONGEST_PAGE_SIDE - MIN_TEXT_AREA
+
+export const toStep = (value: number) => Math.round(value / MARGIN_STEP) * MARGIN_STEP
+export const floorToStep = (value: number) => Math.floor(value / MARGIN_STEP) * MARGIN_STEP
+
+const MARGINS: PageMargin[] = ['top', 'right', 'bottom', 'left']
+
+const OPPOSITE: Record<PageMargin, PageMargin> = {
+  top: 'bottom',
+  bottom: 'top',
+  left: 'right',
+  right: 'left',
+}
+
+// The page's size along a margin's axis: its width for the side margins, its height otherwise
+const spanOf = (page: PageSettings, side: PageMargin) => {
+  const { width, height } = pageSize(page)
+  return side === 'left' || side === 'right' ? width : height
+}
+
+// The width of the text between the side margins
+export const textWidth = (page: PageSettings) =>
+  pageSize(page).width - page.margins.left - page.margins.right
+
+// The largest this margin can be, the opposite one kept, so the text area stays usable
+export const maxMargin = (page: PageSettings, side: PageMargin) =>
+  spanOf(page, side) - MIN_TEXT_AREA - page.margins[OPPOSITE[side]]
+
+// The page with this margin set, brought within its bounds and to the step
+export function withMargin(page: PageSettings, side: PageMargin, value: number): PageSettings {
+  const fitted = Math.min(Math.max(toStep(value), 0), maxMargin(page, side))
+  return { ...page, margins: { ...page.margins, [side]: fitted } }
+}
+
+/*
+ * The page with margins that fit it (after a change of format or orientation, or as stored):
+ * none below zero, and a pair of opposite margins that leaves too little text shrinks, both in
+ * proportion
+ */
+export function fitMargins(page: PageSettings): PageSettings {
+  const margins = { ...page.margins }
+  for (const side of MARGINS) margins[side] = Math.max(0, margins[side])
+  for (const [first, second] of [
+    ['left', 'right'],
+    ['top', 'bottom'],
+  ] as const) {
+    const room = spanOf(page, first) - MIN_TEXT_AREA
+    const total = margins[first] + margins[second]
+    if (total <= room) continue
+    const scale = room / total
+    margins[first] = floorToStep(margins[first] * scale)
+    margins[second] = floorToStep(margins[second] * scale)
+  }
+  return { ...page, margins }
+}
+
+// Stored settings (optional margins) made complete, and fitted to the page
+export const toPageSettings = ({ format, orientation, margins }: StoredPage): PageSettings =>
+  fitMargins({
+    format,
+    orientation,
+    margins: {
+      top: margins?.top ?? DEFAULT_PAGE_MARGIN,
+      right: margins?.right ?? DEFAULT_PAGE_MARGIN,
+      bottom: margins?.bottom ?? DEFAULT_PAGE_MARGIN,
+      left: margins?.left ?? DEFAULT_PAGE_MARGIN,
+    },
+  })
+
+const isFormat = (value: unknown): value is PageFormat =>
+  typeof value === 'string' && Object.hasOwn(PAGE_FORMATS, value)
+
+const isOrientation = (value: unknown): value is PageOrientation =>
+  PAGE_ORIENTATIONS.includes(value as PageOrientation)
+
+// A finite number, or null
+export const finite = (value: unknown): number | null =>
+  typeof value === 'number' && Number.isFinite(value) ? value : null
+
+// A page sent by a client, checked whole: a known format and orientation, margins that fit
+export function parsePageSettings(input: unknown): PageSettings | null {
+  if (typeof input !== 'object' || input === null) return null
+  const { format, orientation, margins } = input as Record<string, unknown>
+  if (!isFormat(format) || !isOrientation(orientation)) return null
+  if (typeof margins !== 'object' || margins === null) return null
+  const values = margins as Record<string, unknown>
+  const [top, right, bottom, left] = MARGINS.map((side) => finite(values[side]))
+  if (top === null || right === null || bottom === null || left === null) return null
+  const page: PageSettings = { format, orientation, margins: { top, right, bottom, left } }
+  const fits = MARGINS.every(
+    (side) => page.margins[side] >= 0 && page.margins[side] <= maxMargin(page, side),
+  )
+  return fits ? page : null
+}

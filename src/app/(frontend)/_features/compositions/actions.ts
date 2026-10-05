@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import { MAX_COMPOSITION_TITLE_LENGTH } from '@/lib/compositions'
+import { type Layout, parseLayout } from '@/lib/layout'
 import { DEFAULT_PAGE } from '@/lib/pageFormats'
 import { cleanTitle } from '@/lib/titles'
 import type { Id } from '@/lib/ids'
@@ -56,6 +57,27 @@ export const saveComposition = authedAction(
         collection: 'compositions',
         id,
         data: { title: cleaned },
+        user,
+        overrideAccess: false,
+        depth: 0,
+      })
+      return done()
+    } catch {
+      return failed
+    }
+  },
+)
+
+// Saves the composition's layout (its pages, and how its text is set), checked whole
+export const saveLayout = authedAction(
+  async ({ payload, user }, id: Id, layout: Layout): Promise<ActionResult> => {
+    const parsed = parseLayout(layout)
+    if (!isId(id) || !parsed) return failed
+    try {
+      await payload.update({
+        collection: 'compositions',
+        id,
+        data: parsed,
         user,
         overrideAccess: false,
         depth: 0,

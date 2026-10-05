@@ -2,6 +2,7 @@
 
 import React, { type Ref, useId, useImperativeHandle, useRef, useState } from 'react'
 
+import { placeBelow } from '../placeBelow'
 import styles from './Menu.module.css'
 
 export type MenuItem = {
@@ -38,9 +39,6 @@ type MenuProps = {
   children: React.ReactNode
 }
 
-// Gap between the trigger and the menu
-const OFFSET = 4
-
 /*
  * Floating menu built on the native Popover API: top layer, light dismiss and Escape are
  * provided by the browser. We add placement below the trigger and arrow-key navigation.
@@ -66,15 +64,6 @@ export function Menu({
         ':is([role="menuitem"], [role="menuitemradio"]):enabled',
       ) ?? [],
     )
-
-  // Aligned below the trigger's right edge, in viewport coordinates
-  function place() {
-    const trigger = triggerRef.current?.getBoundingClientRect()
-    const menu = menuRef.current
-    if (!trigger || !menu) return
-    menu.style.top = `${trigger.bottom + OFFSET}px`
-    menu.style.right = `${window.innerWidth - trigger.right}px`
-  }
 
   const hide = () => menuRef.current?.hidePopover()
 
@@ -130,7 +119,10 @@ export function Menu({
         aria-label={label}
         aria-describedby={header ? `${id}-header` : undefined}
         className={styles.menu}
-        onBeforeToggle={(e) => e.newState === 'open' && place()}
+        // Aligned below the trigger's right edge
+        onBeforeToggle={(e) =>
+          e.newState === 'open' && placeBelow(triggerRef.current, menuRef.current, 'end')
+        }
         onToggle={handleToggle}
         onKeyDown={handleKeyDown}
       >

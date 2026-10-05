@@ -35,15 +35,16 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'], channel: 'chromium' },
     },
-    // Pagination relies on how each engine lays out lines and moves the caret: all three run it
+    // Pagination and the ruler rely on how each engine lays out lines, moves the caret and
+    // tracks a pointer: all three run them
     {
       name: 'firefox',
-      testMatch: /pagination\.e2e\.spec\.ts/,
+      testMatch: /(pagination|pageSettings)\.e2e\.spec\.ts/,
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
-      testMatch: /pagination\.e2e\.spec\.ts/,
+      testMatch: /(pagination|pageSettings)\.e2e\.spec\.ts/,
       use: { ...devices['Desktop Safari'] },
     },
   ],

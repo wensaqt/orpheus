@@ -1,0 +1,157 @@
+/*
+ * As wide as the page, right above the sheet in the same column. Ticks every 2.5 mm, longer
+ * at each half centimetre and centimetre, all counted from the left margin; the margins are
+ * shaded.
+ */
+.ruler {
+  --tick: var(--color-text-muted);
+  --shade: var(--color-surface);
+  /* Right under the header while the pages scroll, over them */
+  position: sticky;
+  top: var(--editor-header-height);
+  z-index: 1;
+  flex-shrink: 0;
+  /* Up against the header, over the desk's top padding */
+  margin-block: calc(-1 * var(--space-4)) var(--space-3);
+  width: var(--ruler-width);
+  height: var(--ruler-size);
+  border-inline: 1px solid var(--color-border);
+  background:
+    linear-gradient(to right, var(--tick) 0 1px, transparent 1px) var(--margin-left) 100% / 10mm 45%
+      repeat-x,
+    linear-gradient(to right, var(--tick) 0 1px, transparent 1px) calc(var(--margin-left) + 5mm)
+      100% / 10mm 30% repeat-x,
+    linear-gradient(to right, var(--color-border) 0 1px, transparent 1px) var(--margin-left) 100% /
+      2.5mm 15% repeat-x,
+    linear-gradient(
+      to right,
+      var(--shade) 0 var(--margin-left),
+      var(--color-sheet) var(--margin-left) calc(100% - var(--margin-right)),
+      var(--shade) calc(100% - var(--margin-right))
+    );
+  user-select: none;
+}
+
+.scale {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.label {
+  position: absolute;
+  top: 0;
+  left: var(--at);
+  font-size: var(--text-xs);
+  line-height: 1;
+  color: var(--color-text-muted);
+  translate: -50% 0;
+}
+
+/*
+ * A margin's handle: a small triangle pointing down at the margin, under the indent's bar.
+ * The indent's: a small bar above the left triangle, at the margin plus the indent
+ */
+.handle {
+  position: absolute;
+  width: 0.75rem;
+  translate: -50% 0;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.handle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-primary);
+}
+
+/*
+ * A larger, unseen area to grab: the marks are small. The indent's grows upwards and the
+ * margins' downwards, so the two stacked on the left never take each other's pointer
+ */
+.handle::after {
+  content: '';
+  position: absolute;
+  inset: 0 -0.375rem -0.375rem;
+}
+
+.handle[data-handle='indent']::after {
+  inset: -0.375rem -0.375rem 0;
+}
+
+.handle:is([data-handle='left'], [data-handle='right']) {
+  top: 30%;
+  height: 45%;
+}
+
+.handle:is([data-handle='left'], [data-handle='right'])::before {
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.handle[data-handle='indent'] {
+  top: 0;
+  left: calc(var(--margin-left) + var(--first-line-indent));
+  height: 25%;
+}
+
+.handle[data-handle='indent']::before {
+  border-radius: 1px;
+}
+
+.handle[data-handle='left'] {
+  left: var(--margin-left);
+}
+
+.handle[data-handle='right'] {
+  left: calc(100% - var(--margin-right));
+}
+
+.handle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Which margin, and how wide, while it is pointed at, focused or dragged */
+.tooltip {
+  position: absolute;
+  top: calc(100% + var(--ruler-size) / 2);
+  left: 50%;
+  z-index: 1;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--color-surface-raised);
+  pointer-events: none;
+  opacity: 0;
+  translate: -50% 0;
+  transition: opacity var(--duration-fast);
+}
+
+.handle:is(:hover, :focus-visible, [data-dragging='true']) .tooltip {
+  opacity: 1;
+}
+
+/* Small screens (see EditorShell): below the binder, which stacks above the sheet */
+@media screen and (max-width: 78rem) {
+  .ruler {
+    margin-block-start: 0;
+  }
+}
+
+@media print {
+  .ruler {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip {
+    transition: none;
+  }
+}

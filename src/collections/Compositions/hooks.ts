@@ -1,16 +1,29 @@
 import type {
   CollectionAfterChangeHook,
+  CollectionBeforeChangeHook,
   CollectionBeforeDeleteHook,
   CollectionBeforeValidateHook,
 } from 'payload'
 
 import { DEFAULT_DOCUMENT_TITLE } from '@/lib/binder/constants'
+import { toLayout } from '@/lib/layout'
 
 // Before validation, since owner is required: the owner is always the user who creates it,
 // never a submitted value
 export const setOwnerOnCreate: CollectionBeforeValidateHook = ({ data, operation, req }) => {
   if (operation === 'create' && data && req.user) data.owner = req.user.id
   return data
+}
+
+/*
+ * The layout is stored fitted together (margins that leave room for text, an indent within
+ * the text), whoever writes it: each field alone is checked by its own bounds only
+ */
+export const fitLayoutOnChange: CollectionBeforeChangeHook = ({ data, originalDoc }) => {
+  const page = data.page ?? originalDoc?.page
+  if (!page?.format || !page.orientation) return data
+  const layout = toLayout({ page, typography: data.typography ?? originalDoc?.typography })
+  return { ...data, page: { ...page, ...layout.page }, typography: layout.typography }
 }
 
 /*

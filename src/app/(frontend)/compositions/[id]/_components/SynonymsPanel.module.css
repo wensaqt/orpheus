@@ -1,12 +1,13 @@
 /* Stays visible while the sheet scrolls */
 .panel {
   position: sticky;
-  top: var(--space-6);
+  /* Below the editor's header, which stays on top */
+  top: calc(var(--editor-header-height) + var(--space-4));
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   width: var(--side-panel-width);
-  max-height: calc(100dvh - 2 * var(--space-6));
+  max-height: calc(100dvh - var(--editor-header-height) - 2 * var(--space-4));
 }
 
 /* Panel title, underlined with a short rule as on the other pages */

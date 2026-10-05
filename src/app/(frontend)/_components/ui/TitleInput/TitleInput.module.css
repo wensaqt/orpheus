@@ -20,6 +20,10 @@
   font-size: var(--text-lg);
 }
 
+.title[data-size='md'] {
+  font-size: var(--text-base);
+}
+
 /* The short rule of the other headings, which runs the whole width while editing */
 .title[data-ruled='true'] {
   padding-block-end: var(--space-2);

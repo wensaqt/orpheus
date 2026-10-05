@@ -7,11 +7,9 @@ import { TitleNavigationPlugin } from '@front/_components/editor/plugins/TitleNa
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { TitleInput } from '@front/_components/ui/TitleInput/TitleInput'
 
-import styles from './DocumentEditor.module.css'
-
 /*
- * The document's title above the sheet, read with the text as one page: Enter goes down to
- * the start of the text, the up arrow at the start of the text comes back.
+ * The document's title, in the editor's header, read with the text as one page: Enter goes
+ * down to the text, the up arrow at the start of the text comes back.
  */
 export function DocumentTitle(field: ComponentProps<typeof TitleInput>) {
   const t = useT()
@@ -22,7 +20,7 @@ export function DocumentTitle(field: ComponentProps<typeof TitleInput>) {
     <>
       <TitleInput
         ref={input}
-        className={styles.title}
+        size="lg"
         aria-label={t('editor.documentTitleLabel')}
         {...field}
         onKeyDown={(e) => {

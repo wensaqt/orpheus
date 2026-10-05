@@ -19,7 +19,9 @@ export type PageGeometry = {
   left: number
 }
 
-export function toGeometry(settings: PageSettings): PageGeometry {
+export function toGeometry(
+  settings: Pick<PageSettings, 'format' | 'orientation' | 'margins'>,
+): PageGeometry {
   const { width, height } = pageSize(settings)
   const { top, right, bottom, left } = settings.margins
   return {

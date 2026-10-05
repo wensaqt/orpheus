@@ -12,7 +12,6 @@ import {
   useState,
 } from 'react'
 
-import type { PageSettings } from '@/lib/pageFormats'
 import type { Id } from '@/lib/ids'
 
 import { loadBinderEntries } from '@front/_features/binder/actions'
@@ -28,7 +27,6 @@ import { useSaveRegistry } from './useSaveRegistry'
 
 type BinderContextValue = {
   compositionId: Id
-  page: PageSettings
   // The binder as shown: saved entries plus the changes still being saved
   entries: BinderEntry[]
   // The document shown in the editor (it follows the URL once everything is saved)
@@ -46,7 +44,6 @@ const BinderContext = createContext<BinderContextValue | null>(null)
 
 type BinderProviderProps = {
   compositionId: Id
-  page: PageSettings
   entries: BinderEntry[]
   children: ReactNode
 }
@@ -58,7 +55,6 @@ type BinderProviderProps = {
  */
 export function BinderProvider({
   compositionId,
-  page,
   entries: serverEntries,
   children,
 }: BinderProviderProps) {
@@ -118,7 +114,6 @@ export function BinderProvider({
   const value = useMemo(
     () => ({
       compositionId,
-      page,
       entries,
       activeDocumentId,
       collapsed,
@@ -130,7 +125,6 @@ export function BinderProvider({
     }),
     [
       compositionId,
-      page,
       entries,
       activeDocumentId,
       collapsed,

@@ -1,43 +1,24 @@
 'use client'
 
-import { MAX_COMPOSITION_TITLE_LENGTH } from '@/lib/compositions'
-
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { IconButton } from '@front/_components/ui/IconButton/IconButton'
-import { TitleInput } from '@front/_components/ui/TitleInput/TitleInput'
-import { saveComposition } from '@front/_features/compositions/actions'
-import { useTitleField } from '@front/_hooks/useTitleField'
 
 import styles from './BinderPanel.module.css'
 import { ChevronIcon, NewDocumentIcon, NewFolderIcon } from './icons'
-import { useBinder, useRegisterSaver } from './state/BinderProvider'
-import { SAVERS } from './state/useSaveRegistry'
+import { useBinder } from './state/BinderProvider'
 import { BinderTree } from './tree/BinderTree'
 
 type BinderPanelProps = {
-  title: string
   onHide: () => void
 }
 
-// Left column of the editor: the composition's title, a small toolbar, then its binder
-export function BinderPanel({ title, onHide }: BinderPanelProps) {
+// Left column of the editor: a small toolbar, then the binder (the titles are in the header)
+export function BinderPanel({ onHide }: BinderPanelProps) {
   const t = useT()
-  const { compositionId, commands } = useBinder()
-  const field = useTitleField({
-    title,
-    maxLength: MAX_COMPOSITION_TITLE_LENGTH,
-    save: (next) => saveComposition(compositionId, { title: next }),
-  })
-  useRegisterSaver(SAVERS.compositionTitle, field)
+  const { commands } = useBinder()
 
   return (
     <nav className={styles.panel} aria-label={t('binder.label')}>
-      <TitleInput size="lg" ruled aria-label={t('editor.titleLabel')} {...field.inputProps} />
-      {field.status === 'error' && (
-        <p className={styles.error} role="alert">
-          {t('editor.saveError')}
-        </p>
-      )}
       <div className={styles.toolbar} role="toolbar" aria-label={t('binder.toolbar')}>
         <IconButton
           label={t('binder.newDocument')}
