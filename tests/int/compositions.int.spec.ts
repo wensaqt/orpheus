@@ -51,6 +51,37 @@ describe('compositions collection', () => {
       expect(composition.page.margins).toEqual({ top: 25, right: 25, bottom: 25, left: 25 })
     })
 
+    it('stores a layout fitted together, whoever writes it', async () => {
+      const composition = await createFor(alice)
+      // Each margin alone is within its bounds, not the two together on an A5 page
+      const updated = await payload.update({
+        collection: 'compositions',
+        id: composition.id,
+        data: {
+          page: {
+            format: 'A5',
+            orientation: 'portrait',
+            margins: { top: 25, right: 100, bottom: 25, left: 100 },
+          },
+          typography: { firstLineIndent: 90 },
+        },
+        overrideAccess: true,
+        depth: 0,
+      })
+      expect(updated.page.margins).toEqual({ top: 25, right: 54, bottom: 25, left: 54 })
+      expect(updated.typography?.firstLineIndent).toBe(20)
+
+      // A change of the title alone keeps the layout as it was
+      const renamed = await payload.update({
+        collection: 'compositions',
+        id: composition.id,
+        data: { title: 'Orphée' },
+        ...as(alice),
+      })
+      expect(renamed.page).toEqual(updated.page)
+      expect(renamed.typography).toEqual(updated.typography)
+    })
+
     it('shows each user only their own compositions', async () => {
       const composition = await createFor(alice)
       const { docs } = await payload.find({ collection: 'compositions', ...as(bob) })

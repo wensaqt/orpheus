@@ -1,24 +1,25 @@
 'use client'
 
+import { useId, useState } from 'react'
+
+import { fitLayout } from '@/lib/layout'
 import {
-  fitMargins,
   MARGIN_STEP,
   maxMargin,
-  PAGE_FORMATS,
+  PAGE_FORMAT_NAMES,
   PAGE_ORIENTATIONS,
-  type PageFormat,
   type PageMargin,
+  type PageSettings,
   withMargin,
 } from '@/lib/pageFormats'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { Popover } from '@front/_components/ui/Popover/Popover'
 
-import { usePageSettings } from '../page/PageSettingsProvider'
-import { useFocusReturn } from './openEditor'
+import { useFocusReturn } from '../editorFocus'
+import { useLayout } from '../page/LayoutProvider'
 import styles from './PageSetup.module.css'
 
-const FORMATS = Object.keys(PAGE_FORMATS) as PageFormat[]
 // The margins set here; the side ones are on the ruler
 const FIELDS = ['top', 'bottom'] as const satisfies PageMargin[]
 
@@ -29,12 +30,17 @@ const FIELDS = ['top', 'bottom'] as const satisfies PageMargin[]
  */
 export function PageSetup() {
   const t = useT()
-  const { settings, change } = usePageSettings()
+  const id = useId()
+  const { layout, change } = useLayout()
+  const { page } = layout
   // Back to the text once closed, if the writer came from there
   const focus = useFocusReturn()
+  // The page changed, then everything fitted to it (margins, then the indent)
+  const changePage = (update: (page: PageSettings) => PageSettings) =>
+    change((current) => fitLayout({ ...current, page: update(current.page) }))
   const summary = t('editor.pageSetup.summary', {
-    format: t(`editor.pageSetup.formats.${settings.format}`),
-    orientation: t(`editor.pageSetup.${settings.orientation}`),
+    format: t(`editor.pageSetup.formats.${page.format}`),
+    orientation: t(`editor.pageSetup.${page.orientation}`),
   })
 
   return (
@@ -55,13 +61,13 @@ export function PageSetup() {
         <fieldset className={styles.group}>
           <legend className={styles.legend}>{t('editor.pageSetup.format')}</legend>
           <div className={styles.choices}>
-            {FORMATS.map((format) => (
+            {PAGE_FORMAT_NAMES.map((format) => (
               <label key={format} className={styles.choice}>
                 <input
                   type="radio"
-                  name="page-format"
-                  checked={settings.format === format}
-                  onChange={() => change(fitMargins({ ...settings, format }))}
+                  name={`${id}-format`}
+                  checked={page.format === format}
+                  onChange={() => changePage((current) => ({ ...current, format }))}
                 />
                 {t(`editor.pageSetup.formats.${format}`)}
               </label>
@@ -75,9 +81,9 @@ export function PageSetup() {
               <label key={orientation} className={styles.choice}>
                 <input
                   type="radio"
-                  name="page-orientation"
-                  checked={settings.orientation === orientation}
-                  onChange={() => change(fitMargins({ ...settings, orientation }))}
+                  name={`${id}-orientation`}
+                  checked={page.orientation === orientation}
+                  onChange={() => changePage((current) => ({ ...current, orientation }))}
                 />
                 {t(`editor.pageSetup.${orientation}`)}
               </label>
@@ -88,28 +94,62 @@ export function PageSetup() {
           <legend className={styles.legend}>{t('editor.pageSetup.margins')}</legend>
           <div className={styles.fields}>
             {FIELDS.map((side) => (
-              <label key={side} className={styles.field}>
-                {t(`editor.pageSetup.${side}`)}
-                <span className={styles.number}>
-                  <input
-                    type="number"
-                    min={0}
-                    max={maxMargin(settings, side)}
-                    step={MARGIN_STEP}
-                    value={settings.margins[side]}
-                    onChange={(event) => {
-                      const value = event.target.valueAsNumber
-                      if (!Number.isNaN(value)) change(withMargin(settings, side, value))
-                    }}
-                  />
-                  {t('editor.pageSetup.unit')}
-                </span>
-              </label>
+              <MarginField
+                key={side}
+                label={t(`editor.pageSetup.${side}`)}
+                unit={t('editor.pageSetup.unit')}
+                value={page.margins[side]}
+                max={maxMargin(page, side)}
+                onValue={(value) => changePage((current) => withMargin(current, side, value))}
+              />
             ))}
           </div>
         </fieldset>
       </div>
     </Popover>
+  )
+}
+
+/*
+ * A margin in millimetres. What is typed stays as typed while the field has the focus (it may
+ * be empty, or on its way to a number); each number in it applies at once, within bounds, and
+ * the field shows the value applied once left (or on Enter)
+ */
+function MarginField({
+  label,
+  unit,
+  value,
+  max,
+  onValue,
+}: {
+  label: string
+  unit: string
+  value: number
+  max: number
+  onValue: (value: number) => void
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+  return (
+    <label className={styles.field}>
+      {label}
+      <span className={styles.number}>
+        <input
+          type="number"
+          min={0}
+          max={max}
+          step={MARGIN_STEP}
+          value={draft ?? value}
+          onChange={(event) => {
+            setDraft(event.target.value)
+            const typed = event.target.valueAsNumber
+            if (!Number.isNaN(typed)) onValue(typed)
+          }}
+          onBlur={() => setDraft(null)}
+          onKeyDown={(event) => event.key === 'Enter' && setDraft(null)}
+        />
+        {unit}
+      </span>
+    </label>
   )
 }
 

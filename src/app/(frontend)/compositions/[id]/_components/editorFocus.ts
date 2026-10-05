@@ -1,15 +1,15 @@
 'use client'
 
 import type { LexicalEditor } from 'lexical'
-import { createContext, use, useEffect, useRef } from 'react'
+import { createContext, type Dispatch, type SetStateAction, use, useEffect, useRef } from 'react'
 
 type OpenEditor = {
   editor: LexicalEditor | null
-  setEditor: (editor: LexicalEditor | null) => void
+  setEditor: Dispatch<SetStateAction<LexicalEditor | null>>
 }
 
 /*
- * The open document's editor, for the header's tools (the ruler, the page setup): changing
+ * The open document's editor, for the tools around it (the ruler, the page setup): changing
  * the pages must not take the writer out of the text
  */
 export const OpenEditorContext = createContext<OpenEditor>({ editor: null, setEditor: () => {} })
@@ -21,7 +21,8 @@ export function useRegisterOpenEditor(editor: LexicalEditor) {
   const { setEditor } = use(OpenEditorContext)
   useEffect(() => {
     setEditor(editor)
-    return () => setEditor(null)
+    // Unless the next document's editor has already taken its place
+    return () => setEditor((current) => (current === editor ? null : current))
   }, [editor, setEditor])
 }
 

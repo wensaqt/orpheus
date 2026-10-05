@@ -4,11 +4,12 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { type CSSProperties, type MouseEvent, type ReactNode, useRef } from 'react'
 
 import { type PageSettings, pageSize } from '@/lib/pageFormats'
+import type { Typography } from '@/lib/typography'
 
 import { PAGE_BREAK_ATTRIBUTE } from '../nodes/PageBreakNode'
 import styles from './PagedSheet.module.css'
 import { $selectTextBefore, caretTarget, placeCaretAt } from './caretPlacement'
-import { bandHeight, contentHeight, toGeometry } from './pageGeometry'
+import { bandHeight, contentHeight, MM_TO_PX, toGeometry } from './pageGeometry'
 import { PAGE_SHEET_ATTRIBUTE, PAGES_ATTRIBUTE } from './pageAttributes'
 import { flowTopOnScreen, usePageLayout } from './usePageLayout'
 
@@ -20,9 +21,12 @@ import { flowTopOnScreen, usePageLayout } from './usePageLayout'
  */
 export function PagedSheet({
   settings,
+  typography,
   children,
 }: {
   settings: PageSettings
+  // How the text is set on the pages (the first-line indent)
+  typography: Typography
   children: ReactNode
 }) {
   const [editor] = useLexicalComposerContext()
@@ -63,7 +67,7 @@ export function PagedSheet({
     '--page-band-base': `${bandHeight(page, 0)}px`,
     '--page-padding': `${page.top}px ${page.right}px ${page.bottom}px ${page.left}px`,
     // Read by the paragraphs of the text (see the editor's theme)
-    '--first-line-indent': `${settings.firstLineIndent}mm`,
+    '--first-line-indent': `${typography.firstLineIndent * MM_TO_PX}px`,
     '--pages': pages,
   } as CSSProperties
   const paper = pageSize(settings)

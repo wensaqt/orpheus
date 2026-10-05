@@ -11,8 +11,7 @@ import { useTitleField } from '@front/_hooks/useTitleField'
 
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
 import { SAVERS } from '../binder/state/useSaveRegistry'
-import { Ruler } from '../page/Ruler'
-import { usePageSettings } from '../page/PageSettingsProvider'
+import { useLayout } from '../page/LayoutProvider'
 import styles from './EditorHeader.module.css'
 import { PageSetup } from './PageSetup'
 
@@ -24,12 +23,12 @@ type EditorHeaderProps = {
 
 /*
  * The editor's header, which stays on screen while the pages scroll: where the writer is
- * (composition › document), the toolbar, then the ruler over the sheet
+ * (composition › document), then the toolbar. The ruler stays right under it, over the sheet
  */
 export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
   const t = useT()
   const { compositionId } = useBinder()
-  const { status: pageStatus } = usePageSettings()
+  const { status: layoutStatus } = useLayout()
   const field = useTitleField({
     title,
     maxLength: MAX_COMPOSITION_TITLE_LENGTH,
@@ -51,7 +50,7 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
         </span>
         <div ref={documentTitleRef} className={styles.documentTitle} />
         {/* Only save failures are reported; everything else happens silently */}
-        {field.status === 'error' || pageStatus === 'error' ? (
+        {field.status === 'error' || layoutStatus === 'error' ? (
           <p className={styles.saveError} role="alert">
             {t('editor.saveError')}
           </p>
@@ -60,7 +59,6 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
       <div className={styles.toolbar} role="toolbar" aria-label={t('editor.toolbar')}>
         <PageSetup />
       </div>
-      <Ruler />
     </header>
   )
 }

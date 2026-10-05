@@ -2,6 +2,7 @@
 
 import { type ReactNode, type ToggleEvent, useId, useRef, useState } from 'react'
 
+import { placeBelow } from '../placeBelow'
 import styles from './Popover.module.css'
 
 type PopoverProps = {
@@ -17,13 +18,11 @@ type PopoverProps = {
   children: ReactNode
 }
 
-// Gap between the trigger and the panel
-const OFFSET = 4
-
 /*
  * A panel of controls (fields, choices) opened from a button, on the native Popover API like
  * Menu: top layer, light dismiss and Escape come from the browser. It opens below the
- * trigger's left edge.
+ * trigger's left edge. Unlike Menu it stays open while the page scrolls: its triggers sit in
+ * the editor's sticky header, which does not move.
  */
 export function Popover({
   label,
@@ -38,21 +37,12 @@ export function Popover({
   const panelRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
 
-  function place() {
-    const bounds = triggerRef.current?.getBoundingClientRect()
-    const panel = panelRef.current
-    if (!bounds || !panel) return
-    panel.style.top = `${bounds.bottom + OFFSET}px`
-    panel.style.left = `${bounds.left}px`
-  }
-
   function handleToggle(event: ToggleEvent<HTMLDivElement>) {
     const isOpen = event.newState === 'open'
     setOpen(isOpen)
     if (isOpen) return
     const active = document.activeElement
     const inPlace =
-      !active ||
       active === document.body ||
       active === triggerRef.current ||
       Boolean(panelRef.current?.contains(active))
@@ -66,7 +56,8 @@ export function Popover({
         type="button"
         className={triggerClassName}
         popoverTarget={id}
-        onPointerDown={onTriggerPointerDown}
+        // Pressing it again closes the panel: the focus is in the panel then, not where it was
+        onPointerDown={() => !open && onTriggerPointerDown?.()}
         aria-haspopup="dialog"
         aria-expanded={open}
       >
@@ -79,7 +70,9 @@ export function Popover({
         role="dialog"
         aria-label={label}
         className={styles.panel}
-        onBeforeToggle={(event) => event.newState === 'open' && place()}
+        onBeforeToggle={(event) =>
+          event.newState === 'open' && placeBelow(triggerRef.current, panelRef.current, 'start')
+        }
         onToggle={handleToggle}
       >
         {children}

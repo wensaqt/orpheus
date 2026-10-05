@@ -1,15 +1,18 @@
 /*
- * As wide as the page and centred like the sheet below it. Ticks every 2.5 mm, longer at each
- * half centimetre and centimetre, all counted from the left margin; the margins are shaded.
+ * As wide as the page, right above the sheet in the same column. Ticks every 2.5 mm, longer
+ * at each half centimetre and centimetre, all counted from the left margin; the margins are
+ * shaded.
  */
 .ruler {
   --tick: var(--color-text-muted);
   --shade: var(--color-surface);
-  position: relative;
+  /* Right under the header while the pages scroll, over them */
+  position: sticky;
+  top: var(--editor-header-height);
+  z-index: 1;
   flex-shrink: 0;
-  align-self: center;
-  /* At the header's foot, right over the sheet */
-  margin-block-start: auto;
+  /* Up against the header, over the desk's top padding */
+  margin-block: calc(-1 * var(--space-4)) var(--space-3);
   width: var(--ruler-width);
   height: var(--ruler-size);
   border-inline: 1px solid var(--color-border);
@@ -62,6 +65,20 @@
   position: absolute;
   inset: 0;
   background-color: var(--color-primary);
+}
+
+/*
+ * A larger, unseen area to grab: the marks are small. The indent's grows upwards and the
+ * margins' downwards, so the two stacked on the left never take each other's pointer
+ */
+.handle::after {
+  content: '';
+  position: absolute;
+  inset: 0 -0.375rem -0.375rem;
+}
+
+.handle[data-handle='indent']::after {
+  inset: -0.375rem -0.375rem 0;
 }
 
 .handle:is([data-handle='left'], [data-handle='right']) {
@@ -118,6 +135,19 @@
 
 .handle:is(:hover, :focus-visible, [data-dragging='true']) .tooltip {
   opacity: 1;
+}
+
+/* Small screens (see EditorShell): below the binder, which stacks above the sheet */
+@media screen and (max-width: 78rem) {
+  .ruler {
+    margin-block-start: 0;
+  }
+}
+
+@media print {
+  .ruler {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

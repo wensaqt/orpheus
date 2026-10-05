@@ -3,7 +3,7 @@
 import type { LexicalEditor } from 'lexical'
 import { type ReactNode, useState } from 'react'
 
-import type { PageSettings } from '@/lib/pageFormats'
+import type { Layout } from '@/lib/layout'
 import type { Id } from '@/lib/ids'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
@@ -17,14 +17,15 @@ import { BinderProvider } from './binder/state/BinderProvider'
 import styles from './EditorShell.module.css'
 import { DocumentTitleSlot } from './header/documentTitleSlot'
 import { EditorHeader } from './header/EditorHeader'
-import { OpenEditorContext } from './header/openEditor'
-import { PageSettingsProvider } from './page/PageSettingsProvider'
+import { OpenEditorContext } from './editorFocus'
+import { LayoutProvider } from './page/LayoutProvider'
+import { Ruler } from './page/Ruler'
 import { SynonymsPanel } from './SynonymsPanel'
 
 type EditorShellProps = {
   compositionId: Id
   title: string
-  page: PageSettings
+  layout: Layout
   entries: BinderEntry[]
   // Remembered in a cookie, so the page renders with the binder as the writer left it
   binderHidden: boolean
@@ -40,7 +41,7 @@ type EditorShellProps = {
 export function EditorShell({
   compositionId,
   title,
-  page,
+  layout,
   entries,
   binderHidden,
   children,
@@ -58,7 +59,7 @@ export function EditorShell({
 
   return (
     <BinderProvider compositionId={compositionId} entries={entries}>
-      <PageSettingsProvider initial={page}>
+      <LayoutProvider initial={layout}>
         <OpenEditorContext value={{ editor: openEditor, setEditor: setOpenEditor }}>
           <DocumentTitleSlot value={documentTitleSlot}>
             <div className={styles.screen}>
@@ -76,7 +77,10 @@ export function EditorShell({
                     <BinderPanel onHide={() => toggle(true)} />
                   )}
                 </div>
-                <div className={styles.column}>{children}</div>
+                <div className={styles.column}>
+                  <Ruler />
+                  {children}
+                </div>
                 <div className={styles.aside}>
                   <SynonymsPanel />
                 </div>
@@ -84,7 +88,7 @@ export function EditorShell({
             </div>
           </DocumentTitleSlot>
         </OpenEditorContext>
-      </PageSettingsProvider>
+      </LayoutProvider>
     </BinderProvider>
   )
 }

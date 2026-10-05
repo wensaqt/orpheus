@@ -81,8 +81,8 @@
     justify-self: stretch;
   }
 
-  /* Pages have a fixed width (their line breaks must not depend on the window): scroll sideways */
-  .column {
-    overflow-x: auto;
-  }
+  /*
+   * Pages have a fixed width (their line breaks must not depend on the window): a window
+   * narrower than the page scrolls sideways, as a whole, so the ruler stays over the sheet
+   */
 }

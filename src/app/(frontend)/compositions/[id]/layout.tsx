@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 
-import { toPageSettings } from '@/lib/pageFormats'
+import { toLayout } from '@/lib/layout'
 
 import { getBinder } from '@front/_features/binder/queries'
 import { BINDER_HIDDEN_COOKIE, isPreferenceOn } from '@front/_lib/preferences'
@@ -33,7 +33,7 @@ export default async function CompositionLayout({
     <EditorShell
       compositionId={binder.composition.id}
       title={binder.composition.title}
-      page={toPageSettings(binder.composition.page)}
+      layout={toLayout(binder.composition)}
       entries={binder.entries}
       binderHidden={isPreferenceOn((await cookies()).get(BINDER_HIDDEN_COOKIE)?.value)}
     >

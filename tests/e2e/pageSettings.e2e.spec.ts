@@ -19,10 +19,9 @@ import {
 } from './paginationHelpers'
 
 // The composition's page settings as saved, once saving has caught up
-const savedPage = (account: Account, id: string) =>
-  account.payload
-    .findByID({ collection: 'compositions', id, depth: 0, overrideAccess: true })
-    .then(({ page }) => page)
+const saved = (account: Account, id: string) =>
+  account.payload.findByID({ collection: 'compositions', id, depth: 0, overrideAccess: true })
+const savedPage = (account: Account, id: string) => saved(account, id).then(({ page }) => page)
 
 // Saving waits for a pause in the changes, then for the server: slower on a busy dev server
 const SAVED = { timeout: 15_000 }
@@ -86,6 +85,29 @@ test.describe('Editor header', () => {
     await openDocument(page, account, prose(2))
     await page.emulateMedia({ media: 'print' })
     await expect(page.getByRole('toolbar', { name: 'Editor toolbar' })).toBeHidden()
+    await expect(page.getByRole('group', { name: 'Ruler' })).toBeHidden()
+    // Nothing above the pages: the first one starts at the top of the paper
+    await page.evaluate(() => window.scrollTo(0, 0))
+    expect((await firstSheet(page)).y).toBeCloseTo(0, 0)
+  })
+
+  test('without a document, holds the composition alone', async ({ page, account }) => {
+    const { composition, document } = await openDocument(page, account, prose(2))
+    await account.payload.delete({
+      collection: 'binder-items',
+      id: document.id,
+      overrideAccess: true,
+    })
+    await page.goto(`/compositions/${composition.id}`)
+    await expect(page.getByLabel('Composition title')).toHaveValue('Pages')
+    await expect(page.getByLabel('Document title')).toHaveCount(0)
+    await expect(page.locator('header').getByText('›')).toBeHidden()
+    await expect(page.getByRole('group', { name: 'Ruler' })).toHaveCount(0)
+
+    // A new document takes its place in the header
+    await page.getByRole('button', { name: 'New document' }).click()
+    await expect(page.getByLabel('Document title')).toBeVisible()
+    await expect(page.locator('header').getByText('›')).toBeVisible()
   })
 })
 
@@ -142,9 +164,34 @@ test.describe('Page setup', () => {
     await openPageSetup(page)
     await choose(page, 'A5')
     await expect(page.getByRole('radio', { name: 'A5' })).toBeChecked()
+    // The ruler shows them shrunk, and the text still fits its pages
+    const shrunk = String((148 - MIN_TEXT_AREA) / 2)
+    await expect(page.getByRole('slider', { name: 'Left margin' })).toHaveAttribute(
+      'aria-valuenow',
+      shrunk,
+    )
+    await settle(page)
+    expect((await readLayout(page, { top: 25 * MM_TO_PX, bottom: 25 * MM_TO_PX })).outside).toEqual(
+      [],
+    )
     await expect
-      .poll(async () => (await savedPage(account, composition.id)).margins?.left, SAVED)
-      .toBe((148 - MIN_TEXT_AREA) / 2)
+      .poll(async () => String((await savedPage(account, composition.id)).margins?.left), SAVED)
+      .toBe(shrunk)
+  })
+
+  test('a margin field can be emptied and typed again', async ({ page, account }) => {
+    const { composition } = await openDocument(page, account, prose(5))
+    await openPageSetup(page)
+    const top = page.getByRole('spinbutton', { name: 'Top' })
+    await top.click()
+    await top.press('ControlOrMeta+a')
+    await top.press('Backspace')
+    await expect(top).toHaveValue('')
+    await top.pressSequentially('32')
+    await expect(top).toHaveValue('32')
+    await expect
+      .poll(async () => (await savedPage(account, composition.id)).margins?.top, SAVED)
+      .toBe(32)
   })
 })
 
@@ -230,9 +277,39 @@ test.describe('Ruler', () => {
     expect(newFirst).toBeCloseTo(indent, 0)
     expect(newSecond).toBeCloseTo(0, 0)
     await expect
-      .poll(async () => (await savedPage(account, composition.id)).firstLineIndent, SAVED)
+      .poll(async () => (await saved(account, composition.id)).typography?.firstLineIndent, SAVED)
       .toBe(indent)
+
+    await page.reload()
+    await waitForEditor(page)
+    await expect(handle).toHaveAttribute('aria-valuenow', String(indent))
+    expect((await lineStarts(page, paragraph))[0]).toBeCloseTo(indent, 0)
   })
+
+  // The ruler is over the sheet whatever the window: its margin handle on the text's edge
+  for (const { width, binder, orientation } of [
+    { width: 1280, binder: 'shown', orientation: 'portrait' },
+    { width: 1280, binder: 'hidden', orientation: 'portrait' },
+    { width: 1600, binder: 'shown', orientation: 'portrait' },
+    { width: 1600, binder: 'hidden', orientation: 'landscape' },
+    { width: 700, binder: 'shown', orientation: 'portrait' },
+  ] as const) {
+    test(`lines up with the sheet: ${width}px, binder ${binder}, ${orientation}`, async ({
+      page,
+      account,
+    }) => {
+      await page.setViewportSize({ width, height: 800 })
+      await openDocument(page, account, prose(5), { orientation })
+      if (binder === 'hidden') await page.getByRole('button', { name: 'Hide binder' }).click()
+      await settle(page)
+      const ruler = (await page.getByRole('group', { name: 'Ruler' }).boundingBox())!
+      const sheet = await firstSheet(page)
+      expect(Math.abs(ruler.x - sheet.x)).toBeLessThanOrEqual(1.5)
+      const handle = (await page.getByRole('slider', { name: 'Left margin' }).boundingBox())!
+      const text = (await page.locator(editable).boundingBox())!
+      expect(Math.abs(handle.x + handle.width / 2 - text.x)).toBeLessThanOrEqual(1.5)
+    })
+  }
 
   test('the keyboard moves the first-line indent', async ({ page, account }) => {
     await openDocument(page, account, prose(5))
@@ -291,5 +368,32 @@ test.describe('Writing while setting the pages', () => {
     await page.keyboard.press('Escape')
     await expect.poll(async () => (await caret(page)).writing).toBe(true)
     expect(await caret(page)).toEqual(before)
+  })
+
+  test('pressing the page setup again closes it, back in the text', async ({ page, account }) => {
+    await openDocument(page, account, prose(10))
+    await page.getByText('Chant 1', { exact: true }).click()
+    const before = await caret(page)
+    await openPageSetup(page)
+    await expect(page.getByRole('dialog', { name: 'Page setup' })).toBeVisible()
+    await openPageSetup(page)
+    await expect(page.getByRole('dialog', { name: 'Page setup' })).toBeHidden()
+    await expect.poll(async () => (await caret(page)).writing).toBe(true)
+    expect(await caret(page)).toEqual(before)
+  })
+
+  test('a click in the text closes the page setup, the caret where clicked', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, prose(10))
+    await page.getByText('Chant 1', { exact: true }).click()
+    await openPageSetup(page)
+    const paragraph = page.locator(`${editable} p`).nth(1)
+    await paragraph.click()
+    await expect(page.getByRole('dialog', { name: 'Page setup' })).toBeHidden()
+    const after = await caret(page)
+    expect(after.writing).toBe(true)
+    expect(after.text).toBe(await paragraph.textContent())
   })
 })

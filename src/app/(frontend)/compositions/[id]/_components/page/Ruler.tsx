@@ -2,53 +2,50 @@
 
 import { type CSSProperties, type RefObject, useRef, useState } from 'react'
 
-import {
-  maxFirstLineIndent,
-  maxMargin,
-  pageSize,
-  type PageSettings,
-  withFirstLineIndent,
-  withMargin,
-} from '@/lib/pageFormats'
+import { pageSize } from '@/lib/pageFormats'
 
 import { MM_TO_PX } from '@front/_components/editor/pagination/pageGeometry'
 import { useLocale, useT } from '@front/_components/i18n/I18nProvider'
 
-import { isWriting, useOpenEditor } from '../header/openEditor'
-import { usePageSettings } from './PageSettingsProvider'
+import { useBinder } from '../binder/state/BinderProvider'
+import { isWriting, useOpenEditor } from '../editorFocus'
+import { useLayout } from './LayoutProvider'
 import styles from './Ruler.module.css'
-import { type RulerHandle, rulerLabels, valueAfterKey, valueAt } from './rulerGeometry'
+import {
+  handleMax,
+  handlePosition,
+  handleValue,
+  type RulerHandle,
+  rulerLabels,
+  valueAfterKey,
+  valueAt,
+  withHandleValue,
+} from './rulerGeometry'
 
 // The indent's marker comes last, so it sits over the left margin's when they meet
 const HANDLES: RulerHandle[] = ['left', 'right', 'indent']
 
-// Each handle's value, its upper bound, and the settings with a new value
-const valueOf = (handle: RulerHandle, settings: PageSettings) =>
-  handle === 'indent' ? settings.firstLineIndent : settings.margins[handle]
-
-const maxOf = (handle: RulerHandle, settings: PageSettings) =>
-  handle === 'indent' ? maxFirstLineIndent(settings) : maxMargin(settings, handle)
-
-const withValue = (handle: RulerHandle, settings: PageSettings, value: number) =>
-  handle === 'indent' ? withFirstLineIndent(settings, value) : withMargin(settings, handle, value)
-
 /*
- * The ruler over the sheet, as wide as the page: centimetres counted from the left margin,
- * the margins shaded, a triangle on each side margin, and above the left one a small bar for
- * the first-line indent. Each handle drags (or moves with the keyboard); the pages follow
- * while dragging, and the settings save once the hand stops.
+ * The ruler over the sheet, as wide as the page and right above it (so they line up whatever
+ * the window): centimetres counted from the left margin, the margins shaded, a triangle on
+ * each side margin, and above the left one a small bar for the first-line indent. Each handle
+ * drags (or moves with the keyboard); the pages follow while dragging, and the layout saves
+ * once the hand stops. It stays on screen under the header while the pages scroll.
  */
 export function Ruler() {
   const t = useT()
-  const { settings } = usePageSettings()
+  const { layout } = useLayout()
+  const { activeDocumentId } = useBinder()
   const ruler = useRef<HTMLDivElement>(null)
-  const { width } = pageSize(settings)
-  const { left, right } = settings.margins
+  // Nothing to measure without a document (an empty binder)
+  if (activeDocumentId === null) return null
+  const { width } = pageSize(layout.page)
+  const { left, right } = layout.page.margins
   const style = {
     '--ruler-width': `${width}mm`,
     '--margin-left': `${left}mm`,
     '--margin-right': `${right}mm`,
-    '--first-line-indent': `${settings.firstLineIndent}mm`,
+    '--first-line-indent': `${layout.typography.firstLineIndent}mm`,
   } as CSSProperties
 
   return (
@@ -82,22 +79,19 @@ function Handle({
 }) {
   const t = useT()
   const locale = useLocale()
-  const { settings, change } = usePageSettings()
+  const { layout, change } = useLayout()
   const editor = useOpenEditor()
   const [dragging, setDragging] = useState(false)
-  const value = valueOf(handle, settings)
-  const max = maxOf(handle, settings)
+  // How far from the handle's mark the pointer took it: the mark does not jump to the pointer
+  const grab = useRef(0)
+  const value = handleValue(handle, layout)
+  const max = handleMax(handle, layout)
   const label = t(`editor.ruler.${handle}`)
   const valueText = t('editor.ruler.value', { value: value.toLocaleString(locale) })
 
-  const set = (next: number) => change(withValue(handle, settings, next))
-  // The value under the pointer, from the ruler's own position on screen
-  const moveTo = (clientX: number) => {
-    const bounds = ruler.current?.getBoundingClientRect()
-    if (!bounds) return
-    const pointer = (clientX - bounds.left) / MM_TO_PX
-    set(valueAt(handle, pointer, { width: pageSize(settings).width, left: settings.margins.left }))
-  }
+  // Where the pointer is on the ruler, in millimetres from the page's left edge
+  const pointerAt = (clientX: number) =>
+    (clientX - (ruler.current?.getBoundingClientRect().left ?? 0)) / MM_TO_PX
 
   return (
     <div
@@ -122,10 +116,13 @@ function Handle({
         event.preventDefault()
         event.currentTarget.setPointerCapture(event.pointerId)
         if (!isWriting(editor)) event.currentTarget.focus()
+        grab.current = pointerAt(event.clientX) - handlePosition(handle, layout)
         setDragging(true)
       }}
       onPointerMove={(event) => {
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) moveTo(event.clientX)
+        if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
+        const position = pointerAt(event.clientX) - grab.current
+        change((current) => withHandleValue(handle, current, valueAt(handle, position, current)))
       }}
       onPointerUp={() => setDragging(false)}
       onPointerCancel={() => setDragging(false)}
@@ -133,7 +130,7 @@ function Handle({
         const next = valueAfterKey(handle, event, value, max)
         if (next === null) return
         event.preventDefault()
-        set(next)
+        change((current) => withHandleValue(handle, current, next))
       }}
     >
       <span className={styles.tooltip} aria-hidden="true">

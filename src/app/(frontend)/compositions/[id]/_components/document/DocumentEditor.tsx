@@ -22,8 +22,8 @@ import { useTitleField } from '@front/_hooks/useTitleField'
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
 import { SAVERS } from '../binder/state/useSaveRegistry'
 import { useDocumentTitleSlot } from '../header/documentTitleSlot'
-import { useRegisterOpenEditor } from '../header/openEditor'
-import { usePageSettings } from '../page/PageSettingsProvider'
+import { useRegisterOpenEditor } from '../editorFocus'
+import { useLayout } from '../page/LayoutProvider'
 import styles from './DocumentEditor.module.css'
 import { DocumentTitle } from './DocumentTitle'
 
@@ -55,7 +55,7 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
   const t = useT()
   const [editor] = useLexicalComposerContext()
   const { commands } = useBinder()
-  const { settings: page } = usePageSettings()
+  const { layout } = useLayout()
   const titleSlot = useDocumentTitleSlot()
   useRegisterOpenEditor(editor)
   // The version shown, to tell a newer one from elsewhere (another tab) from this tab's saves
@@ -107,7 +107,7 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
           {t('editor.saveError')}
         </p>
       ) : null}
-      <PagedSheet settings={page}>
+      <PagedSheet settings={layout.page} typography={layout.typography}>
         <EditorContent label={t('editor.textLabel')} />
       </PagedSheet>
     </>

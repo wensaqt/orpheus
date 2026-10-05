@@ -21,7 +21,7 @@ import {
 import type { EditorDocument } from '@front/_features/binder/types'
 
 import { useBinder } from '../binder/state/BinderProvider'
-import { usePageSettings } from '../page/PageSettingsProvider'
+import { useLayout } from '../page/LayoutProvider'
 import { DocumentEditor } from './DocumentEditor'
 import { EmptyBinder } from './EmptyBinder'
 import styles from './OpenDocument.module.css'
@@ -49,7 +49,7 @@ export function OpenDocument({ initial }: { initial: RenderedDocument | null }) 
 function DocumentLoader({ id, initial }: { id: Id; initial?: RenderedDocument }) {
   const t = useT()
   const { compositionId, entries } = useBinder()
-  const { settings: page } = usePageSettings()
+  const { layout } = useLayout()
   const slot = useDocumentSlot(id)
   const ready = newerText(slot?.status === 'ready' ? slot.document : undefined, initial)
   // Chosen once: the editor reads its initial state on mount only
@@ -93,7 +93,7 @@ function DocumentLoader({ id, initial }: { id: Id; initial?: RenderedDocument })
       <p className="visually-hidden" role="status">
         {t('editor.loading')}
       </p>
-      <BlankPage settings={page} />
+      <BlankPage settings={layout.page} />
     </div>
   )
 }

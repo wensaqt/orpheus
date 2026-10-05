@@ -1,12 +1,27 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  handleMax,
+  handlePosition,
+  handleValue,
   RULER_STEP,
   RULER_STEP_LARGE,
   rulerLabels,
   valueAfterKey,
   valueAt,
+  withHandleValue,
 } from '@/app/(frontend)/compositions/[id]/_components/page/rulerGeometry'
+import type { Layout } from '@/lib/layout'
+
+// A4 with 25 mm margins and a 10 mm first-line indent
+const layout: Layout = {
+  page: {
+    format: 'A4',
+    orientation: 'portrait',
+    margins: { top: 25, right: 25, bottom: 25, left: 25 },
+  },
+  typography: { firstLineIndent: 10 },
+}
 
 describe('rulerLabels', () => {
   it('counts centimetres from the left margin, both ways', () => {
@@ -25,16 +40,29 @@ describe('rulerLabels', () => {
   })
 })
 
-describe('valueAt', () => {
-  const page = { width: 210, left: 25 }
-
-  it('reads the left margin from the left edge, the right one from the right edge', () => {
-    expect(valueAt('left', 30, page)).toBe(30)
-    expect(valueAt('right', 180, page)).toBe(30)
+describe('handles', () => {
+  it('sit at their margin, the indent after the left margin', () => {
+    expect(handlePosition('left', layout)).toBe(25)
+    expect(handlePosition('right', layout)).toBe(185)
+    expect(handlePosition('indent', layout)).toBe(35)
   })
 
-  it('reads the first-line indent from the left margin', () => {
-    expect(valueAt('indent', 35, page)).toBe(10)
+  it('set what lies under them, the inverse of where they sit', () => {
+    for (const handle of ['left', 'right', 'indent'] as const)
+      expect(valueAt(handle, handlePosition(handle, layout), layout)).toBe(
+        handleValue(handle, layout),
+      )
+  })
+
+  it('know their bounds', () => {
+    expect(handleMax('left', layout)).toBe(210 - 40 - 25)
+    expect(handleMax('indent', layout)).toBe(80)
+  })
+
+  it('keep the layout fitted: wider margins shrink the indent', () => {
+    const indented = withHandleValue('indent', layout, 80)
+    expect(indented.typography.firstLineIndent).toBe(80)
+    expect(withHandleValue('left', indented, 85).typography.firstLineIndent).toBe(50)
   })
 })
 

@@ -5,18 +5,19 @@ import { DEFAULT_COMPOSITION_TITLE, MAX_COMPOSITION_TITLE_LENGTH } from '@/lib/c
 import {
   DEFAULT_PAGE_FORMAT,
   DEFAULT_PAGE_MARGIN,
-  MAX_FIRST_LINE_INDENT,
   MAX_PAGE_MARGIN,
   PAGE_FORMATS,
   PAGE_ORIENTATIONS,
   type PageMargin,
 } from '@/lib/pageFormats'
 
+import { MAX_FIRST_LINE_INDENT } from '@/lib/typography'
+
 import { ownCompositions } from './access'
-import { addFirstDocument, deleteBinder, setOwnerOnCreate } from './hooks'
+import { addFirstDocument, deleteBinder, fitLayoutOnChange, setOwnerOnCreate } from './hooks'
 import { validateTitle } from './validators'
 
-// Each margin alone; whether they leave enough text together is checked when they are saved
+// Each margin alone; together with the page and the indent, they are fitted on every save
 const margin = (name: PageMargin) => ({
   name,
   type: 'number' as const,
@@ -40,6 +41,7 @@ export const Compositions: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [setOwnerOnCreate],
+    beforeChange: [fitLayoutOnChange],
     afterChange: [addFirstDocument],
     beforeDelete: [deleteBinder],
   },
@@ -96,6 +98,13 @@ export const Compositions: CollectionConfig = {
             },
           ],
         },
+      ],
+    },
+    // How the text is set on the pages (font, size and line height will join it)
+    {
+      name: 'typography',
+      type: 'group',
+      fields: [
         {
           name: 'firstLineIndent',
           type: 'number',
