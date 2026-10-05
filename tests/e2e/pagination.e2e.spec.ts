@@ -182,7 +182,9 @@ test.describe('Pagination', () => {
       documentOf([paragraphNode('Avant le saut.'), pageBreakNode(), paragraphNode('Après.')]),
     )
     const pageBreak = (await page.locator(`[${PAGE_BREAK_ATTRIBUTE}]`).boundingBox())!
-    await page.mouse.click(pageBreak.x + pageBreak.width / 2, pageBreak.y + pageBreak.height / 2)
+    // In the middle of the part on screen: it runs to the page's end, below the window
+    const bottom = Math.min(pageBreak.y + pageBreak.height, page.viewportSize()!.height)
+    await page.mouse.click(pageBreak.x + pageBreak.width / 2, (pageBreak.y + bottom) / 2)
     await page.keyboard.insertText('!')
     await expect(page.getByText('Avant le saut.!')).toBeVisible()
   })

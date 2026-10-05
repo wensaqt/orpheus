@@ -1,11 +1,10 @@
 'use client'
 
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { $insertNodeToNearestRoot } from '@lexical/utils'
 import { COMMAND_PRIORITY_LOW, KEY_ENTER_COMMAND } from 'lexical'
 import { useEffect } from 'react'
 
-import { $createPageBreakNode } from '../nodes/PageBreakNode'
+import { $insertPageBreak } from '../formatting'
 
 /*
  * Cmd/Ctrl+Enter inserts a page break where the caret is, as in word processors; the caret
@@ -23,7 +22,7 @@ export function PageBreakPlugin() {
           if (!event || !(event.metaKey || event.ctrlKey)) return false
           event.preventDefault()
           // Command listeners already run inside an editor update
-          $insertNodeToNearestRoot($createPageBreakNode())
+          $insertPageBreak()
           return true
         },
         COMMAND_PRIORITY_LOW,

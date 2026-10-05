@@ -14,12 +14,12 @@ import {
 } from '@lexical/markdown'
 import { ContentEditable } from '@lexical/react/LexicalContentEditable'
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
 import { ListPlugin } from '@lexical/react/LexicalListPlugin'
 import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 
 import styles from './EditorContent.module.css'
+import { HistoryPlugin } from './plugins/HistoryPlugin'
 import { PageBreakPlugin } from './plugins/PageBreakPlugin'
 
 // Markdown shortcuts limited to the nodes the composer registers

@@ -11,9 +11,12 @@ import { useTitleField } from '@front/_hooks/useTitleField'
 
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
 import { SAVERS } from '../binder/state/useSaveRegistry'
+import { useOpenEditor } from '../editorFocus'
 import { useLayout } from '../page/LayoutProvider'
 import styles from './EditorHeader.module.css'
-import { PageSetup } from './PageSetup'
+import { MenuBar } from './MenuBar'
+import { StyleToolbar } from './StyleToolbar'
+import { useToolbarState } from './useToolbarState'
 
 type EditorHeaderProps = {
   title: string
@@ -23,7 +26,8 @@ type EditorHeaderProps = {
 
 /*
  * The editor's header, which stays on screen while the pages scroll: where the writer is
- * (composition › document), then the toolbar. The ruler stays right under it, over the sheet
+ * (composition › document), the menu bar, then the style toolbar, both following the open
+ * document's selection. The ruler stays right under it, over the sheet
  */
 export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
   const t = useT()
@@ -35,6 +39,7 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
     save: (next) => saveComposition(compositionId, { title: next }),
   })
   useRegisterSaver(SAVERS.compositionTitle, field)
+  const toolbarState = useToolbarState(useOpenEditor())
 
   return (
     <header className={styles.header}>
@@ -56,9 +61,8 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
           </p>
         ) : null}
       </div>
-      <div className={styles.toolbar} role="toolbar" aria-label={t('editor.toolbar')}>
-        <PageSetup />
-      </div>
+      <MenuBar state={toolbarState} />
+      <StyleToolbar state={toolbarState} />
     </header>
   )
 }

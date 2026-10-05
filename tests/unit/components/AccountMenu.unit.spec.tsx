@@ -25,7 +25,7 @@ describe('AccountMenu', () => {
     const description = document.getElementById(menu.getAttribute('aria-describedby')!)
     expect(description?.textContent).toBe('Signed in as orphee@example.test')
     const profile = screen.getByRole('menuitem', { name: 'Profile', hidden: true })
-    expect(profile.hasAttribute('disabled')).toBe(true)
+    expect(profile.getAttribute('aria-disabled')).toBe('true')
     expect(profile.getAttribute('title')).toBe('Coming soon')
   })
 
