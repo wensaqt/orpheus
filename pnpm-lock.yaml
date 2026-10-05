@@ -17,6 +17,9 @@ importers:
       '@atlaskit/pragmatic-drag-and-drop-hitbox':
         specifier: ^3.0.0
         version: 3.0.0
+      '@lexical/history':
+        specifier: 0.50.0
+        version: 0.50.0(typescript@5.7.3)
       '@lexical/list':
         specifier: 0.50.0
         version: 0.50.0(typescript@5.7.3)
@@ -27,6 +30,9 @@ importers:
         specifier: 0.50.0
         version: 0.50.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@5.7.3)(yjs@13.6.32)
       '@lexical/rich-text':
+        specifier: 0.50.0
+        version: 0.50.0(typescript@5.7.3)
+      '@lexical/selection':
         specifier: 0.50.0
         version: 0.50.0(typescript@5.7.3)
       '@lexical/utils':

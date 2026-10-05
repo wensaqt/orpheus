@@ -1,14 +1,15 @@
 /*
  * Stays at the top while the pages scroll. Its first line is level with the logo and the
- * corner actions, which keep their own places on either side.
+ * corner actions, which keep their own places on either side. Over the ruler, which sticks
+ * right under it: the toolbar's tooltips show over the ruler.
  */
 .header {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: var(--layer-header);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
   height: var(--editor-header-height);
   padding: var(--space-3) var(--header-inset) var(--space-2);
   border-block-end: 1px solid var(--color-border);
@@ -48,13 +49,6 @@
 .saveError {
   font-size: var(--text-sm);
   color: var(--color-accent);
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  min-height: var(--control-size);
 }
 
 @media print {

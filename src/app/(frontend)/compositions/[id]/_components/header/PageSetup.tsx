@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { type Ref, type RefObject, useId, useState } from 'react'
 
 import { fitLayout } from '@/lib/layout'
 import {
@@ -14,49 +14,38 @@ import {
 } from '@/lib/pageFormats'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
-import { Popover } from '@front/_components/ui/Popover/Popover'
+import { Popover, type PopoverHandle } from '@front/_components/ui/Popover/Popover'
 
-import { useFocusReturn } from '../editorFocus'
 import { useLayout } from '../page/LayoutProvider'
 import styles from './PageSetup.module.css'
 
 // The margins set here; the side ones are on the ruler
 const FIELDS = ['top', 'bottom'] as const satisfies PageMargin[]
 
+type PageSetupProps = {
+  // Opens the panel (from the File menu)
+  ref: Ref<PopoverHandle>
+  // What the panel opens below
+  anchor: RefObject<Element | null>
+  // Closed in place: back to the text, if the writer came from there
+  onClose: () => void
+}
+
 /*
- * The page setup of the composition, from the toolbar: format, orientation, and the top and
- * bottom margins. Every change applies to the pages at once and saves on its own; once closed,
- * the writer is back in the text if they came from there.
+ * The page setup of the composition, from the File menu: format, orientation, and the top and
+ * bottom margins. Every change applies to the pages at once and saves on its own.
  */
-export function PageSetup() {
+export function PageSetup({ ref, anchor, onClose }: PageSetupProps) {
   const t = useT()
   const id = useId()
   const { layout, change } = useLayout()
   const { page } = layout
-  // Back to the text once closed, if the writer came from there
-  const focus = useFocusReturn()
   // The page changed, then everything fitted to it (margins, then the indent)
   const changePage = (update: (page: PageSettings) => PageSettings) =>
     change((current) => fitLayout({ ...current, page: update(current.page) }))
-  const summary = t('editor.pageSetup.summary', {
-    format: t(`editor.pageSetup.formats.${page.format}`),
-    orientation: t(`editor.pageSetup.${page.orientation}`),
-  })
 
   return (
-    <Popover
-      label={t('editor.pageSetup.open')}
-      triggerClassName={styles.trigger}
-      onTriggerPointerDown={focus.remember}
-      onCloseInPlace={focus.restore}
-      trigger={
-        <>
-          <PageIcon />
-          <span className="visually-hidden">{t('editor.pageSetup.open')}</span>
-          {summary}
-        </>
-      }
-    >
+    <Popover ref={ref} anchor={anchor} label={t('editor.pageSetup.open')} onCloseInPlace={onClose}>
       <div className={styles.panel}>
         <fieldset className={styles.group}>
           <legend className={styles.legend}>{t('editor.pageSetup.format')}</legend>
@@ -150,19 +139,5 @@ function MarginField({
         {unit}
       </span>
     </label>
-  )
-}
-
-// A sheet with a folded corner
-function PageIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M4 1.5h5.5L12.5 4.5v10h-8.5z M9.5 1.5v3h3"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-    </svg>
   )
 }

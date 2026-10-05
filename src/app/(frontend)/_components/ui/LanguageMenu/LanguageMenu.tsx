@@ -40,6 +40,7 @@ export function LanguageMenu() {
     label: LOCALE_NAMES[option],
     icon: LOCALE_FLAGS[option],
     lang: option,
+    kind: 'radio',
     checked: option === locale,
     disabled: pending,
     onSelect: () => void choose(option),

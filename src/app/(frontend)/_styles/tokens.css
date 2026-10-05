@@ -71,11 +71,37 @@
   --header-inset: 6rem;
   /* Height of the ruler over the sheet */
   --ruler-size: 1.25rem;
+  /* The editor's menu bar (a line of words) and style toolbar (a band of controls) */
+  --menubar-height: 1.5rem;
+  --toolbar-height: calc(var(--control-size) + 2 * var(--space-1));
+  --toolbar-gap: 2px;
+  /* Wide enough for the longest paragraph style's name */
+  --block-type-width: 8.5rem;
   /*
-   * Height of the editor's header: its top padding, the titles' line and the toolbar's (a
-   * control each), the gap between them, its bottom padding and its border
+   * Height of the editor's header: its top padding, the titles' line (a control), the menu
+   * bar, the toolbar, the two gaps between them, its bottom padding and its border
    */
-  --editor-header-height: calc(var(--space-3) + 2 * var(--control-size) + 2 * var(--space-2) + 1px);
+  --editor-header-height: calc(
+    var(--space-3) + var(--control-size) + var(--menubar-height) + var(--toolbar-height) + 2 *
+      var(--space-1) + var(--space-2) + 1px
+  );
+
+  /*
+   * Stacking layers, for what is positioned over the page. A tooltip's is within its own
+   * control's layer
+   */
+  /* The ruler, over the pages that scroll under it */
+  --layer-ruler: 1;
+  /* The editor's sticky header, over the ruler: its tooltips show over it */
+  --layer-header: 2;
+  /* The logo and the corner actions, fixed over the header, which leaves them room */
+  --layer-corner: 3;
+  /* The opening desk, standing in for the whole editor while it loads, corners included */
+  --layer-overlay: 4;
+  /* Toasts, over everything */
+  --layer-toast: 5;
+  /* A tooltip, over the controls next to its own */
+  --layer-tooltip: 1;
 
   /* Radii */
   --radius-sm: 4px;

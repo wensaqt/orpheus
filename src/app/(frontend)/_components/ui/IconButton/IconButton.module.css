@@ -26,12 +26,29 @@
   outline-offset: 2px;
 }
 
+/* On, for a toggle (bold, an alignment) */
+.button[aria-pressed='true'] {
+  background-color: var(--color-surface-accent);
+  color: var(--color-primary);
+}
+
+/* Nothing to act on, or not there yet: still focusable, and its tooltip (not faded) says why */
+.button[aria-disabled='true'] {
+  background: none;
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.button[aria-disabled='true'] > :not(.tooltip) {
+  opacity: 0.4;
+}
+
 /* Below the button, after a short delay so it does not flash while the mouse passes by */
 .tooltip {
   position: absolute;
   top: calc(100% + var(--space-1));
   left: 50%;
-  z-index: 2;
+  z-index: var(--layer-tooltip);
   padding: 2px var(--space-2);
   border-radius: var(--radius-sm);
   background-color: var(--color-text);

@@ -31,7 +31,9 @@
 }
 
 .item {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
   width: 100%;
   padding: var(--space-2) var(--space-3);
   border: none;
@@ -44,13 +46,13 @@
   cursor: pointer;
 }
 
-.item:enabled:is(:hover, :focus-visible) {
+.item:not([aria-disabled='true']):is(:hover, :focus-visible) {
   outline: none;
   background-color: var(--color-surface-accent);
   color: var(--color-primary-hover);
 }
 
-.item[data-tone='danger']:enabled:is(:hover, :focus-visible) {
+.item[data-tone='danger']:not([aria-disabled='true']):is(:hover, :focus-visible) {
   color: var(--color-accent);
 }
 
@@ -65,10 +67,29 @@
   color: var(--color-primary);
 }
 
-.item:disabled {
+/* Still focusable, so the keyboard reaches it: only a faint mark where the focus is */
+.item[aria-disabled='true'] {
   color: var(--color-text-muted);
   opacity: 0.5;
   cursor: default;
+}
+
+.item[aria-disabled='true']:focus-visible {
+  outline: none;
+  background-color: var(--color-surface);
+}
+
+/* At the item's end, quieter than its label */
+.shortcut {
+  margin-inline-start: auto;
+  padding-inline-start: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.separator {
+  margin-block: var(--space-1);
+  border-block-start: 1px solid var(--color-border);
 }
 
 @media (prefers-reduced-motion: reduce) {

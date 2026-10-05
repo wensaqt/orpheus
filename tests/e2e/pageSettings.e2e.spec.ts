@@ -52,7 +52,11 @@ const lineStarts = (page: Page, text: string) =>
     { text, editable, mm: MM_TO_PX },
   )
 
-const openPageSetup = (page: Page) => page.getByRole('button', { name: /Page setup/ }).click()
+// From the menu bar, as a hand would
+async function openPageSetup(page: Page) {
+  await page.getByRole('menubar').getByRole('menuitem', { name: 'File' }).click()
+  await page.getByRole('menuitem', { name: 'Page setup…' }).click()
+}
 
 // A choice of the page setup, clicked as a hand would: on its label (the radio is unseen)
 const choose = (page: Page, name: string) =>
@@ -85,6 +89,7 @@ test.describe('Editor header', () => {
     await openDocument(page, account, prose(2))
     await page.emulateMedia({ media: 'print' })
     await expect(page.getByRole('toolbar', { name: 'Editor toolbar' })).toBeHidden()
+    await expect(page.getByRole('menubar')).toBeHidden()
     await expect(page.getByRole('group', { name: 'Ruler' })).toBeHidden()
     // Nothing above the pages: the first one starts at the top of the paper
     await page.evaluate(() => window.scrollTo(0, 0))
@@ -122,7 +127,6 @@ test.describe('Page setup', () => {
     await expect(page.getByRole('radio', { name: 'A5' })).toBeChecked()
     const a5 = toGeometry(toPageSettings({ format: 'A5', orientation: 'portrait' }))
     await expect.poll(async () => (await firstSheet(page)).width).toBeCloseTo(a5.width, 0)
-    await expect(page.getByRole('button', { name: /Page setup/ })).toContainText('A5 · Portrait')
     await expect
       .poll(async () => (await savedPage(account, composition.id)).format, SAVED)
       .toBe('A5')
@@ -373,16 +377,23 @@ test.describe('Writing while setting the pages', () => {
     expect(await caret(page)).toEqual(before)
   })
 
-  test('pressing the page setup again closes it, back in the text', async ({ page, account }) => {
+  test('opened from the keyboard, the page setup closes back on the menu bar', async ({
+    page,
+    account,
+  }) => {
     await openDocument(page, account, prose(10))
-    await page.getByText('Chant 1', { exact: true }).click()
-    const before = await caret(page)
-    await openPageSetup(page)
-    await expect(page.getByRole('dialog', { name: 'Page setup' })).toBeVisible()
-    await openPageSetup(page)
-    await expect(page.getByRole('dialog', { name: 'Page setup' })).toBeHidden()
-    await expect.poll(async () => (await caret(page)).writing).toBe(true)
-    expect(await caret(page)).toEqual(before)
+    const file = page.getByRole('menubar').getByRole('menuitem', { name: 'File' })
+    await file.focus()
+    await page.keyboard.press('ArrowDown')
+    await expect(page.getByRole('menuitem', { name: 'Page setup…' })).toBeFocused()
+    await page.keyboard.press('Enter')
+    const dialog = page.getByRole('dialog', { name: 'Page setup' })
+    await expect(dialog).toBeVisible()
+    // The current format has the focus, the arrows choose another
+    await expect(dialog.getByRole('radio', { name: 'A4' })).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await expect(file).toBeFocused()
   })
 
   test('a click in the text closes the page setup, the caret where clicked', async ({
