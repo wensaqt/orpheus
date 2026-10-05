@@ -1,7 +1,7 @@
-import { PAGE_BREAK_ATTRIBUTE } from '../nodes/PageBreakNode'
-import { nearestTextOffset, type PageGeometry } from './pageGeometry'
+import { $getNearestNodeFromDOMNode } from 'lexical'
 
-type Point = { x: number; y: number }
+import { PageBreakNode } from '../nodes/PageBreakNode'
+import { caretPoint, nearestTextOffset, type PageGeometry, type Point } from './pageGeometry'
 
 // The text position under a point, with the API each engine has
 function caretFromPoint({ x, y }: Point): { node: Node; offset: number } | null {
@@ -14,37 +14,33 @@ function caretFromPoint({ x, y }: Point): { node: Node; offset: number } | null 
   return range ? { node: range.startContainer, offset: range.startOffset } : null
 }
 
-// The pages as laid out right now: where the first sheet's top is on screen, and how many
-type PagesOnScreen = { top: number; page: PageGeometry; gap: number; pages: number }
+// The pages as laid out right now: where the text flow starts on screen, and how many pages
+export type PagesOnScreen = { flowTop: number; page: PageGeometry; gap: number; pages: number }
 
 /*
- * Where a click that missed the text should put the caret, as in a word processor: on the
- * nearest line. Null when the click hit the text itself, which the browser handles.
- * - In a margin or the gap between sheets: the nearest text area, at the same height if it is
- *   level with one.
- * - Below the last line: the last line.
- * - In the blank a page break stretches over: the end of the text before it.
+ * Where a click on a sheet that missed the text should put the caret, as in a word processor:
+ * on the nearest line, at the same height if a text area is level with the click (a side
+ * margin), else at the nearest edge of the nearest one (top and bottom margins, the gap
+ * between sheets), and on the last line below it
  */
 export function caretTarget(
   editable: HTMLElement,
-  target: Element,
   click: Point,
-  pages: PagesOnScreen,
-) {
-  const pageBreak = target.closest(`[${PAGE_BREAK_ATTRIBUTE}]`)
-  if (editable.contains(target) && !pageBreak) return null
-  const before = pageBreak?.previousElementSibling
-  // A break that opens the text has nothing before it to go to
-  if (pageBreak && !before) return null
-  const text = editable.getBoundingClientRect()
-  const y = before
-    ? before.getBoundingClientRect().bottom - 2
-    : pages.top + nearestTextOffset(click.y - pages.top, pages.page, pages.gap, pages.pages)
-  // A pixel inside the text, so the point hits a line rather than its edge
-  return {
-    x: Math.min(Math.max(click.x, text.left + 1), text.right - 1),
-    y: Math.min(y, text.bottom - 1),
-  }
+  { flowTop, page, gap, pages }: PagesOnScreen,
+): Point {
+  const lineY = flowTop + nearestTextOffset(click.y - flowTop, page, gap, pages)
+  return caretPoint(click, editable.getBoundingClientRect(), lineY)
+}
+
+/*
+ * For a click in the blank a page break stretches over (breaks in a row too): selects the end
+ * of the text before it. Through the editor, not a point on screen: that text may be pages
+ * above, out of view.
+ */
+export function $selectTextBefore(pageBreak: Element) {
+  let node = $getNearestNodeFromDOMNode(pageBreak)?.getPreviousSibling()
+  while (node instanceof PageBreakNode) node = node.getPreviousSibling()
+  node?.selectEnd()
 }
 
 // Puts the caret at the text position under that point, if it is in the editor

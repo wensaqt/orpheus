@@ -73,6 +73,17 @@
   position: relative;
 }
 
+/*
+ * An empty line (a block holding only a line break) is zero wide, and engines let that fit
+ * beside a band: it would sit between two pages, the caret with it. An unseen pixel of content
+ * makes it go below, onto the next page, like any line
+ */
+.text :has(> br:only-child)::before {
+  content: '';
+  display: inline-block;
+  width: 1px;
+}
+
 @media print {
   .paged {
     --page-gap: 0px;

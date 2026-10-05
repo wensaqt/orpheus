@@ -5,10 +5,12 @@ import { type CSSProperties, type MouseEvent, type ReactNode, useRef } from 'rea
 
 import { type PageSettings, pageSize } from '@/lib/pageFormats'
 
+import { PAGE_BREAK_ATTRIBUTE } from '../nodes/PageBreakNode'
 import styles from './PagedSheet.module.css'
-import { caretTarget, placeCaretAt } from './caretPlacement'
+import { $selectTextBefore, caretTarget, placeCaretAt } from './caretPlacement'
 import { bandHeight, contentHeight, toGeometry } from './pageGeometry'
-import { usePageLayout } from './usePageLayout'
+import { PAGE_SHEET_ATTRIBUTE, PAGES_ATTRIBUTE } from './pageAttributes'
+import { flowTopOnScreen, usePageLayout } from './usePageLayout'
 
 /*
  * The document on real pages of its format. The text stays one flow (one editor, native
@@ -32,20 +34,26 @@ export function PagedSheet({
   const pages = usePageLayout(root, measureGap, page)
   const { width, height } = page
 
-  // A click on a sheet that misses the text puts the caret on the nearest line
+  // A click on a sheet that misses the text puts the caret in it, as in a word processor
   function onMouseDown(event: MouseEvent<HTMLDivElement>) {
     const editable = editor.getRootElement()
-    if (event.button !== 0 || !editable) return
-    const point = caretTarget(
-      editable,
-      event.target as Element,
-      { x: event.clientX, y: event.clientY },
-      { top: event.currentTarget.getBoundingClientRect().top, page, gap: measureGap(), pages },
-    )
-    if (!point) return
+    const { button, target, clientX, clientY, currentTarget } = event
+    if (button !== 0 || !editable || !(target instanceof Element)) return
+    const pageBreak = target.closest(`[${PAGE_BREAK_ATTRIBUTE}]`)
+    if (editable.contains(target) && !pageBreak) return
     // Else the browser would take the focus out of the editor
     event.preventDefault()
-    placeCaretAt(editable, point)
+    if (pageBreak) {
+      editable.focus({ preventScroll: true })
+      editor.update(() => $selectTextBefore(pageBreak))
+      return
+    }
+    const flowTop = flowTopOnScreen(currentTarget, page)
+    const gap = measureGap()
+    placeCaretAt(
+      editable,
+      caretTarget(editable, { x: clientX, y: clientY }, { flowTop, page, gap, pages }),
+    )
   }
 
   const style = {
@@ -63,7 +71,7 @@ export function PagedSheet({
       ref={root}
       className={styles.paged}
       style={style}
-      data-pages={pages}
+      {...{ [PAGES_ATTRIBUTE]: pages }}
       onMouseDown={onMouseDown}
     >
       {/* Printed at the composition's format, edge to edge: margins are the pages' own */}
@@ -71,7 +79,12 @@ export function PagedSheet({
       <div ref={gapProbe} className={styles.gapProbe} aria-hidden="true" />
       <div className={styles.sheets} aria-hidden="true">
         {Array.from({ length: pages }, (_, index) => (
-          <div key={index} className={styles.sheet} style={{ '--index': index } as CSSProperties} />
+          <div
+            key={index}
+            className={styles.sheet}
+            style={{ '--index': index } as CSSProperties}
+            {...{ [PAGE_SHEET_ATTRIBUTE]: '' }}
+          />
         ))}
       </div>
       <div className={styles.flow}>
