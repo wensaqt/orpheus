@@ -237,3 +237,52 @@ test.describe('Ruler', () => {
     await expect(handle).toHaveAttribute('aria-valuenow', '0')
   })
 })
+
+test.describe('Writing while setting the pages', () => {
+  // Where the caret is: the text it is in and its offset there, and whether the text has focus
+  const caret = (page: Page) =>
+    page.evaluate((editable) => {
+      const selection = window.getSelection()!
+      return {
+        text: selection.anchorNode?.textContent ?? '',
+        offset: selection.anchorOffset,
+        writing: Boolean(document.querySelector(editable)?.contains(document.activeElement)),
+      }
+    }, editable)
+
+  test('dragging a margin leaves the caret where it was, in the text', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, prose(10))
+    await page.getByText('Chant 1', { exact: true }).click()
+    const before = await caret(page)
+    expect(before.writing).toBe(true)
+
+    const box = (await page.getByRole('slider', { name: 'Left margin' }).boundingBox())!
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(box.x + box.width / 2 + 10 * MM_TO_PX, box.y + box.height / 2, {
+      steps: 4,
+    })
+    await page.mouse.up()
+    await settle(page)
+    expect(await caret(page)).toEqual(before)
+    // Typing goes on where it was
+    await page.keyboard.insertText('!')
+    await expect(page.locator(editable)).toContainText(
+      `${before.text.slice(0, before.offset)}!${before.text.slice(before.offset)}`,
+    )
+  })
+
+  test('closing the page setup goes back to the text', async ({ page, account }) => {
+    await openDocument(page, account, prose(10))
+    await page.getByText('Chant 1', { exact: true }).click()
+    const before = await caret(page)
+    await openPageSetup(page)
+    await page.getByRole('spinbutton', { name: 'Top' }).fill('30')
+    await page.keyboard.press('Escape')
+    await expect.poll(async () => (await caret(page)).writing).toBe(true)
+    expect(await caret(page)).toEqual(before)
+  })
+})

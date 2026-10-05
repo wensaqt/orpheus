@@ -14,6 +14,7 @@ import {
 import { MM_TO_PX } from '@front/_components/editor/pagination/pageGeometry'
 import { useLocale, useT } from '@front/_components/i18n/I18nProvider'
 
+import { isWriting, useOpenEditor } from '../header/openEditor'
 import { usePageSettings } from './PageSettingsProvider'
 import styles from './Ruler.module.css'
 import { type RulerHandle, rulerLabels, valueAfterKey, valueAt } from './rulerGeometry'
@@ -82,6 +83,7 @@ function Handle({
   const t = useT()
   const locale = useLocale()
   const { settings, change } = usePageSettings()
+  const editor = useOpenEditor()
   const [dragging, setDragging] = useState(false)
   const value = valueOf(handle, settings)
   const max = maxOf(handle, settings)
@@ -112,10 +114,14 @@ function Handle({
       data-dragging={dragging}
       onPointerDown={(event) => {
         if (event.button !== 0) return
-        // No text selection, no lost focus: the handle follows the pointer until released
+        /*
+         * No text selection, and the focus stays where it is: a writer in the text stays
+         * there, the caret following the text as it moves; else the handle takes it (for
+         * the keyboard next)
+         */
         event.preventDefault()
         event.currentTarget.setPointerCapture(event.pointerId)
-        event.currentTarget.focus()
+        if (!isWriting(editor)) event.currentTarget.focus()
         setDragging(true)
       }}
       onPointerMove={(event) => {

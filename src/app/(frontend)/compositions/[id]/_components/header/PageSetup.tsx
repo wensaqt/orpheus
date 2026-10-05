@@ -15,6 +15,7 @@ import { useT } from '@front/_components/i18n/I18nProvider'
 import { Popover } from '@front/_components/ui/Popover/Popover'
 
 import { usePageSettings } from '../page/PageSettingsProvider'
+import { useFocusReturn } from './openEditor'
 import styles from './PageSetup.module.css'
 
 const FORMATS = Object.keys(PAGE_FORMATS) as PageFormat[]
@@ -23,11 +24,14 @@ const FIELDS = ['top', 'bottom'] as const satisfies PageMargin[]
 
 /*
  * The page setup of the composition, from the toolbar: format, orientation, and the top and
- * bottom margins. Every change applies to the pages at once and saves on its own.
+ * bottom margins. Every change applies to the pages at once and saves on its own; once closed,
+ * the writer is back in the text if they came from there.
  */
 export function PageSetup() {
   const t = useT()
   const { settings, change } = usePageSettings()
+  // Back to the text once closed, if the writer came from there
+  const focus = useFocusReturn()
   const summary = t('editor.pageSetup.summary', {
     format: t(`editor.pageSetup.formats.${settings.format}`),
     orientation: t(`editor.pageSetup.${settings.orientation}`),
@@ -37,6 +41,8 @@ export function PageSetup() {
     <Popover
       label={t('editor.pageSetup.open')}
       triggerClassName={styles.trigger}
+      onTriggerPointerDown={focus.remember}
+      onCloseInPlace={focus.restore}
       trigger={
         <>
           <PageIcon />

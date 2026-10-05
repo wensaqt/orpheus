@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useId, useRef, useState } from 'react'
+import { type ReactNode, type ToggleEvent, useId, useRef, useState } from 'react'
 
 import styles from './Popover.module.css'
 
@@ -10,6 +10,10 @@ type PopoverProps = {
   // What the trigger button shows
   trigger: ReactNode
   triggerClassName?: string
+  // Pressed on the trigger, before it takes the focus: to remember where the focus was
+  onTriggerPointerDown?: () => void
+  // Closed with the focus still in the panel or on its trigger (not moved elsewhere by a click)
+  onCloseInPlace?: () => void
   children: ReactNode
 }
 
@@ -21,7 +25,14 @@ const OFFSET = 4
  * Menu: top layer, light dismiss and Escape come from the browser. It opens below the
  * trigger's left edge.
  */
-export function Popover({ label, trigger, triggerClassName, children }: PopoverProps) {
+export function Popover({
+  label,
+  trigger,
+  triggerClassName,
+  onTriggerPointerDown,
+  onCloseInPlace,
+  children,
+}: PopoverProps) {
   const id = useId()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -35,6 +46,19 @@ export function Popover({ label, trigger, triggerClassName, children }: PopoverP
     panel.style.left = `${bounds.left}px`
   }
 
+  function handleToggle(event: ToggleEvent<HTMLDivElement>) {
+    const isOpen = event.newState === 'open'
+    setOpen(isOpen)
+    if (isOpen) return
+    const active = document.activeElement
+    const inPlace =
+      !active ||
+      active === document.body ||
+      active === triggerRef.current ||
+      Boolean(panelRef.current?.contains(active))
+    if (inPlace) onCloseInPlace?.()
+  }
+
   return (
     <>
       <button
@@ -42,6 +66,7 @@ export function Popover({ label, trigger, triggerClassName, children }: PopoverP
         type="button"
         className={triggerClassName}
         popoverTarget={id}
+        onPointerDown={onTriggerPointerDown}
         aria-haspopup="dialog"
         aria-expanded={open}
       >
@@ -55,7 +80,7 @@ export function Popover({ label, trigger, triggerClassName, children }: PopoverP
         aria-label={label}
         className={styles.panel}
         onBeforeToggle={(event) => event.newState === 'open' && place()}
-        onToggle={(event) => setOpen(event.newState === 'open')}
+        onToggle={handleToggle}
       >
         {children}
       </div>

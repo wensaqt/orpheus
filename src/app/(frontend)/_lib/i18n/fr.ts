@@ -174,7 +174,7 @@ export const fr: Messages = {
     documentMissing: 'Ce document n’existe plus.',
     titleLabel: 'Titre de la composition',
     documentTitleLabel: 'Titre du document',
-    placeholder: 'Commencez à écrire…',
+    textLabel: 'Texte du document',
     saveError: 'Échec de l’enregistrement — nouvel essai…',
     toolbar: 'Barre d’outils de l’éditeur',
     pageSetup: {

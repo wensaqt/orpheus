@@ -36,19 +36,16 @@ const TRANSFORMERS = [
   STRIKETHROUGH,
 ]
 
-// The editable text with its core plugins (history, lists, markdown shortcuts)
-export function EditorContent({ placeholder }: { placeholder: string }) {
+/*
+ * The editable text with its core plugins (history, lists, markdown shortcuts). No
+ * placeholder: the blank page says enough
+ */
+export function EditorContent({ label }: { label: string }) {
   return (
     <>
       <div className={styles.editor}>
         <RichTextPlugin
-          contentEditable={
-            <ContentEditable
-              className={styles.content}
-              aria-placeholder={placeholder}
-              placeholder={<p className={styles.placeholder}>{placeholder}</p>}
-            />
-          }
+          contentEditable={<ContentEditable className={styles.content} aria-label={label} />}
           ErrorBoundary={LexicalErrorBoundary}
         />
       </div>

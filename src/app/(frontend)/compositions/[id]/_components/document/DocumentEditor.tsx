@@ -22,6 +22,7 @@ import { useTitleField } from '@front/_hooks/useTitleField'
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
 import { SAVERS } from '../binder/state/useSaveRegistry'
 import { useDocumentTitleSlot } from '../header/documentTitleSlot'
+import { useRegisterOpenEditor } from '../header/openEditor'
 import { usePageSettings } from '../page/PageSettingsProvider'
 import styles from './DocumentEditor.module.css'
 import { DocumentTitle } from './DocumentTitle'
@@ -56,6 +57,7 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
   const { commands } = useBinder()
   const { settings: page } = usePageSettings()
   const titleSlot = useDocumentTitleSlot()
+  useRegisterOpenEditor(editor)
   // The version shown, to tell a newer one from elsewhere (another tab) from this tab's saves
   const shownVersion = useRef(text.updatedAt)
 
@@ -106,7 +108,7 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
         </p>
       ) : null}
       <PagedSheet settings={page}>
-        <EditorContent placeholder={t('editor.placeholder')} />
+        <EditorContent label={t('editor.textLabel')} />
       </PagedSheet>
     </>
   )

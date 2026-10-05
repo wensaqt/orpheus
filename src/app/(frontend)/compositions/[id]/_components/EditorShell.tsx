@@ -1,5 +1,6 @@
 'use client'
 
+import type { LexicalEditor } from 'lexical'
 import { type ReactNode, useState } from 'react'
 
 import type { PageSettings } from '@/lib/pageFormats'
@@ -16,6 +17,7 @@ import { BinderProvider } from './binder/state/BinderProvider'
 import styles from './EditorShell.module.css'
 import { DocumentTitleSlot } from './header/documentTitleSlot'
 import { EditorHeader } from './header/EditorHeader'
+import { OpenEditorContext } from './header/openEditor'
 import { PageSettingsProvider } from './page/PageSettingsProvider'
 import { SynonymsPanel } from './SynonymsPanel'
 
@@ -47,6 +49,8 @@ export function EditorShell({
   const [hidden, setHidden] = useState(binderHidden)
   // Set once the header is mounted: the open document puts its title there
   const [documentTitleSlot, setDocumentTitleSlot] = useState<HTMLDivElement | null>(null)
+  // The open document's editor, for the header's tools
+  const [openEditor, setOpenEditor] = useState<LexicalEditor | null>(null)
   const toggle = (next: boolean) => {
     setHidden(next)
     setPreferenceCookie(BINDER_HIDDEN_COOKIE, next)
@@ -55,29 +59,31 @@ export function EditorShell({
   return (
     <BinderProvider compositionId={compositionId} entries={entries}>
       <PageSettingsProvider initial={page}>
-        <DocumentTitleSlot value={documentTitleSlot}>
-          <div className={styles.screen}>
-            <EditorHeader title={title} documentTitleRef={setDocumentTitleSlot} />
-            <div className={styles.desk}>
-              <div className={styles.binder}>
-                {hidden ? (
-                  <IconButton
-                    label={t('binder.show')}
-                    icon={<BinderIcon />}
-                    className={styles.show}
-                    onClick={() => toggle(false)}
-                  />
-                ) : (
-                  <BinderPanel onHide={() => toggle(true)} />
-                )}
-              </div>
-              <div className={styles.column}>{children}</div>
-              <div className={styles.aside}>
-                <SynonymsPanel />
+        <OpenEditorContext value={{ editor: openEditor, setEditor: setOpenEditor }}>
+          <DocumentTitleSlot value={documentTitleSlot}>
+            <div className={styles.screen}>
+              <EditorHeader title={title} documentTitleRef={setDocumentTitleSlot} />
+              <div className={styles.desk}>
+                <div className={styles.binder}>
+                  {hidden ? (
+                    <IconButton
+                      label={t('binder.show')}
+                      icon={<BinderIcon />}
+                      className={styles.show}
+                      onClick={() => toggle(false)}
+                    />
+                  ) : (
+                    <BinderPanel onHide={() => toggle(true)} />
+                  )}
+                </div>
+                <div className={styles.column}>{children}</div>
+                <div className={styles.aside}>
+                  <SynonymsPanel />
+                </div>
               </div>
             </div>
-          </div>
-        </DocumentTitleSlot>
+          </DocumentTitleSlot>
+        </OpenEditorContext>
       </PageSettingsProvider>
     </BinderProvider>
   )

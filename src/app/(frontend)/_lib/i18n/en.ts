@@ -170,7 +170,7 @@ export const en = {
     documentMissing: 'This document no longer exists.',
     titleLabel: 'Composition title',
     documentTitleLabel: 'Document title',
-    placeholder: 'Start writing…',
+    textLabel: 'Document text',
     saveError: 'Could not save — trying again…',
     toolbar: 'Editor toolbar',
     pageSetup: {
