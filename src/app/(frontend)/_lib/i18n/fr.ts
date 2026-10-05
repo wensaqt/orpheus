@@ -178,6 +178,7 @@ export const fr: Messages = {
     saveError: 'Échec de l’enregistrement — nouvel essai…',
     toolbar: 'Barre d’outils de l’éditeur',
     menuBar: 'Barre de menus',
+    alignment: 'Alignement',
     // A control's tooltip: its name, then its shortcut or why it does nothing yet
     labelWithHint: '{label} ({hint})',
     menus: {

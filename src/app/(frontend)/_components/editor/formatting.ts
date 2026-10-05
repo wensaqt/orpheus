@@ -10,12 +10,15 @@ import { $getNearestNodeOfType, $insertNodeToNearestRoot } from '@lexical/utils'
 import {
   $createParagraphNode,
   $findMatchingParent,
+  $getRoot,
   $getSelection,
   $isElementNode,
   $isRangeSelection,
   $isRootOrShadowRoot,
+  $isTextNode,
   type ElementFormatType,
   type LexicalNode,
+  type RangeSelection,
 } from 'lexical'
 
 import { $createPageBreakNode } from './nodes/PageBreakNode'
@@ -34,7 +37,7 @@ export type Alignment = (typeof ALIGNMENTS)[number]
 
 // What the selection holds, as the toolbar shows it
 export type Formatting = {
-  // A text selection (not a page break, not nothing): the styles apply to it
+  // A text selection, or none yet (see $textSelection), not a page break: the styles apply
   text: boolean
   formats: Record<TextFormat, boolean>
   blockType: BlockType
@@ -68,14 +71,8 @@ export const sameFormatting = (a: Formatting, b: Formatting) =>
   TEXT_FORMATS.every((format) => a.formats[format] === b.formats[format])
 
 // The block right under the root (a list rather than its item)
-function $topLevelBlock(node: LexicalNode) {
-  return node.getKey() === 'root'
-    ? node
-    : ($findMatchingParent(node, (candidate) => {
-        const parent = candidate.getParent()
-        return parent !== null && $isRootOrShadowRoot(parent)
-      }) ?? node.getTopLevelElementOrThrow())
-}
+const $topLevelBlock = (node: LexicalNode) =>
+  $isRootOrShadowRoot(node) ? node : node.getTopLevelElementOrThrow()
 
 // The type of the block a node is in; in a list, of the nearest list (a nested one may differ)
 export function $blockTypeOf(node: LexicalNode): BlockType {
@@ -92,30 +89,55 @@ export function $blockTypeOf(node: LexicalNode): BlockType {
   return block.getType() === 'paragraph' ? 'paragraph' : 'other'
 }
 
-/*
- * The formatting of the selection. Text formats come from the selection itself: over a range,
- * the formats every selected text shares; at a caret, those the next typed text takes (which
- * a toggle changes before any text is typed). Call inside a read or an update.
- */
-export function $readFormatting(): Formatting {
-  const selection = $getSelection()
-  if (!$isRangeSelection(selection)) return NO_FORMATTING
-  const anchor = selection.anchor.getNode()
-  const block = $findMatchingParent(anchor, (node) => $isElementNode(node) && !node.isInline())
+// The text formats of a selection, or of a text node
+const formatsOf = (source: { hasFormat: (format: TextFormat) => boolean }) => ({
+  bold: source.hasFormat('bold'),
+  italic: source.hasFormat('italic'),
+  underline: source.hasFormat('underline'),
+  strikethrough: source.hasFormat('strikethrough'),
+})
+
+function $formattingAt(node: LexicalNode, formats: Formatting['formats']): Formatting {
+  const block = $findMatchingParent(node, (parent) => $isElementNode(parent) && !parent.isInline())
   return {
     text: true,
-    formats: {
-      bold: selection.hasFormat('bold'),
-      italic: selection.hasFormat('italic'),
-      underline: selection.hasFormat('underline'),
-      strikethrough: selection.hasFormat('strikethrough'),
-    },
-    blockType: $blockTypeOf(anchor),
+    formats,
+    blockType: $blockTypeOf(node),
     align:
       $isElementNode(block) && !$isRootOrShadowRoot(block)
         ? toAlignment(block.getFormatType())
         : 'left',
   }
+}
+
+/*
+ * The formatting of the selection. Text formats come from the selection itself: over a range,
+ * the formats every selected text shares; at a caret, those the next typed text takes (which
+ * a toggle changes before any text is typed). Without a selection yet, as at the start of the
+ * text, where a change puts one. Call inside a read or an update.
+ */
+export function $readFormatting(): Formatting {
+  const selection = $getSelection()
+  if (selection === null) {
+    const first = $getRoot().getFirstDescendant()
+    return $formattingAt(
+      first ?? $getRoot(),
+      $isTextNode(first) ? formatsOf(first) : NO_FORMATTING.formats,
+    )
+  }
+  if (!$isRangeSelection(selection)) return NO_FORMATTING
+  return $formattingAt(selection.anchor.getNode(), formatsOf(selection))
+}
+
+/*
+ * The selection a change of style applies to: the text's, or a caret at its start when there
+ * is none yet (the text not focused since the document opened). Null for a selected page
+ * break. Call inside an update.
+ */
+export function $textSelection(): RangeSelection | null {
+  if ($getSelection() === null) $getRoot().selectStart()
+  const selection = $getSelection()
+  return $isRangeSelection(selection) ? selection : null
 }
 
 /*
@@ -125,8 +147,8 @@ export function $readFormatting(): Formatting {
 export function $setBlockType(next: ChosenBlockType) {
   const selection = $getSelection()
   if (!$isRangeSelection(selection)) return
-  const { anchor, focus } = selection
-  if ([anchor, focus].every((point) => $blockTypeOf(point.getNode()) === next)) return
+  // Already all of this type: nothing to change (nor to undo)
+  if (selection.getNodes().every((node) => $blockTypeOf(node) === next)) return
   $setBlocksType(selection, () =>
     next === 'paragraph'
       ? $createParagraphNode()

@@ -39,8 +39,10 @@ describe('rovingIndex', () => {
     expect(rovingIndex('ArrowRight', 0, 0, 'horizontal')).toBeNull()
   })
 
-  it('starts on the first control when none has the focus yet', () => {
+  it('starts on the first or the last control when none has the focus yet', () => {
     expect(rovingIndex('ArrowDown', -1, 3, 'vertical')).toBe(0)
+    expect(rovingIndex('ArrowUp', -1, 3, 'vertical')).toBe(2)
+    expect(rovingIndex('ArrowLeft', -1, 1, 'horizontal')).toBe(0)
   })
 })
 

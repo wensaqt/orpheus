@@ -1,6 +1,5 @@
 'use client'
 
-import type { LexicalEditor } from 'lexical'
 import { useRef } from 'react'
 
 import { ALIGNMENTS, BLOCK_TYPES, TEXT_FORMATS } from '@front/_components/editor/formatting'
@@ -13,19 +12,20 @@ import {
   type MenuItem,
 } from '@front/_components/ui/Menu/Menu'
 import type { PopoverHandle } from '@front/_components/ui/Popover/Popover'
-import { ROVING_ATTRIBUTE, useRovingFocus } from '@front/_components/ui/rovingFocus'
+import { ROVING_PROPS, useRovingFocus } from '@front/_components/ui/rovingFocus'
 import type { MessageKey } from '@front/_lib/i18n'
 
 import { useFocusReturn, useOpenEditor } from '../editorFocus'
 import styles from './MenuBar.module.css'
 import { PageSetup } from './PageSetup'
+import { useToolbarActions } from './toolbarActions'
 import {
   ALIGNMENT_LABELS,
   BLOCK_TYPE_LABELS,
   SHORTCUTS,
   TEXT_FORMAT_LABELS,
-  toolbarActions,
-} from './toolbarActions'
+  TEXT_FORMAT_SHORTCUTS,
+} from './toolbarLabels'
 import type { ToolbarState } from './useToolbarState'
 
 type MenuDefinition = { label: MessageKey; items: MenuEntry[] }
@@ -34,21 +34,20 @@ type MenuDefinition = { label: MessageKey; items: MenuEntry[] }
  * The editor's menu bar, under the titles, as in a word processor: the page setup and
  * printing, the history, and the same styles as the toolbar. What is not there yet shows,
  * greyed out. A WAI-ARIA menu bar (https://www.w3.org/WAI/ARIA/apg/patterns/menubar/): one
- * tab stop, Left/Right between the menus (open or not), Down or Enter to open one, Escape
- * back to its name. A menu closed in place takes the writer back to the text, if they came
- * from there.
+ * tab stop, Left/Right between the menus (open or not), Down, Up or Enter to open one, Escape
+ * back to its name, and on a name back to the text. A menu closed in place takes the writer
+ * back to the text, if they came from there.
  */
 export function MenuBar({ state }: { state: ToolbarState }) {
   const t = useT()
   const editor = useOpenEditor()
+  const actions = useToolbarActions()
   const focus = useFocusReturn()
-  const roving = useRovingFocus<HTMLDivElement>()
+  const roving = useRovingFocus<HTMLDivElement>(() => editor?.focus())
   const menus = useRef<(MenuHandle | null)[]>([])
   const pageSetup = useRef<PopoverHandle>(null)
 
-  const text = Boolean(editor) && state.text
-  // An item that acts on the open document
-  const onEditor = (action: (editor: LexicalEditor) => void) => () => editor && action(editor)
+  const { text } = state
   const soon = (label: MessageKey): MenuItem => ({
     label: t(label),
     disabled: true,
@@ -63,7 +62,7 @@ export function MenuBar({ state }: { state: ToolbarState }) {
         {
           label: t('editor.actions.print'),
           shortcut: SHORTCUTS.print,
-          onSelect: toolbarActions.print,
+          onSelect: actions.print,
         },
         MENU_SEPARATOR,
         soon('editor.actions.exportPdf'),
@@ -78,21 +77,21 @@ export function MenuBar({ state }: { state: ToolbarState }) {
         {
           label: t('editor.actions.undo'),
           shortcut: SHORTCUTS.undo,
-          disabled: !editor || !state.canUndo,
-          onSelect: onEditor(toolbarActions.undo),
+          disabled: !state.canUndo,
+          onSelect: actions.undo,
         },
         {
           label: t('editor.actions.redo'),
           shortcut: SHORTCUTS.redo,
-          disabled: !editor || !state.canRedo,
-          onSelect: onEditor(toolbarActions.redo),
+          disabled: !state.canRedo,
+          onSelect: actions.redo,
         },
         MENU_SEPARATOR,
         {
           label: t('editor.actions.selectAll'),
           shortcut: SHORTCUTS.selectAll,
           disabled: !editor,
-          onSelect: onEditor(toolbarActions.selectAll),
+          onSelect: actions.selectAll,
         },
       ],
     },
@@ -107,7 +106,7 @@ export function MenuBar({ state }: { state: ToolbarState }) {
           label: t('editor.actions.pageBreak'),
           shortcut: SHORTCUTS.pageBreak,
           disabled: !text,
-          onSelect: onEditor(toolbarActions.pageBreak),
+          onSelect: actions.pageBreak,
         },
         MENU_SEPARATOR,
         soon('editor.actions.image'),
@@ -119,28 +118,36 @@ export function MenuBar({ state }: { state: ToolbarState }) {
     {
       label: 'editor.menus.format',
       items: [
-        ...TEXT_FORMATS.map((format) => ({
+        ...TEXT_FORMATS.map((format): MenuItem => ({
           label: t(TEXT_FORMAT_LABELS[format]),
-          shortcut: format === 'strikethrough' ? undefined : SHORTCUTS[format],
+          shortcut: TEXT_FORMAT_SHORTCUTS[format],
+          kind: 'checkbox',
           checked: text && state.formats[format],
-          toggle: true,
           disabled: !text,
-          onSelect: onEditor((editor) => toolbarActions.formatText(editor, format)),
+          onSelect: () => actions.formatText(format),
         })),
         MENU_SEPARATOR,
-        ...BLOCK_TYPES.map((type) => ({
-          label: t(BLOCK_TYPE_LABELS[type]),
-          checked: text && state.blockType === type,
-          disabled: !text,
-          onSelect: onEditor((editor) => toolbarActions.blockType(editor, type)),
-        })),
+        {
+          group: t('editor.blockTypes.label'),
+          items: BLOCK_TYPES.map((type) => ({
+            label: t(BLOCK_TYPE_LABELS[type]),
+            kind: 'radio',
+            checked: text && state.blockType === type,
+            disabled: !text,
+            onSelect: () => actions.blockType(type),
+          })),
+        },
         MENU_SEPARATOR,
-        ...ALIGNMENTS.map((align) => ({
-          label: t(ALIGNMENT_LABELS[align]),
-          checked: text && state.align === align,
-          disabled: !text,
-          onSelect: onEditor((editor) => toolbarActions.align(editor, align)),
-        })),
+        {
+          group: t('editor.alignment'),
+          items: ALIGNMENTS.map((align) => ({
+            label: t(ALIGNMENT_LABELS[align]),
+            kind: 'radio',
+            checked: text && state.align === align,
+            disabled: !text,
+            onSelect: () => actions.align(align),
+          })),
+        },
         MENU_SEPARATOR,
         soon('editor.actions.lineSpacing'),
       ],
@@ -157,12 +164,6 @@ export function MenuBar({ state }: { state: ToolbarState }) {
     const at = (index + count) % count
     roving.controlAt(at)?.focus()
     menus.current[at]?.open()
-  }
-
-  // Closed in place (Escape, its name pressed again), not by an action that took the focus
-  const onMenuClose = () => {
-    const active = document.activeElement
-    if (active === document.body || roving.ref.current?.contains(active)) focus.restore()
   }
 
   return (
@@ -185,18 +186,12 @@ export function MenuBar({ state }: { state: ToolbarState }) {
             items={items}
             align="start"
             triggerClassName={styles.trigger}
-            triggerProps={{
-              [ROVING_ATTRIBUTE]: '',
-              role: 'menuitem',
-              onPointerDown: focus.remember,
-              onKeyDown: (event) => {
-                if (event.key !== 'ArrowDown') return
-                event.preventDefault()
-                openMenu(index)
-              },
-            }}
+            // A key on a name: the writer is in the bar, not in the text
+            triggerProps={{ ...ROVING_PROPS, role: 'menuitem', onKeyDown: focus.remember }}
+            onTriggerPointerDown={focus.remember}
+            // Left or Right to the next menu: still from where the first one was opened
             onSideKey={(step) => openMenu(index + step)}
-            onClose={onMenuClose}
+            onCloseInPlace={focus.restore}
           >
             {t(label)}
           </Menu>

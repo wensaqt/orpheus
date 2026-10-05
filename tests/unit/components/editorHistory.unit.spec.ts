@@ -1,9 +1,19 @@
 import { createEmptyHistoryState } from '@lexical/history'
 import { act, renderHook } from '@testing-library/react'
-import { createEditor } from 'lexical'
+import {
+  $createParagraphNode,
+  $createTextNode,
+  $getRoot,
+  CLEAR_HISTORY_COMMAND,
+  createEditor,
+} from 'lexical'
 import { describe, expect, it } from 'vitest'
 
-import { publishHistory, useHistoryAvailability } from '@front/_components/editor/history'
+import {
+  publishHistory,
+  registerPublishedHistory,
+  useHistoryAvailability,
+} from '@front/_components/editor/history'
 
 // A history with this many entries to undo and to redo
 function historyWith(undo: number, redo: number) {
@@ -44,5 +54,35 @@ describe('history availability', () => {
     const second = createEditor()
     publishHistory(first, historyWith(1, 0))
     expect(renderHook(() => useHistoryAvailability(second)).result.current.canUndo).toBe(false)
+  })
+
+  it('follows a real editor’s history, through a change and a clear', () => {
+    const editor = createEditor({
+      onError: (error) => {
+        throw error
+      },
+    })
+    const unregister = registerPublishedHistory(editor, createEmptyHistoryState())
+    const { result } = renderHook(() => useHistoryAvailability(editor))
+    expect(result.current).toEqual({ canUndo: false, canRedo: false })
+
+    // The first change is where the history starts; the next one can be undone
+    const addParagraph = (text: string) =>
+      act(() =>
+        editor.update(
+          () => $getRoot().append($createParagraphNode().append($createTextNode(text))),
+          {
+            discrete: true,
+          },
+        ),
+      )
+    addParagraph('Un')
+    addParagraph('Deux')
+    expect(result.current.canUndo).toBe(true)
+    act(() => {
+      editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined)
+    })
+    expect(result.current).toEqual({ canUndo: false, canRedo: false })
+    unregister()
   })
 })

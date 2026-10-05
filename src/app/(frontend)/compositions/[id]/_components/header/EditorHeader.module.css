@@ -6,7 +6,7 @@
 .header {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: var(--layer-header);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);

@@ -15,6 +15,8 @@ import {
 const FIRST = 'Orphée chante pour Eurydice.'
 const SECOND = 'Les enfers écoutent.'
 const twoParagraphs = () => documentOf([paragraphNode(FIRST), paragraphNode(SECOND)])
+const withPageBreak = () =>
+  documentOf([paragraphNode(FIRST), pageBreakNode(), paragraphNode(SECOND)])
 
 // Lexical's bits for text formats, as saved
 const BOLD = 1
@@ -45,6 +47,9 @@ const tool = (page: Page, name: string) => toolbar(page).getByRole('button', { n
 const menuBar = (page: Page) => page.getByRole('menubar')
 const menuNamed = (page: Page, name: string) =>
   menuBar(page).getByRole('menuitem', { name, exact: true })
+const paragraphStyle = (page: Page) =>
+  toolbar(page).getByRole('button', { name: /Paragraph style/ })
+const firstBlock = (page: Page) => page.locator(`${editable} > *`).first()
 
 // Selects characters [start, end) of the paragraph holding this text, as a hand dragging over them
 async function selectIn(page: Page, text: string, start: number, end: number) {
@@ -78,6 +83,20 @@ const selection = (page: Page) =>
     }),
     editable,
   )
+
+// Where the caret is: its text and offset
+const caret = (page: Page) =>
+  page.evaluate(() => {
+    const { anchorNode, anchorOffset } = window.getSelection()!
+    return { text: anchorNode?.textContent, offset: anchorOffset }
+  })
+
+// The page break right after this paragraph, selected from the keyboard as a whole block
+async function selectPageBreakAfter(page: Page, text: string) {
+  await caretAtEndOf(page, text)
+  await page.keyboard.press('ArrowRight')
+  await selectionRead(page)
+}
 
 test.describe('Style toolbar', () => {
   test('bold from the button: the selection stays, in the text, and is saved', async ({
@@ -206,9 +225,6 @@ test.describe('Style toolbar', () => {
     const redo = tool(page, 'Redo')
     await expect(undo).toHaveAttribute('aria-disabled', 'true')
     await expect(redo).toHaveAttribute('aria-disabled', 'true')
-    // Off: pressing it does nothing
-    await undo.click({ force: true })
-    await expect(page.locator(`${editable} p`).first()).toHaveText(FIRST)
 
     await page.keyboard.type(' Encore.')
     await expect(undo).not.toHaveAttribute('aria-disabled')
@@ -222,15 +238,156 @@ test.describe('Style toolbar', () => {
     expect((await selection(page)).writing).toBe(true)
   })
 
+  test('undo from the keyboard keeps the focus on the control', async ({ page, account }) => {
+    await openDocument(page, account, twoParagraphs())
+    await caretAtEndOf(page, FIRST)
+    await page.keyboard.type(' Encore.')
+    const undo = tool(page, 'Undo')
+    await expect(undo).not.toHaveAttribute('aria-disabled')
+    await undo.focus()
+    await page.keyboard.press('Enter')
+    await expect(page.locator(`${editable} p`).first()).toHaveText(FIRST)
+    await expect(undo).toBeFocused()
+    await page.keyboard.press('ArrowRight')
+    await expect(tool(page, 'Redo')).toBeFocused()
+    await page.keyboard.press('Space')
+    await expect(page.locator(`${editable} p`).first()).toHaveText(`${FIRST} Encore.`)
+    await expect(tool(page, 'Redo')).toBeFocused()
+  })
+
+  test('a selected page break turns the styles off, but not the history', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, withPageBreak())
+    // Something to undo
+    await caretAtEndOf(page, FIRST)
+    await tool(page, 'Center').click()
+    await selectPageBreakAfter(page, FIRST)
+    const bold = tool(page, 'Bold')
+    await expect(bold).toHaveAttribute('aria-disabled', 'true')
+    await expect(paragraphStyle(page)).toHaveAttribute('aria-disabled', 'true')
+    await expect(tool(page, 'Undo')).not.toHaveAttribute('aria-disabled')
+    // Off: pressed from the keyboard, it does nothing
+    await bold.focus()
+    await page.keyboard.press('Enter')
+    await expect(page.locator(`${editable} strong`)).toHaveCount(0)
+    await expect(page.locator(`${editable} [data-page-break]`)).toHaveCount(1)
+
+    await tool(page, 'Undo').click()
+    await expect(page.locator(`${editable} p`).first()).toHaveCSS('text-align', 'start')
+  })
+
+  test('is ready as soon as a document opens, before any click in the text', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, twoParagraphs())
+    await expect(tool(page, 'Bold')).not.toHaveAttribute('aria-disabled')
+    await expect(paragraphStyle(page)).not.toHaveAttribute('aria-disabled')
+    await expect(paragraphStyle(page)).toHaveText('Normal text')
+    // Applied where the text starts
+    await tool(page, 'Center').click()
+    await expect(page.locator(`${editable} p`).first()).toHaveCSS('text-align', 'center')
+    await expect(page.locator(`${editable} p`).nth(1)).toHaveCSS('text-align', 'start')
+    await expect(tool(page, 'Center')).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  test('lists: on and off, from a heading and back, a paragraph style inside', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, twoParagraphs())
+    await caretAtEndOf(page, FIRST)
+    const bullets = tool(page, 'Bulleted list')
+    const numbers = tool(page, 'Numbered list')
+
+    await bullets.click()
+    await expect(page.locator(`${editable} ul > li`)).toHaveText([FIRST])
+    await expect(bullets).toHaveAttribute('aria-pressed', 'true')
+    await expect(paragraphStyle(page)).toHaveText('Bulleted list')
+    // From one kind of list to the other, then off
+    await numbers.click()
+    await expect(page.locator(`${editable} ol > li`)).toHaveText([FIRST])
+    await expect(page.locator(`${editable} ul`)).toHaveCount(0)
+    await expect(numbers).toHaveAttribute('aria-pressed', 'true')
+    await expect(bullets).toHaveAttribute('aria-pressed', 'false')
+    await numbers.click()
+    await expect(page.locator(`${editable} ol, ${editable} ul`)).toHaveCount(0)
+    await expect(firstBlock(page)).toHaveText(FIRST)
+    await expect(numbers).toHaveAttribute('aria-pressed', 'false')
+    expect((await selection(page)).writing).toBe(true)
+
+    // A heading made a list, then back to text
+    await paragraphStyle(page).click()
+    await page.getByRole('menuitemradio', { name: 'Heading 1' }).click()
+    await expect(page.locator(`${editable} h1`)).toHaveText(FIRST)
+    await bullets.click()
+    await expect(page.locator(`${editable} ul > li`)).toHaveText([FIRST])
+    await expect(page.locator(`${editable} h1`)).toHaveCount(0)
+    await bullets.click()
+    await expect(page.locator(`${editable} ul`)).toHaveCount(0)
+    await expect(paragraphStyle(page)).toHaveText('Normal text')
+
+    // A paragraph style chosen inside a list takes the block out of it
+    await bullets.click()
+    await expect(page.locator(`${editable} ul > li`)).toHaveText([FIRST])
+    await paragraphStyle(page).click()
+    await page.getByRole('menuitemradio', { name: 'Heading 2' }).click()
+    await expect(page.locator(`${editable} h2`)).toHaveText(FIRST)
+    await expect(page.locator(`${editable} ul`)).toHaveCount(0)
+    await expect(bullets).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  test('Escape goes back to the text; Down opens the paragraph style', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, twoParagraphs())
+    await selectIn(page, FIRST, 7, 13)
+    await tool(page, 'Bold').focus()
+    await page.keyboard.press('Escape')
+    expect(await selection(page)).toEqual({ text: 'chante', writing: true })
+
+    await paragraphStyle(page).focus()
+    await page.keyboard.press('ArrowDown')
+    await expect(paragraphStyle(page)).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByRole('menuitemradio', { name: 'Normal text' })).toBeFocused()
+    // Opened from the keyboard: closed, back on the control
+    await page.keyboard.press('Escape')
+    await expect(paragraphStyle(page)).toBeFocused()
+  })
+
+  test('closing the paragraph style elsewhere leaves the focus there', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, twoParagraphs())
+    await caretAtEndOf(page, FIRST)
+    const title = page.getByRole('textbox', { name: 'Document title' })
+    await paragraphStyle(page).click()
+    await expect(paragraphStyle(page)).toHaveAttribute('aria-expanded', 'true')
+    await title.click()
+    await expect(paragraphStyle(page)).toHaveAttribute('aria-expanded', 'false')
+    await expect(title).toBeFocused()
+    // Not pulled back to the text afterwards either
+    await selectionRead(page)
+    await expect(title).toBeFocused()
+  })
+
   test('a placeholder is greyed out, says so, and does nothing', async ({ page, account }) => {
     await openDocument(page, account, twoParagraphs())
     await caretAtEndOf(page, FIRST)
     const font = tool(page, 'Font')
     await expect(font).toHaveAttribute('aria-disabled', 'true')
+    await expect(font).toHaveAccessibleDescription('Coming soon')
     await font.hover()
     await expect(font.getByText('Font (Coming soon)')).toBeVisible()
-    await font.click({ force: true })
-    expect((await selection(page)).writing).toBe(true)
+    await font.focus()
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('Space')
+    await expect(font).toBeFocused()
+    await expect(page.locator(`${editable} p`)).toHaveText([FIRST, SECOND])
   })
 
   test('is off without a document', async ({ page, account }) => {
@@ -285,6 +442,77 @@ test.describe('Menu bar', () => {
     await expect(menuNamed(page, 'Tools')).toBeFocused()
     await page.keyboard.press('Enter')
     await expect(page.getByRole('menuitem', { name: 'Synonyms' })).toBeFocused()
+    // Up on a name: its menu, on the last item
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('ArrowLeft')
+    await expect(menuNamed(page, 'Format')).toBeFocused()
+    await page.keyboard.press('ArrowUp')
+    await expect(page.getByRole('menuitem', { name: 'Line spacing' })).toBeFocused()
+    // Each set of choices is a named group
+    const format = page.getByRole('menu', { name: 'Format' })
+    await expect(format.getByRole('group', { name: 'Paragraph style' })).toContainText('Heading 1')
+    await expect(format.getByRole('group', { name: 'Alignment' })).toContainText('Justify')
+  })
+
+  test('Escape on a name goes back to the text', async ({ page, account }) => {
+    await openDocument(page, account, twoParagraphs())
+    await selectIn(page, FIRST, 7, 13)
+    await menuNamed(page, 'View').focus()
+    await page.keyboard.press('Escape')
+    expect(await selection(page)).toEqual({ text: 'chante', writing: true })
+  })
+
+  test('a menu’s name pressed again closes it, back in the text, the caret unmoved', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, twoParagraphs())
+    await caretAtEndOf(page, FIRST)
+    await page.keyboard.press('ArrowLeft')
+    await selectionRead(page)
+    const before = await caret(page)
+    const format = menuNamed(page, 'Format')
+    await format.click()
+    await expect(format).toHaveAttribute('aria-expanded', 'true')
+    await format.click()
+    await expect(format).toHaveAttribute('aria-expanded', 'false')
+    await expect.poll(async () => (await selection(page)).writing).toBe(true)
+    expect(await caret(page)).toEqual(before)
+  })
+
+  test('the next menu, from one opened with the mouse: Escape goes back to the text', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, twoParagraphs())
+    await selectIn(page, FIRST, 7, 13)
+    await menuNamed(page, 'File').click()
+    await expect(page.getByRole('menuitem', { name: 'Page setup…' })).toBeFocused()
+    await page.keyboard.press('ArrowRight')
+    await expect(menuNamed(page, 'Edit')).toHaveAttribute('aria-expanded', 'true')
+    // In the next menu, not sent back to the text on the way
+    await expect(page.getByRole('menuitem', { name: 'Undo' })).toBeFocused()
+    await selectionRead(page)
+    await expect(page.getByRole('menuitem', { name: 'Undo' })).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(menuNamed(page, 'Edit')).toHaveAttribute('aria-expanded', 'false')
+    await expect.poll(async () => (await selection(page)).writing).toBe(true)
+    expect((await selection(page)).text).toBe('chante')
+  })
+
+  test('a menu closed by a click on the title leaves the focus there', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, twoParagraphs())
+    await caretAtEndOf(page, FIRST)
+    const title = page.getByRole('textbox', { name: 'Document title' })
+    await menuNamed(page, 'Insert').click()
+    await expect(menuNamed(page, 'Insert')).toHaveAttribute('aria-expanded', 'true')
+    await title.click()
+    await expect(menuNamed(page, 'Insert')).toHaveAttribute('aria-expanded', 'false')
+    await selectionRead(page)
+    await expect(title).toBeFocused()
   })
 
   test('disabled items say they are coming, and do nothing', async ({ page, account }) => {
@@ -293,7 +521,9 @@ test.describe('Menu bar', () => {
     const wordCount = page.getByRole('menuitem', { name: 'Word count' })
     await expect(wordCount).toHaveAttribute('aria-disabled', 'true')
     await expect(wordCount).toHaveAttribute('title', 'Coming soon')
-    await wordCount.click({ force: true })
+    await page.keyboard.press('ArrowDown')
+    await expect(wordCount).toBeFocused()
+    await page.keyboard.press('Enter')
     // Still open: nothing was done
     await expect(wordCount).toBeVisible()
     await page.keyboard.press('Escape')
@@ -324,7 +554,7 @@ test.describe('Menu bar', () => {
   })
 
   test('Edit undoes and selects all', async ({ page, account }) => {
-    await openDocument(page, account, twoParagraphs())
+    const { document } = await openDocument(page, account, twoParagraphs())
     await caretAtEndOf(page, FIRST)
     await menuNamed(page, 'Edit').click()
     await expect(page.getByRole('menuitem', { name: 'Undo' })).toHaveAttribute(
@@ -334,6 +564,11 @@ test.describe('Menu bar', () => {
     await page.keyboard.press('Escape')
     await expect.poll(async () => (await selection(page)).writing).toBe(true)
     await page.keyboard.type(' Encore.')
+    // Saved and laid out: a menu closes when the page scrolls, which a late relayout may do
+    await expect
+      .poll(async () => (await savedTexts(account, document.id)).map((node) => node.text), SAVED)
+      .toContain(`${FIRST} Encore.`)
+    await settle(page)
 
     await menuNamed(page, 'Edit').click()
     await page.getByRole('menuitem', { name: 'Undo' }).click()

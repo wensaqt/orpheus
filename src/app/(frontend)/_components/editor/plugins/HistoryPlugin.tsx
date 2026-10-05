@@ -1,27 +1,19 @@
 'use client'
 
-import { createEmptyHistoryState, registerHistory } from '@lexical/history'
+import { createEmptyHistoryState } from '@lexical/history'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-import { publishHistory } from '../history'
-
-// How long consecutive changes merge into one undo step: Lexical's own plugin's default
-const MERGE_DELAY = 1000
+import { registerPublishedHistory } from '../history'
 
 /*
- * Undo and redo for the editor, as Lexical's HistoryPlugin, also publishing whether there is
- * something to undo or redo (see history.ts): once registered, and at every change of the
- * history, a clear included.
+ * Undo and redo for the editor, publishing what there is to undo or redo (see history.ts).
+ * The history lives as long as the plugin, so registering again (StrictMode, Fast Refresh)
+ * keeps it, as with Lexical's own plugin.
  */
 export function HistoryPlugin() {
   const [editor] = useLexicalComposerContext()
-  useEffect(
-    () =>
-      registerHistory(editor, createEmptyHistoryState(), MERGE_DELAY, Date.now, (state) =>
-        publishHistory(editor, state),
-      ),
-    [editor],
-  )
+  const [historyState] = useState(createEmptyHistoryState)
+  useEffect(() => registerPublishedHistory(editor, historyState), [editor, historyState])
   return null
 }

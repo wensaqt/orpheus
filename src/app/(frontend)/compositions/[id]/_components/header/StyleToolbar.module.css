@@ -1,5 +1,6 @@
 /* A quiet band of controls, a shade darker than the header */
 .toolbar {
+  container-type: inline-size;
   display: flex;
   align-items: center;
   gap: var(--toolbar-gap);
@@ -62,6 +63,18 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/*
+ * Too narrow for every control (a laptop, the binder open): the placeholders give way to what
+ * works, rather than push the page sideways. Clipping the band would clip the tooltips. The
+ * width is that of all the controls in a row (a query cannot read a custom property)
+ */
+@container (max-width: 55rem) {
+  /* Over the controls' own display */
+  .toolbar .soon {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

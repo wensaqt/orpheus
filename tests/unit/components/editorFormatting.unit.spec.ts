@@ -2,6 +2,7 @@ import { $createListItemNode, $createListNode, ListItemNode, ListNode } from '@l
 import {
   $createHeadingNode,
   $createQuoteNode,
+  $isHeadingNode,
   HeadingNode,
   QuoteNode,
   registerRichText,
@@ -15,6 +16,7 @@ import {
   $setSelection,
   createEditor,
   FORMAT_TEXT_COMMAND,
+  type ElementNode,
   type LexicalEditor,
   type TextNode,
 } from 'lexical'
@@ -23,6 +25,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   $readFormatting,
   $setBlockType,
+  $textSelection,
   type Formatting,
   NO_FORMATTING,
   sameFormatting,
@@ -85,8 +88,34 @@ describe('the selection’s formatting', () => {
   const update = (change: () => void) => editor.update(change, { discrete: true })
   const read = () => editor.getEditorState().read($readFormatting)
 
-  it('is nothing without a selection', () => {
-    expect(read()).toEqual(NO_FORMATTING)
+  it('reads as at the start of the text without a selection yet', () => {
+    expect(read()).toEqual({ ...NO_FORMATTING, text: true })
+    update(() => {
+      $getRoot().getFirstChildOrThrow<ElementNode>().setFormat('center')
+      plain.toggleFormat('italic')
+    })
+    expect(read()).toMatchObject({ text: true, align: 'center', formats: { italic: true } })
+  })
+
+  it('puts a caret at the start of the text for a change, without a selection yet', () => {
+    let offset: number | undefined
+    update(() => {
+      const selection = $textSelection()
+      offset =
+        selection?.isCollapsed() && selection.anchor.key === plain.getKey()
+          ? selection.anchor.offset
+          : undefined
+    })
+    expect(offset).toBe(0)
+    // Never on a selected page break
+    update(() => {
+      const pageBreak = $createPageBreakNode()
+      $getRoot().append(pageBreak)
+      const selection = $createNodeSelection()
+      selection.add(pageBreak.getKey())
+      $setSelection(selection)
+      expect($textSelection()).toBeNull()
+    })
   })
 
   it('shows a format toggled on a range, and off again', () => {
@@ -164,5 +193,33 @@ describe('the selection’s formatting', () => {
     expect(editor.getEditorState().read(() => $getRoot().getTextContent())).toBe('Orpheus sings')
     update(() => $setBlockType('paragraph'))
     expect(read()).toMatchObject({ blockType: 'paragraph', align: 'center' })
+  })
+  it('changes every selected block, unless all already have the type', () => {
+    update(() => {
+      const root = $getRoot()
+      root.clear()
+      root.append(
+        $createHeadingNode('h1').append($createTextNode('Un')),
+        $createParagraphNode().append($createTextNode('Deux')),
+        $createHeadingNode('h1').append($createTextNode('Trois')),
+      )
+      const first = root.getFirstChildOrThrow<ElementNode>().getFirstChildOrThrow<TextNode>()
+      const last = root.getLastChildOrThrow<ElementNode>().getFirstChildOrThrow<TextNode>()
+      const selection = first.select(0, 0)
+      selection.focus.set(last.getKey(), 5, 'text')
+    })
+    const types = () =>
+      editor.getEditorState().read(() =>
+        $getRoot()
+          .getChildren()
+          .map((block) => block.getType() + ($isHeadingNode(block) ? block.getTag() : '')),
+      )
+    update(() => $setBlockType('h1'))
+    expect(types()).toEqual(['headingh1', 'headingh1', 'headingh1'])
+    // All headings now: nothing changes, the blocks stay the same nodes
+    const keys = () => editor.getEditorState().read(() => $getRoot().getChildrenKeys())
+    const before = keys()
+    update(() => $setBlockType('h1'))
+    expect(keys()).toEqual(before)
   })
 })

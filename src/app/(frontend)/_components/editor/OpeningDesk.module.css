@@ -1,8 +1,11 @@
-/* The editor's pearl desk over the page, the sheet where the editor will put it */
+/*
+ * The editor's pearl desk over the page (and over an editor's header still on screen), the
+ * sheet where the editor will put it
+ */
 .desk {
   position: fixed;
   inset: 0;
-  z-index: 2;
+  z-index: var(--layer-overlay);
   display: flex;
   justify-content: center;
   /* Where the editor puts the sheet: under its header and ruler */

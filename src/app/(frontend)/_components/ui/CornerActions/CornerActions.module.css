@@ -4,7 +4,7 @@
   top: var(--space-3);
   right: var(--space-4);
   /* Over the editor's sticky header (itself over the ruler), which leaves them room */
-  z-index: 3;
+  z-index: var(--layer-corner);
   display: flex;
   align-items: center;
   gap: var(--space-2);

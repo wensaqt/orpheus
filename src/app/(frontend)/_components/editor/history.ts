@@ -1,8 +1,8 @@
 'use client'
 
-import type { HistoryState } from '@lexical/history'
+import { type HistoryState, registerHistory } from '@lexical/history'
 import type { LexicalEditor } from 'lexical'
-import { useSyncExternalStore } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 // Whether an editor has something to undo and to redo
 export type HistoryAvailability = { canUndo: boolean; canRedo: boolean }
@@ -18,7 +18,10 @@ const NOTHING: HistoryAvailability = { canUndo: false, canRedo: false }
 const availability = new WeakMap<LexicalEditor, HistoryAvailability>()
 const listeners = new WeakMap<LexicalEditor, Set<() => void>>()
 
-// Called by the editor's HistoryPlugin each time its history changes
+// How long consecutive changes merge into one undo step: Lexical's own plugin's default
+const MERGE_DELAY = 1000
+
+// Called each time an editor's history changes
 export function publishHistory(editor: LexicalEditor, { undoStack, redoStack }: HistoryState) {
   const next = { canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 }
   const current = historyOf(editor)
@@ -37,10 +40,24 @@ function subscribe(editor: LexicalEditor | null, listener: () => void) {
   return () => set.delete(listener)
 }
 
+/*
+ * Undo and redo for the editor, as Lexical's HistoryPlugin, also publishing whether there is
+ * something to undo or redo: once registered, and at every change of the history, a clear
+ * included. Returns the unregistration.
+ */
+export const registerPublishedHistory = (editor: LexicalEditor, state: HistoryState) =>
+  registerHistory(editor, state, MERGE_DELAY, Date.now, (next) => publishHistory(editor, next))
+
 // What the editor can undo and redo now, and again whenever that changes
-export const useHistoryAvailability = (editor: LexicalEditor | null) =>
-  useSyncExternalStore(
-    (listener) => subscribe(editor, listener),
+export function useHistoryAvailability(editor: LexicalEditor | null) {
+  // Stable for an editor: a new one would subscribe again at every render
+  const subscribeToEditor = useCallback(
+    (listener: () => void) => subscribe(editor, listener),
+    [editor],
+  )
+  return useSyncExternalStore(
+    subscribeToEditor,
     () => historyOf(editor),
     () => NOTHING,
   )
+}

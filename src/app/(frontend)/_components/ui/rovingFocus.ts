@@ -2,13 +2,16 @@ import { type FocusEvent, type KeyboardEvent, useEffect, useRef } from 'react'
 
 // Marks the controls of a roving group (a toolbar, a menu bar): one tab stop for all of them
 export const ROVING_ATTRIBUTE = 'data-roving'
+// Spread on such a control
+export const ROVING_PROPS = { [ROVING_ATTRIBUTE]: '' } as const
 
 const PREVIOUS = { horizontal: 'ArrowLeft', vertical: 'ArrowUp' } as const
 const NEXT = { horizontal: 'ArrowRight', vertical: 'ArrowDown' } as const
 
 /*
- * Where a key moves the focus in a group of `count` controls, from the one at `current`:
- * the arrows step and wrap around, Home and End jump to the ends. Null for any other key
+ * Where a key moves the focus in a group of `count` controls, from the one at `current` (-1
+ * for none yet): the arrows step and wrap around, Home and End jump to the ends. Null for any
+ * other key
  */
 export function rovingIndex(
   key: string,
@@ -21,7 +24,7 @@ export function rovingIndex(
     case NEXT[orientation]:
       return (current + 1) % count
     case PREVIOUS[orientation]:
-      return (current - 1 + count) % count
+      return current <= 0 ? count - 1 : current - 1
     case 'Home':
       return 0
     case 'End':
@@ -34,10 +37,10 @@ export function rovingIndex(
 /*
  * A horizontal group with a single tab stop (https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/):
  * the controls marked with ROVING_ATTRIBUTE, in document order. Tab lands on the last one
- * focused; Left/Right, Home and End move between them. Keys pressed elsewhere inside (in an
- * open menu) are left alone.
+ * focused; Left/Right, Home and End move between them; Escape on one calls `onEscape`. Keys
+ * pressed elsewhere inside (in an open menu) are left alone.
  */
-export function useRovingFocus<T extends HTMLElement>() {
+export function useRovingFocus<T extends HTMLElement>(onEscape?: () => void) {
   const ref = useRef<T>(null)
   const controls = () =>
     Array.from(ref.current?.querySelectorAll<HTMLElement>(`[${ROVING_ATTRIBUTE}]`) ?? [])
@@ -58,6 +61,11 @@ export function useRovingFocus<T extends HTMLElement>() {
       const all = controls()
       const current = all.indexOf(event.target as HTMLElement)
       if (current === -1) return
+      if (event.key === 'Escape' && onEscape) {
+        event.preventDefault()
+        onEscape()
+        return
+      }
       const next = rovingIndex(event.key, current, all.length, 'horizontal')
       if (next === null) return
       event.preventDefault()
@@ -65,6 +73,5 @@ export function useRovingFocus<T extends HTMLElement>() {
     },
     // The control at this index of the group, e.g. the menu next to an open one
     controlAt: (index: number) => controls().at(index % controls().length),
-    indexOf: (control: Element) => controls().indexOf(control as HTMLElement),
   }
 }

@@ -9,7 +9,7 @@
   /* Right under the header while the pages scroll, over them */
   position: sticky;
   top: var(--editor-header-height);
-  z-index: 1;
+  z-index: var(--layer-ruler);
   flex-shrink: 0;
   /* Up against the header, over the desk's top padding */
   margin-block: calc(-1 * var(--space-4)) var(--space-3);
@@ -119,7 +119,7 @@
   position: absolute;
   top: calc(100% + var(--ruler-size) / 2);
   left: 50%;
-  z-index: 1;
+  z-index: var(--layer-tooltip);
   padding: 2px var(--space-2);
   border-radius: var(--radius-sm);
   background-color: var(--color-text);

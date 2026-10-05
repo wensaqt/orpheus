@@ -67,7 +67,7 @@ export function RowMenu({ row, ref, onMoveTo, onClose }: RowMenuProps) {
       label={t('binder.actions.open', { title: entry.title })}
       items={items}
       triggerClassName={styles.more}
-      triggerTabIndex={-1}
+      triggerProps={{ tabIndex: -1 }}
     >
       <span aria-hidden="true">⋯</span>
     </Menu>

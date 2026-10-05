@@ -174,6 +174,8 @@ export const en = {
     saveError: 'Could not save — trying again…',
     toolbar: 'Editor toolbar',
     menuBar: 'Menu bar',
+    // The Format menu's set of alignments
+    alignment: 'Alignment',
     // A control's tooltip: its name, then its shortcut or why it does nothing yet
     labelWithHint: '{label} ({hint})',
     menus: {

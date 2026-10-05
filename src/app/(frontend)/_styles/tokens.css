@@ -86,6 +86,23 @@
       var(--space-1) + var(--space-2) + 1px
   );
 
+  /*
+   * Stacking layers, for what is positioned over the page. A tooltip's is within its own
+   * control's layer
+   */
+  /* The ruler, over the pages that scroll under it */
+  --layer-ruler: 1;
+  /* The editor's sticky header, over the ruler: its tooltips show over it */
+  --layer-header: 2;
+  /* The logo and the corner actions, fixed over the header, which leaves them room */
+  --layer-corner: 3;
+  /* The opening desk, standing in for the whole editor while it loads, corners included */
+  --layer-overlay: 4;
+  /* Toasts, over everything */
+  --layer-toast: 5;
+  /* A tooltip, over the controls next to its own */
+  --layer-tooltip: 1;
+
   /* Radii */
   --radius-sm: 4px;
   --radius-md: 8px;

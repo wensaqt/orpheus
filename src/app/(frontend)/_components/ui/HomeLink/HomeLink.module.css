@@ -3,7 +3,7 @@
   top: var(--space-3);
   left: var(--space-4);
   /* Over the editor's sticky header (itself over the ruler), which leaves them room */
-  z-index: 3;
+  z-index: var(--layer-corner);
   display: block;
   border-radius: var(--radius-sm);
   opacity: 0.7;
