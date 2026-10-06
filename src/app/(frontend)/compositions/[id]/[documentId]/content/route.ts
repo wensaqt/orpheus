@@ -1,4 +1,5 @@
 import { findDocument } from '@front/_features/binder/queries'
+import { HTTP_STATUS } from '@front/_lib/http'
 import { getSession } from '@front/_lib/server/auth'
 import { parseId } from '@front/_lib/validation'
 
@@ -18,11 +19,11 @@ export async function GET(
   if (compositionId === null || itemId === null) return notFound()
 
   const { payload, user } = await getSession()
-  if (!user) return Response.json(null, { status: 401 })
+  if (!user) return Response.json(null, { status: HTTP_STATUS.unauthorized })
   const document = await findDocument({ payload, user }, compositionId, itemId)
   if (!document) return notFound()
   // Private writing: never kept by a shared cache, and always asked for fresh
   return Response.json(document, { headers: { 'Cache-Control': 'private, no-store' } })
 }
 
-const notFound = () => Response.json(null, { status: 404 })
+const notFound = () => Response.json(null, { status: HTTP_STATUS.notFound })

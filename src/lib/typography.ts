@@ -1,11 +1,6 @@
-import {
-  finite,
-  floorToStep,
-  LONGEST_PAGE_SIDE,
-  type PageSettings,
-  textWidth,
-  toStep,
-} from './pageFormats'
+import { clamp, finite } from './numbers'
+import { isRecord } from './guards'
+import { floorToStep, LONGEST_PAGE_SIDE, type PageSettings, textWidth, toStep } from './pageFormats'
 
 // How a composition's text is set (font, size and line height will join it), in millimetres
 export type Typography = {
@@ -28,7 +23,7 @@ export const withFirstLineIndent = (
   value: number,
 ): Typography => ({
   ...typography,
-  firstLineIndent: Math.min(Math.max(toStep(value), 0), maxFirstLineIndent(page)),
+  firstLineIndent: clamp(toStep(value), 0, maxFirstLineIndent(page)),
 })
 
 // The typography fitted to the page: the indent shrinks if narrower text has no room for it
@@ -37,8 +32,8 @@ export const fitTypography = (typography: Typography, page: PageSettings): Typog
 
 // Typography sent by a client, checked against its page
 export function parseTypography(input: unknown, page: PageSettings): Typography | null {
-  if (typeof input !== 'object' || input === null) return null
-  const firstLineIndent = finite((input as Record<string, unknown>).firstLineIndent)
+  if (!isRecord(input)) return null
+  const firstLineIndent = finite(input.firstLineIndent)
   if (firstLineIndent === null) return null
   return firstLineIndent >= 0 && firstLineIndent <= maxFirstLineIndent(page)
     ? { firstLineIndent }

@@ -2,7 +2,8 @@
 
 import { cookies } from 'next/headers'
 
-import { isLocale, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, type Locale } from '@front/_lib/i18n'
+import { COOKIE_MAX_AGE } from '@front/_lib/preferences'
+import { isLocale, LOCALE_COOKIE, type Locale } from '@front/_lib/i18n'
 
 /*
  * Remembers the chosen language in a cookie. Setting a cookie in an action makes Next.js
@@ -11,7 +12,7 @@ import { isLocale, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, type Locale } from '@fr
 export async function setLocale(locale: Locale) {
   if (!isLocale(locale)) return
   ;(await cookies()).set(LOCALE_COOKIE, locale, {
-    maxAge: LOCALE_COOKIE_MAX_AGE,
+    maxAge: COOKIE_MAX_AGE,
     path: '/',
     sameSite: 'lax',
   })

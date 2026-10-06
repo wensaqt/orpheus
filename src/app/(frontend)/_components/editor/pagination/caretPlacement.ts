@@ -1,7 +1,8 @@
 import { $getNearestNodeFromDOMNode } from 'lexical'
 
 import { PageBreakNode } from '../nodes/PageBreakNode'
-import { caretPoint, nearestTextOffset, type PageGeometry, type Point } from './pageGeometry'
+import { caretPoint, nearestTextOffset } from './pageGeometry'
+import type { PagesOnScreen, Point } from './types'
 
 // The text position under a point, with the API each engine has
 function caretFromPoint({ x, y }: Point): { node: Node; offset: number } | null {
@@ -13,9 +14,6 @@ function caretFromPoint({ x, y }: Point): { node: Node; offset: number } | null 
   const range = document.caretRangeFromPoint?.(x, y)
   return range ? { node: range.startContainer, offset: range.startOffset } : null
 }
-
-// The pages as laid out right now: where the text flow starts on screen, and how many pages
-export type PagesOnScreen = { flowTop: number; page: PageGeometry; gap: number; pages: number }
 
 /*
  * Where a click on a sheet that missed the text should put the caret, as in a word processor:

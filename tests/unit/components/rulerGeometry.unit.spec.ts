@@ -4,13 +4,16 @@ import {
   handleMax,
   handlePosition,
   handleValue,
-  RULER_STEP,
-  RULER_STEP_LARGE,
   rulerLabels,
   valueAfterKey,
   valueAt,
   withHandleValue,
 } from '@/app/(frontend)/compositions/[id]/_components/page/rulerGeometry'
+import {
+  RULER_STEP,
+  RULER_STEP_LARGE,
+} from '@/app/(frontend)/compositions/[id]/_components/page/constants'
+import { RulerHandle } from '@/app/(frontend)/compositions/[id]/_components/page/types'
 import type { Layout } from '@/lib/layout'
 
 // A4 with 25 mm margins and a 10 mm first-line indent
@@ -42,27 +45,27 @@ describe('rulerLabels', () => {
 
 describe('handles', () => {
   it('sit at their margin, the indent after the left margin', () => {
-    expect(handlePosition('left', layout)).toBe(25)
-    expect(handlePosition('right', layout)).toBe(185)
-    expect(handlePosition('indent', layout)).toBe(35)
+    expect(handlePosition(RulerHandle.Left, layout)).toBe(25)
+    expect(handlePosition(RulerHandle.Right, layout)).toBe(185)
+    expect(handlePosition(RulerHandle.Indent, layout)).toBe(35)
   })
 
   it('set what lies under them, the inverse of where they sit', () => {
-    for (const handle of ['left', 'right', 'indent'] as const)
+    for (const handle of [RulerHandle.Left, RulerHandle.Right, RulerHandle.Indent])
       expect(valueAt(handle, handlePosition(handle, layout), layout)).toBe(
         handleValue(handle, layout),
       )
   })
 
   it('know their bounds', () => {
-    expect(handleMax('left', layout)).toBe(210 - 40 - 25)
-    expect(handleMax('indent', layout)).toBe(80)
+    expect(handleMax(RulerHandle.Left, layout)).toBe(210 - 40 - 25)
+    expect(handleMax(RulerHandle.Indent, layout)).toBe(80)
   })
 
   it('keep the layout fitted: wider margins shrink the indent', () => {
-    const indented = withHandleValue('indent', layout, 80)
+    const indented = withHandleValue(RulerHandle.Indent, layout, 80)
     expect(indented.typography.firstLineIndent).toBe(80)
-    expect(withHandleValue('left', indented, 85).typography.firstLineIndent).toBe(50)
+    expect(withHandleValue(RulerHandle.Left, indented, 85).typography.firstLineIndent).toBe(50)
   })
 })
 
@@ -70,20 +73,22 @@ describe('valueAfterKey', () => {
   const key = (name: string, shiftKey = false) => ({ key: name, shiftKey })
 
   it('moves a handle the way the arrow points', () => {
-    expect(valueAfterKey('left', key('ArrowRight'), 25, 100)).toBe(25 + RULER_STEP)
-    expect(valueAfterKey('right', key('ArrowRight'), 25, 100)).toBe(25 - RULER_STEP)
-    expect(valueAfterKey('right', key('ArrowLeft', true), 25, 100)).toBe(25 + RULER_STEP_LARGE)
-    expect(valueAfterKey('indent', key('ArrowRight'), 0, 50)).toBe(RULER_STEP)
+    expect(valueAfterKey(RulerHandle.Left, key('ArrowRight'), 25, 100)).toBe(25 + RULER_STEP)
+    expect(valueAfterKey(RulerHandle.Right, key('ArrowRight'), 25, 100)).toBe(25 - RULER_STEP)
+    expect(valueAfterKey(RulerHandle.Right, key('ArrowLeft', true), 25, 100)).toBe(
+      25 + RULER_STEP_LARGE,
+    )
+    expect(valueAfterKey(RulerHandle.Indent, key('ArrowRight'), 0, 50)).toBe(RULER_STEP)
   })
 
   it('raises and lowers like a slider, and goes to the ends', () => {
-    expect(valueAfterKey('right', key('ArrowUp'), 25, 100)).toBe(25 + RULER_STEP)
-    expect(valueAfterKey('left', key('PageDown'), 25, 100)).toBe(25 - RULER_STEP_LARGE)
-    expect(valueAfterKey('left', key('Home'), 25, 100)).toBe(0)
-    expect(valueAfterKey('left', key('End'), 25, 100)).toBe(100)
+    expect(valueAfterKey(RulerHandle.Right, key('ArrowUp'), 25, 100)).toBe(25 + RULER_STEP)
+    expect(valueAfterKey(RulerHandle.Left, key('PageDown'), 25, 100)).toBe(25 - RULER_STEP_LARGE)
+    expect(valueAfterKey(RulerHandle.Left, key('Home'), 25, 100)).toBe(0)
+    expect(valueAfterKey(RulerHandle.Left, key('End'), 25, 100)).toBe(100)
   })
 
   it('ignores other keys', () => {
-    expect(valueAfterKey('left', key('a'), 25, 100)).toBeNull()
+    expect(valueAfterKey(RulerHandle.Left, key('a'), 25, 100)).toBeNull()
   })
 })

@@ -1,4 +1,9 @@
-import { IS_APPLE } from 'lexical'
+import {
+  CONTROL_OR_META,
+  IS_APPLE,
+  isExactShortcutMatch,
+  type KeyboardEventModifiers,
+} from 'lexical'
 import { useSyncExternalStore } from 'react'
 
 /*
@@ -6,6 +11,14 @@ import { useSyncExternalStore } from 'react'
  * Ctrl elsewhere, e.g. "Mod+Shift+Z"
  */
 export type Shortcut = `Mod+${string}`
+
+/*
+ * Whether a key press is Mod+key and nothing more (Shift or Alt held is another shortcut).
+ * Lexical's matcher, as for its own shortcuts: the key is compared case-insensitively as the
+ * layout types it (an AZERTY or Dvorak "s"), and by its physical place on non-Latin layouts.
+ */
+export const isModShortcut = (event: KeyboardEventModifiers, key: string) =>
+  isExactShortcutMatch(event, key, CONTROL_OR_META)
 
 // Apple's symbols, in Apple's order (Shift before Cmd)
 const APPLE_KEYS: Record<string, string> = { Shift: '⇧', Alt: '⌥', Mod: '⌘', Enter: '↩' }

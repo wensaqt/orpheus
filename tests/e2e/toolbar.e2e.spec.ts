@@ -35,6 +35,7 @@ const savedBlocks = async (account: Account, id: string) => {
     depth: 0,
     overrideAccess: true,
   })
+  // The stored type leaves the nodes' fields open: these tests know what they saved
   return ((item.content as { root: SavedNode } | null)?.root.children ?? []) as SavedNode[]
 }
 
@@ -56,6 +57,7 @@ async function selectIn(page: Page, text: string, start: number, end: number) {
   await page.locator(`${editable} p`, { hasText: text }).click()
   await page.evaluate(
     ({ editable, text, start, end }) => {
+      // Non-null: the paragraph was just clicked, so it and its text are there
       const paragraph = [...document.querySelectorAll(`${editable} p`)].find(
         (p) => p.textContent === text,
       )!
@@ -78,7 +80,7 @@ async function caretAtEndOf(page: Page, text: string) {
 const selection = (page: Page) =>
   page.evaluate(
     (editable) => ({
-      text: window.getSelection()!.toString(),
+      text: window.getSelection()?.toString() ?? '',
       writing: Boolean(document.querySelector(editable)?.contains(document.activeElement)),
     }),
     editable,
@@ -87,8 +89,8 @@ const selection = (page: Page) =>
 // Where the caret is: its text and offset
 const caret = (page: Page) =>
   page.evaluate(() => {
-    const { anchorNode, anchorOffset } = window.getSelection()!
-    return { text: anchorNode?.textContent, offset: anchorOffset }
+    const selection = window.getSelection()
+    return { text: selection?.anchorNode?.textContent, offset: selection?.anchorOffset }
   })
 
 // The page break right after this paragraph, selected from the keyboard as a whole block
@@ -554,21 +556,21 @@ test.describe('Menu bar', () => {
   })
 
   test('Edit undoes and selects all', async ({ page, account }) => {
-    const { document } = await openDocument(page, account, twoParagraphs())
+    await openDocument(page, account, twoParagraphs())
     await caretAtEndOf(page, FIRST)
     await menuNamed(page, 'Edit').click()
     await expect(page.getByRole('menuitem', { name: 'Undo' })).toHaveAttribute(
       'aria-disabled',
       'true',
     )
+    // Native opening precedes the toggle handler that moves focus into the menu.
+    await expect(page.getByRole('menuitem', { name: 'Undo' })).toBeFocused()
     await page.keyboard.press('Escape')
+    // The close transition and native focus restoration must finish before typing.
+    await expect(page.getByRole('menu', { name: 'Edit', exact: true })).toBeHidden()
     await expect.poll(async () => (await selection(page)).writing).toBe(true)
     await page.keyboard.type(' Encore.')
-    // Saved and laid out: a menu closes when the page scrolls, which a late relayout may do
-    await expect
-      .poll(async () => (await savedTexts(account, document.id)).map((node) => node.text), SAVED)
-      .toContain(`${FIRST} Encore.`)
-    await settle(page)
+    await expect(page.locator(`${editable} p`).first()).toHaveText(`${FIRST} Encore.`)
 
     await menuNamed(page, 'Edit').click()
     await page.getByRole('menuitem', { name: 'Undo' }).click()

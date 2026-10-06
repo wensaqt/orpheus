@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import React from 'react'
 
+import { classNames } from '@front/_lib/classNames'
+
 import styles from './LyreButton.module.css'
 import { LyreHalf } from './LyreHalf'
 import { LyreLabel } from './LyreLabel'
-import type { LyreSide } from './types'
+import { LyreSide } from './types'
 import { type LyreHandlers, useLyreInput } from './useLyreInput'
 import { useLyrePluck } from './useLyrePluck'
 
@@ -33,7 +35,7 @@ export function LyreButton(props: LyreButtonProps) {
   const {
     text,
     subtitle,
-    side = 'left',
+    side = LyreSide.Left,
     className,
     onPointerEnter,
     onPointerDown,
@@ -50,7 +52,7 @@ export function LyreButton(props: LyreButtonProps) {
     handlers: { onPointerEnter, onPointerDown, onPointerMove, onPointerLeave, onFocus, onBlur },
   })
 
-  const shared = { className: [styles.button, className].filter(Boolean).join(' '), ...handlers }
+  const shared = { className: classNames(styles.button, className), ...handlers }
   const content = (
     <>
       <LyreHalf side={side} svgRef={svgRef} stringRefs={pathRefs} />

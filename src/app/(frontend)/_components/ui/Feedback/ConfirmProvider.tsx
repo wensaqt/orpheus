@@ -1,5 +1,7 @@
 'use client'
 
+import type { ActionTone } from '../types'
+
 import React, { createContext, useCallback, useContext, useId, useRef, useState } from 'react'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
@@ -12,7 +14,7 @@ export type ConfirmOptions = {
   description?: string
   confirmLabel?: string
   cancelLabel?: string
-  tone?: 'default' | 'danger'
+  tone?: ActionTone
 }
 
 type Confirm = (options: ConfirmOptions) => Promise<boolean>

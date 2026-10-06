@@ -4,6 +4,7 @@ import {
   $createQuoteNode,
   $isHeadingNode,
   $isQuoteNode,
+  type HeadingTagType,
 } from '@lexical/rich-text'
 import { $setBlocksType } from '@lexical/selection'
 import { $getNearestNodeOfType, $insertNodeToNearestRoot } from '@lexical/utils'
@@ -21,48 +22,34 @@ import {
   type RangeSelection,
 } from 'lexical'
 
+import { NO_FORMATTING, TEXT_FORMATS } from './constants'
 import { $createPageBreakNode } from './nodes/PageBreakNode'
-
-// The text formats the toolbar toggles
-export const TEXT_FORMATS = ['bold', 'italic', 'underline', 'strikethrough'] as const
-export type TextFormat = (typeof TEXT_FORMATS)[number]
-
-// The block types the writer can choose; the others are only read (lists, deeper headings)
-export const BLOCK_TYPES = ['paragraph', 'h1', 'h2', 'h3', 'quote'] as const
-export type ChosenBlockType = (typeof BLOCK_TYPES)[number]
-export type BlockType = ChosenBlockType | 'bullet' | 'number' | 'other'
-
-export const ALIGNMENTS = ['left', 'center', 'right', 'justify'] as const
-export type Alignment = (typeof ALIGNMENTS)[number]
-
-// What the selection holds, as the toolbar shows it
-export type Formatting = {
-  // A text selection, or none yet (see $textSelection), not a page break: the styles apply
-  text: boolean
-  formats: Record<TextFormat, boolean>
-  blockType: BlockType
-  align: Alignment
-}
-
-export const NO_FORMATTING: Formatting = {
-  text: false,
-  formats: { bold: false, italic: false, underline: false, strikethrough: false },
-  blockType: 'paragraph',
-  align: 'left',
-}
+import {
+  Alignment,
+  BlockType,
+  type ChosenBlockType,
+  type Formatting,
+  type HeadingBlockType,
+  TextFormat,
+} from './types'
 
 /*
  * A block's alignment as the toolbar shows it: no alignment (the default) and the writing
  * direction's start are left, its end is right (the editor writes left to right)
  */
-export function toAlignment(format: ElementFormatType): Alignment {
-  if (format === 'center' || format === 'right' || format === 'justify') return format
-  return format === 'end' ? 'right' : 'left'
+const ALIGNMENT_OF_FORMAT: Partial<Record<ElementFormatType, Alignment>> = {
+  center: Alignment.Center,
+  right: Alignment.Right,
+  end: Alignment.Right,
+  justify: Alignment.Justify,
 }
+
+export const toAlignment = (format: ElementFormatType): Alignment =>
+  ALIGNMENT_OF_FORMAT[format] ?? Alignment.Left
 
 // The format a block is given for an alignment: left is no format at all, as a new block has
 export const toElementFormat = (align: Alignment): ElementFormatType =>
-  align === 'left' ? '' : align
+  align === Alignment.Left ? '' : align
 
 export const sameFormatting = (a: Formatting, b: Formatting) =>
   a.text === b.text &&
@@ -74,27 +61,31 @@ export const sameFormatting = (a: Formatting, b: Formatting) =>
 const $topLevelBlock = (node: LexicalNode) =>
   $isRootOrShadowRoot(node) ? node : node.getTopLevelElementOrThrow()
 
+// The headings the writer can choose; a deeper one reads as another type
+const HEADING_BLOCK_TYPES: Partial<Record<HeadingTagType, HeadingBlockType>> = {
+  h1: BlockType.H1,
+  h2: BlockType.H2,
+  h3: BlockType.H3,
+}
+
 // The type of the block a node is in; in a list, of the nearest list (a nested one may differ)
 export function $blockTypeOf(node: LexicalNode): BlockType {
   const block = $topLevelBlock(node)
   if ($isListNode(block)) {
     const list = $getNearestNodeOfType(node, ListNode) ?? block
-    return list.getListType() === 'number' ? 'number' : 'bullet'
+    return list.getListType() === 'number' ? BlockType.Number : BlockType.Bullet
   }
-  if ($isHeadingNode(block)) {
-    const tag = block.getTag()
-    return tag === 'h1' || tag === 'h2' || tag === 'h3' ? tag : 'other'
-  }
-  if ($isQuoteNode(block)) return 'quote'
-  return block.getType() === 'paragraph' ? 'paragraph' : 'other'
+  if ($isHeadingNode(block)) return HEADING_BLOCK_TYPES[block.getTag()] ?? BlockType.Other
+  if ($isQuoteNode(block)) return BlockType.Quote
+  return block.getType() === 'paragraph' ? BlockType.Paragraph : BlockType.Other
 }
 
 // The text formats of a selection, or of a text node
 const formatsOf = (source: { hasFormat: (format: TextFormat) => boolean }) => ({
-  bold: source.hasFormat('bold'),
-  italic: source.hasFormat('italic'),
-  underline: source.hasFormat('underline'),
-  strikethrough: source.hasFormat('strikethrough'),
+  [TextFormat.Bold]: source.hasFormat(TextFormat.Bold),
+  [TextFormat.Italic]: source.hasFormat(TextFormat.Italic),
+  [TextFormat.Underline]: source.hasFormat(TextFormat.Underline),
+  [TextFormat.Strikethrough]: source.hasFormat(TextFormat.Strikethrough),
 })
 
 function $formattingAt(node: LexicalNode, formats: Formatting['formats']): Formatting {
@@ -106,7 +97,7 @@ function $formattingAt(node: LexicalNode, formats: Formatting['formats']): Forma
     align:
       $isElementNode(block) && !$isRootOrShadowRoot(block)
         ? toAlignment(block.getFormatType())
-        : 'left',
+        : Alignment.Left,
   }
 }
 
@@ -149,13 +140,13 @@ export function $setBlockType(next: ChosenBlockType) {
   if (!$isRangeSelection(selection)) return
   // Already all of this type: nothing to change (nor to undo)
   if (selection.getNodes().every((node) => $blockTypeOf(node) === next)) return
-  $setBlocksType(selection, () =>
-    next === 'paragraph'
-      ? $createParagraphNode()
-      : next === 'quote'
-        ? $createQuoteNode()
-        : $createHeadingNode(next),
-  )
+  $setBlocksType(selection, () => $createBlock(next))
+}
+
+function $createBlock(type: ChosenBlockType) {
+  if (type === BlockType.Paragraph) return $createParagraphNode()
+  if (type === BlockType.Quote) return $createQuoteNode()
+  return $createHeadingNode(type)
 }
 
 // A page break where the selection is: what follows starts on the next page

@@ -1,3 +1,4 @@
+import { $isAtStartOfNode } from '@lexical/utils'
 import { $getRoot, $getSelection, $isRangeSelection } from 'lexical'
 
 /*
@@ -7,10 +8,6 @@ import { $getRoot, $getSelection, $isRangeSelection } from 'lexical'
 export function $isAtDocumentStart(): boolean {
   const selection = $getSelection()
   if (!$isRangeSelection(selection) || !selection.isCollapsed()) return false
-  const { anchor } = selection
-  if (anchor.offset !== 0) return false
-  const root = $getRoot()
-  const node = anchor.getNode()
-  const first = root.getFirstDescendant()
-  return first === null || node.is(first) || node.is(root.getFirstChild())
+  // Lexical's test: nothing between the caret and the start of the root
+  return $isAtStartOfNode(selection.anchor, $getRoot())
 }

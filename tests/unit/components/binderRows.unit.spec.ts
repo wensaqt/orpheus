@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { DROP } from '@front/compositions/[id]/_components/binder/constants'
 import {
-  DROP,
   dropDestination,
   intoFolder,
   moveDestinations,
@@ -83,10 +83,15 @@ describe('moveDestinations', () => {
 describe('reorderDestination', () => {
   it('moves one step among siblings, within bounds', () => {
     const rows = visibleRows(entries, new Set())
-    const chant = rows.find((row) => row.entry.id === uuid(3))!
+    const rowOf = (id: string) => {
+      const row = rows.find(({ entry }) => entry.id === id)
+      if (!row) throw new Error(`No row ${id}`)
+      return row
+    }
+    const chant = rowOf(uuid(3))
     expect(reorderDestination(chant, 1)).toEqual({ parent: uuid(2), index: 1 })
     expect(reorderDestination(chant, -1)).toBeNull()
-    const notes = rows.find((row) => row.entry.id === uuid(4))!
+    const notes = rowOf(uuid(4))
     expect(reorderDestination(notes, 1)).toBeNull()
   })
 })

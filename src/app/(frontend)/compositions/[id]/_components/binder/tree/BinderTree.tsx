@@ -7,11 +7,27 @@ import type { Id } from '@/lib/ids'
 
 import { useBinderDropMonitor } from '../dnd/useBinderDropMonitor'
 import { MoveDialog } from '../MoveDialog'
-import { type BinderRow as Row, dropDestination, reorderDestination, visibleRows } from '../rows'
+import { dropDestination, reorderDestination, visibleRows } from '../rows'
+import type { BinderRow as Row, DropOperation } from '../types'
 import { useBinder } from '../state/BinderProvider'
 import { BinderRow, type RowHandle } from './BinderRow'
 import styles from './BinderTree.module.css'
 import { type TreeCommand, treeKeyCommand } from './treeKeyboard'
+
+const isTreeItem = (target: EventTarget) =>
+  target instanceof Element && target.getAttribute('role') === 'treeitem'
+
+// The focused row if it is still shown, else the open document, else the first row
+const tabbableRowId = (rows: Row[], focusedId: Id | null, activeDocumentId: Id | null) =>
+  rows.find((row) => row.entry.id === focusedId)?.entry.id ??
+  rows.find((row) => row.entry.id === activeDocumentId)?.entry.id ??
+  rows[0]?.entry.id
+
+// Where the focus goes when a row is removed: the row above, else the next one not inside it
+function neighbourOf(rows: Row[], row: Row) {
+  const index = rows.indexOf(row)
+  return rows[index - 1] ?? rows.slice(index + 1).find((next) => next.level <= row.level)
+}
 
 /*
  * The binder as an ARIA tree: a flat list of rows carrying their level, one focusable at a
@@ -30,11 +46,7 @@ export function BinderTree({ label }: { label: string }) {
   const handles = useRef(new Map<Id, RowHandle>())
   const tree = useRef<HTMLUListElement>(null)
 
-  // The focused row if it is still shown, else the open document, else the first row
-  const tabbableId =
-    rows.find((row) => row.entry.id === focusedId)?.entry.id ??
-    rows.find((row) => row.entry.id === activeDocumentId)?.entry.id ??
-    rows[0]?.entry.id
+  const tabbableId = tabbableRowId(rows, focusedId, activeDocumentId)
 
   const register = useCallback((id: Id, handle: RowHandle | null) => {
     if (handle) handles.current.set(id, handle)
@@ -62,18 +74,17 @@ export function BinderTree({ label }: { label: string }) {
   }
 
   async function remove(row: Row) {
-    // The focus goes to the row above (or below) the one that is removed
-    const index = rows.indexOf(row)
-    const neighbour =
-      rows[index - 1] ?? rows.slice(index + 1).find((next) => next.level <= row.level)
+    const neighbour = neighbourOf(rows, row)
     await commands.remove(row.entry)
     if (neighbour) setFocusRequest(neighbour.entry.id)
   }
 
-  useBinderDropMonitor(tree, (draggedId, targetId, operation) => {
+  function handleDrop(draggedId: Id, targetId: Id, operation: DropOperation) {
     const destination = dropDestination(entries, draggedId, targetId, operation)
     if (destination) void move(draggedId, destination)
-  })
+  }
+
+  useBinderDropMonitor(tree, handleDrop)
 
   const execute = (command: TreeCommand) => {
     const row = rows.find((candidate) => candidate.entry.id === command.id)
@@ -100,15 +111,23 @@ export function BinderTree({ label }: { label: string }) {
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLUListElement>) {
+  function handleKeyDown(event: React.KeyboardEvent<HTMLUListElement>) {
     // Keys typed in a row's menu or rename field are theirs, not the tree's
-    if (!(e.target instanceof Element) || e.target.getAttribute('role') !== 'treeitem') return
+    if (!isTreeItem(event.target)) return
     const current = focusedId ?? tabbableId
     if (current === undefined) return
-    const command = treeKeyCommand(rows, current, e)
+    const command = treeKeyCommand(rows, current, event)
     if (!command) return
-    e.preventDefault()
+    event.preventDefault()
     execute(command)
+  }
+
+  const closeMoveDialog = () => setMoving(null)
+
+  function handleMoveChosen(destination: BinderMove) {
+    const item = moving
+    closeMoveDialog()
+    if (item) void move(item.entry.id, destination)
   }
 
   return (
@@ -133,12 +152,8 @@ export function BinderTree({ label }: { label: string }) {
       </ul>
       <MoveDialog
         item={moving?.entry ?? null}
-        onClose={() => setMoving(null)}
-        onMove={(destination) => {
-          const item = moving
-          setMoving(null)
-          if (item) void move(item.entry.id, destination)
-        }}
+        onClose={closeMoveDialog}
+        onMove={handleMoveChosen}
       />
     </>
   )

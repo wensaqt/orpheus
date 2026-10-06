@@ -1,3 +1,4 @@
+import { isRecord } from './guards'
 import {
   fitMargins,
   parsePageSettings,
@@ -22,18 +23,23 @@ export function fitLayout({ page, typography }: Layout): Layout {
 }
 
 // A stored layout made complete, and fitted: what was saved may not fit (older rules, the admin)
-export const toLayout = ({ page, typography }: StoredLayout): Layout =>
-  fitLayout({
-    page: toPageSettings(page),
-    typography: {
-      firstLineIndent: typography?.firstLineIndent ?? DEFAULT_TYPOGRAPHY.firstLineIndent,
-    },
-  })
+export function toLayout({ page, typography }: StoredLayout): Layout {
+  const fittedPage = toPageSettings(page)
+  return {
+    page: fittedPage,
+    typography: fitTypography(
+      {
+        firstLineIndent: typography?.firstLineIndent ?? DEFAULT_TYPOGRAPHY.firstLineIndent,
+      },
+      fittedPage,
+    ),
+  }
+}
 
 // A layout sent by a client, checked whole
 export function parseLayout(input: unknown): Layout | null {
-  if (typeof input !== 'object' || input === null) return null
-  const { page, typography } = input as Record<string, unknown>
+  if (!isRecord(input)) return null
+  const { page, typography } = input
   const parsedPage = parsePageSettings(page)
   const parsedTypography = parsedPage && parseTypography(typography, parsedPage)
   return parsedPage && parsedTypography ? { page: parsedPage, typography: parsedTypography } : null

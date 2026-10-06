@@ -21,7 +21,7 @@
   color: var(--color-bg);
   background: radial-gradient(closest-side, currentColor 40%, transparent);
   opacity: 0.5;
-  transition: color 0.2s;
+  transition: color var(--duration);
 }
 
 :hover > .label::before {
@@ -35,9 +35,9 @@
   letter-spacing: 0.03em;
   color: var(--color-primary);
   transition:
-    color 0.4s,
-    font-weight 0.4s,
-    letter-spacing 0.4s;
+    color var(--duration-slow),
+    font-weight var(--duration-slow),
+    letter-spacing var(--duration-slow);
 }
 
 /* Nunito Sans is a variable font, so the weight animates smoothly */
@@ -54,12 +54,12 @@
 .line,
 .subtitle {
   align-self: stretch;
-  transition-duration: 0.7s;
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-duration: var(--duration-slowest);
+  transition-timing-function: var(--ease-out);
 }
 
 .line {
-  height: 1.5px;
+  height: var(--rule-thickness);
   /* Colour of the hovered title (the rule is only visible on hover), like the Divider */
   background-color: var(--color-divider);
   scale: 0 1;

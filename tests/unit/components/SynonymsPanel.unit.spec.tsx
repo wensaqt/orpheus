@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider } from '@front/_components/ui/Feedback/ToastProvider'
 import type { SynonymResult } from '@front/_features/lexicon/types'
 
+import { descriptionOf } from '../../helpers/dom'
+
 const findSynonyms = vi.fn()
 vi.mock('@front/_features/lexicon/actions', () => ({ findSynonyms }))
 
@@ -62,7 +64,7 @@ describe('SynonymsPanel', () => {
   it('describes chips as copy actions without changing their name', async () => {
     await search('rapides')
     const chip = screen.getByRole('button', { name: 'vif' })
-    const hint = document.getElementById(chip.getAttribute('aria-describedby')!)
+    const hint = descriptionOf(chip)
     expect(hint?.textContent).toBe('Click to copy')
   })
 

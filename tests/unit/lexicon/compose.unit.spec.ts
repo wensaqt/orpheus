@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { composeResult, EMPTY_RESULT, MORE_PER_GROUP } from '@front/_features/lexicon/compose'
+import { composeResult } from '@front/_features/lexicon/compose'
+import { EMPTY_RESULT, MORE_PER_GROUP } from '@front/_features/lexicon/constants'
 import type { SynonymGroup } from '@front/_features/lexicon/types'
 
 type PartOfSpeech = SynonymGroup['partOfSpeech']

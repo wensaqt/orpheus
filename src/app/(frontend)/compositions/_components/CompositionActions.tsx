@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useTransition } from 'react'
+import { useTransition } from 'react'
 
 import type { Id } from '@/lib/ids'
 
 import { useConfirm } from '@front/_components/ui/Feedback/ConfirmProvider'
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
-import { Menu, type MenuItem } from '@front/_components/ui/Menu/Menu'
+import { Menu } from '@front/_components/ui/Menu/Menu'
+import type { MenuItem } from '@front/_components/ui/Menu/types'
 import { deleteComposition } from '@front/_features/compositions/actions'
 import { succeeded } from '@front/_lib/actionResult'
 import { useT } from '@front/_components/i18n/I18nProvider'

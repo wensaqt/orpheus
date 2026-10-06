@@ -7,11 +7,7 @@ import {
   type SerializedLexicalNode,
 } from 'lexical'
 
-// The node's type in saved documents
-export const PAGE_BREAK_TYPE = 'page-break'
-
-// The DOM marker the page layout looks for, to stretch the break to its page's end
-export const PAGE_BREAK_ATTRIBUTE = 'data-page-break'
+import { PAGE_BREAK_ATTRIBUTE, PAGE_BREAK_TYPE } from '../constants'
 
 /*
  * A manual page break: what follows it starts on the next page. The page layout stretches it

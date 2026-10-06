@@ -1,4 +1,5 @@
-import { normalizeWord } from './mythes'
+import { THESAURUS_LANGUAGE } from './types'
+import { normalizeWord } from './normalizeWord'
 import type { PartOfSpeech, SynonymGroup, ThesaurusEntry } from './types'
 
 /*
@@ -73,7 +74,7 @@ const isWord = (candidate: string, headword: string) =>
   candidate.toLowerCase() !== headword
 
 export function extractRecord(record: KaikkiRecord): ExtractedRecord | null {
-  if (record.lang_code !== 'fr' || !record.word) return null
+  if (record.lang_code !== THESAURUS_LANGUAGE || !record.word) return null
   const partOfSpeech = record.pos ? POS_BY_CODE[record.pos] : undefined
   if (!partOfSpeech) return null
   const word = normalizeWord(record.word)
@@ -127,10 +128,9 @@ export function createKaikkiCollector() {
   return {
     add(extracted: ExtractedRecord) {
       if (extracted.groups.length) {
-        groupsByWord.set(extracted.word, [
-          ...(groupsByWord.get(extracted.word) ?? []),
-          ...extracted.groups,
-        ])
+        const groups = groupsByWord.get(extracted.word) ?? []
+        groups.push(...extracted.groups)
+        groupsByWord.set(extracted.word, groups)
       }
       // First base form wins: "marchait" → "marcher"
       if (extracted.lemmas.length && !formByWord.has(extracted.word)) {

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useId, useState } from 'react'
+import { type FormEvent, useId, useState } from 'react'
 
 import { type BinderMove, descendantIds } from '@/lib/binder/tree'
 
@@ -45,13 +45,13 @@ function MoveForm({ item, titleId, onClose, onMove }: MoveFormProps) {
     new Set([item.id, ...descendantIds(entries, item.id)]),
   )
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    onMove(intoFolder(choice))
+  }
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        onMove(intoFolder(choice))
-      }}
-    >
+    <form onSubmit={handleSubmit}>
       <DialogTitle id={titleId}>{t('binder.move.title', { title: item.title })}</DialogTitle>
       <fieldset className={styles.destinations} aria-labelledby={titleId}>
         <Destination
@@ -84,7 +84,7 @@ type DestinationProps = { label: string; level: number; checked: boolean; onChoo
 
 function Destination({ label, level, checked, onChoose }: DestinationProps) {
   return (
-    <label className={styles.destination} style={{ '--level': level } as React.CSSProperties}>
+    <label className={styles.destination} style={{ '--level': level }}>
       <input type="radio" name="destination" checked={checked} onChange={onChoose} />
       <FolderIcon open={checked} />
       <span className={styles.label}>{label}</span>

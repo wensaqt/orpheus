@@ -1,4 +1,4 @@
-import { type FocusEvent, type KeyboardEvent, useEffect, useRef } from 'react'
+import { type FocusEvent, type KeyboardEvent, type RefObject, useCallback, useEffect } from 'react'
 
 // Marks the controls of a roving group (a toolbar, a menu bar): one tab stop for all of them
 export const ROVING_ATTRIBUTE = 'data-roving'
@@ -40,26 +40,35 @@ export function rovingIndex(
  * focused; Left/Right, Home and End move between them; Escape on one calls `onEscape`. Keys
  * pressed elsewhere inside (in an open menu) are left alone.
  */
-export function useRovingFocus<T extends HTMLElement>(onEscape?: () => void) {
-  const ref = useRef<T>(null)
-  const controls = () =>
-    Array.from(ref.current?.querySelectorAll<HTMLElement>(`[${ROVING_ATTRIBUTE}]`) ?? [])
-  const makeTabStop = (stop: Element | undefined) =>
-    controls().forEach((control) => {
-      control.tabIndex = control === stop ? 0 : -1
-    })
+export function useRovingFocus<T extends HTMLElement>(
+  ref: RefObject<T | null>,
+  onEscape?: () => void,
+) {
+  const controls = useCallback(
+    () =>
+      Array.from(ref.current?.querySelectorAll(`[${ROVING_ATTRIBUTE}]`) ?? []).filter(
+        (control) => control instanceof HTMLElement,
+      ),
+    [ref],
+  )
+  const makeTabStop = useCallback(
+    (stop: Element | undefined) =>
+      controls().forEach((control) => {
+        control.tabIndex = control === stop ? 0 : -1
+      }),
+    [controls],
+  )
 
   // The first control is the tab stop until another one takes the focus
-  useEffect(() => makeTabStop(controls()[0]), [])
+  useEffect(() => makeTabStop(controls()[0]), [controls, makeTabStop])
 
   return {
-    ref,
     onFocus: (event: FocusEvent<T>) => {
       if (event.target.hasAttribute(ROVING_ATTRIBUTE)) makeTabStop(event.target)
     },
     onKeyDown: (event: KeyboardEvent<T>) => {
       const all = controls()
-      const current = all.indexOf(event.target as HTMLElement)
+      const current = all.findIndex((control) => control === event.target)
       if (current === -1) return
       if (event.key === 'Escape' && onEscape) {
         event.preventDefault()

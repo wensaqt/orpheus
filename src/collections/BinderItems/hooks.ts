@@ -12,6 +12,7 @@ import {
   wouldCreateCycle,
 } from '@/lib/binder/tree'
 import { relationId } from '@/lib/relationId'
+import { nullIfUnreadable } from '@/lib/payloadErrors'
 import type { Id } from '@/lib/ids'
 
 const invalid = (path: string, message: string) =>
@@ -53,7 +54,7 @@ export const keepBinderTree: CollectionBeforeValidateHook = async ({
     const owner = await req.payload
       .findByID({ collection: 'compositions', id: composition, depth: 0, req })
       .then((doc) => relationId(doc.owner))
-      .catch(() => null)
+      .catch(nullIfUnreadable)
     if (owner === null) throw invalid('composition', 'This composition does not exist.')
     data.owner = owner
   }
@@ -99,7 +100,7 @@ export const keepBinderTree: CollectionBeforeValidateHook = async ({
 export const deleteContents: CollectionBeforeDeleteHook = async ({ id, req }) => {
   const item = await req.payload
     .findByID({ collection: 'binder-items', id, depth: 0, req })
-    .catch(() => null)
+    .catch(nullIfUnreadable)
   if (!item || item.kind !== 'folder') return
   const inside = descendantIds(await loadStructure(req, relationId(item.composition)), item.id)
   if (!inside.length) return

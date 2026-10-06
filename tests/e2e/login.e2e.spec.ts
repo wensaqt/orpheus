@@ -14,10 +14,10 @@ async function signIn(page: Page, email: string, password: string) {
 base.describe('Login', () => {
   // A fresh, signed-out account per test
   const anonymous = base.extend<{ email: string }>({
-    email: async ({}, use) => {
+    email: async ({}, runTest) => {
       const payload = await getTestPayload()
       const user = await createTestUser(payload, 'login')
-      await use(user.email)
+      await runTest(user.email)
       await payload.delete({ collection: 'users', where: { id: { equals: user.id } } })
     },
   })

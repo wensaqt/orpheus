@@ -5,14 +5,20 @@ import {
   BLUR_COMMAND,
   COMMAND_PRIORITY_EDITOR,
   HISTORY_MERGE_TAG,
-  KEY_MODIFIER_COMMAND,
+  KEY_DOWN_COMMAND,
   mergeRegister,
 } from 'lexical'
 import { useEffect } from 'react'
 
+import { isModShortcut } from '@front/_components/ui/shortcuts'
 import type { LexicalContent } from '@front/_features/binder/types'
 import { useAutosave } from '@front/_hooks/useAutosave'
 import type { ActionResult } from '@front/_lib/actionResult'
+
+import { readContent } from '../storedContent'
+
+// Cmd/Ctrl+S saves now
+const SAVE_KEY = 's'
 
 /*
  * Saves the document from inside the editor (a hook, used under the composer). A change only
@@ -23,8 +29,7 @@ export function useAutosavePlugin(
   save: (content: LexicalContent) => Promise<ActionResult<unknown>>,
 ) {
   const [editor] = useLexicalComposerContext()
-  // toJSON() always matches the content field's schema: a root with its children
-  const autosave = useAutosave(() => save(editor.getEditorState().toJSON() as LexicalContent))
+  const autosave = useAutosave(() => save(readContent(editor)))
   const { queue, flush } = autosave
 
   useEffect(
@@ -51,9 +56,9 @@ export function useAutosavePlugin(
           COMMAND_PRIORITY_EDITOR,
         ),
         editor.registerCommand(
-          KEY_MODIFIER_COMMAND,
+          KEY_DOWN_COMMAND,
           (event) => {
-            if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 's') return false
+            if (!isModShortcut(event, SAVE_KEY)) return false
             // The browser would offer to save the web page
             event.preventDefault()
             void flush()

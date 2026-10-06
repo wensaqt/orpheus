@@ -1,7 +1,12 @@
 import type { CollectionConfig, JSONField } from 'payload'
 
 import { isLoggedIn } from '@/access/isLoggedIn'
-import { PARTS_OF_SPEECH, THESAURUS_LANGS, THESAURUS_SOURCES } from '@/lib/thesaurus/types'
+import {
+  PARTS_OF_SPEECH,
+  THESAURUS_LANGUAGE,
+  THESAURUS_LANGS,
+  THESAURUS_SOURCES,
+} from '@/lib/thesaurus/types'
 
 const GROUPS_SCHEMA_URI = 'https://orpheus.app/schemas/synonym-groups.json'
 
@@ -51,7 +56,7 @@ export const ThesaurusEntries: CollectionConfig = {
       name: 'lang',
       type: 'select',
       required: true,
-      defaultValue: 'fr',
+      defaultValue: THESAURUS_LANGUAGE,
       options: [...THESAURUS_LANGS],
     },
     {

@@ -1,6 +1,6 @@
 import type { Id } from '@/lib/ids'
 
-import type { BinderRow } from '../rows'
+import type { BinderRow } from '../types'
 
 // What a key does in the binder tree, decided without touching the DOM
 export type TreeCommand =
@@ -29,7 +29,11 @@ export function treeKeyCommand(
   const row = rows[index]
   if (!row) return null
   const { id, kind, parent } = row.entry
-  const at = (offset: number) => rows[index + offset]?.entry.id
+  // Focus on the row this far from the focused one, if there is one
+  const focusAt = (offset: number): TreeCommand | null => {
+    const target = rows[index + offset]
+    return target ? { type: 'focus', id: target.entry.id } : null
+  }
   const { key, shiftKey, altKey, metaKey, ctrlKey } = keystroke
 
   if (altKey && (key === 'ArrowUp' || key === 'ArrowDown')) {
@@ -42,9 +46,9 @@ export function treeKeyCommand(
 
   switch (key) {
     case 'ArrowDown':
-      return at(1) === undefined ? null : { type: 'focus', id: at(1)! }
+      return focusAt(1)
     case 'ArrowUp':
-      return at(-1) === undefined ? null : { type: 'focus', id: at(-1)! }
+      return focusAt(-1)
     case 'Home':
       return { type: 'focus', id: rows[0].entry.id }
     case 'End':
@@ -52,7 +56,7 @@ export function treeKeyCommand(
     case 'ArrowRight':
       if (kind !== 'folder') return null
       if (!row.expanded) return { type: 'setOpen', id, open: true }
-      return row.hasChildren ? { type: 'focus', id: at(1)! } : null
+      return row.hasChildren ? focusAt(1) : null
     case 'ArrowLeft':
       if (kind === 'folder' && row.expanded) return { type: 'setOpen', id, open: false }
       return parent === null ? null : { type: 'focus', id: parent }

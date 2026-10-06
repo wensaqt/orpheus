@@ -1,6 +1,8 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { descriptionOf, formOf } from '../../helpers/dom'
+
 const signUp = vi.fn()
 vi.mock('@front/_features/auth/actions', () => ({ signUp }))
 
@@ -11,7 +13,7 @@ async function submit(fields: Record<string, string>) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } })
   }
   await act(async () => {
-    fireEvent.submit(screen.getByRole('button', { name: 'Create account' }).closest('form')!)
+    fireEvent.submit(formOf(screen.getByRole('button', { name: 'Create account' })))
   })
 }
 
@@ -31,14 +33,15 @@ describe('SignupForm', () => {
 
   it('explains the password rule next to the field', () => {
     const password = screen.getByLabelText('Password')
-    const hint = document.getElementById(password.getAttribute('aria-describedby')!)
+    const hint = descriptionOf(password)
     expect(hint?.textContent).toBe('At least 12 characters. A short phrase works well.')
   })
 
   it('sends both passwords and the page to come back to', async () => {
     signUp.mockResolvedValue({ error: null, email: '' })
     await submit(filled)
-    expect(Object.fromEntries(signUp.mock.calls[0][1] as FormData)).toEqual({
+    const form: FormData = signUp.mock.calls[0][1]
+    expect(Object.fromEntries(form)).toEqual({
       email: 'orphee@example.test',
       password: 'eurydice',
       confirm: 'eurydice',

@@ -58,13 +58,19 @@
   /* Motion: quick feedback, standard transitions, slower reveals */
   --duration-fast: 0.15s;
   --duration: 0.2s;
+  --duration-medium: 0.3s;
   --duration-slow: 0.4s;
+  --duration-slower: 0.5s;
+  /* The longest: a gesture that settles (a field's rule drawn across, a lyre label) */
+  --duration-slowest: 0.7s;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   /* Wait before showing that something is loading: a fast load then shows nothing */
   --delay-reveal: 0.3s;
 
   /* Sizes of the editor's controls and side panels */
   --control-size: 1.75rem;
+  /* The round buttons in the top-right corner (language, account) */
+  --corner-control-size: 2rem;
   --binder-width: 15rem;
   --side-panel-width: 17rem;
   /* Room the fixed logo and corner actions take on either side of the editor's header */
@@ -104,6 +110,11 @@
   --layer-toast: 5;
   /* A tooltip, over the controls next to its own */
   --layer-tooltip: 1;
+
+  /* The short rule drawn under titles: under a page's title, and the shorter one of a panel's */
+  --rule-thickness: 1.5px;
+  --rule-length: 3rem;
+  --rule-length-short: 2rem;
 
   /* Radii */
   --radius-sm: 4px;

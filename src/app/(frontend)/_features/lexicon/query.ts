@@ -1,7 +1,6 @@
-import { normalizeWord } from '@/lib/thesaurus/mythes'
+import { normalizeWord } from '@/lib/thesaurus/normalizeWord'
 
-// Beyond this it is no longer a word or a short phrase: not worth a lookup
-export const MAX_QUERY_LENGTH = 60
+import { MAX_QUERY_LENGTH } from './constants'
 
 /*
  * Normalised search term (trimmed, lower case, single spaces), or null when there is nothing

@@ -1,7 +1,7 @@
 'use client'
 
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { type ComponentProps, useRef } from 'react'
+import { type ComponentProps, type KeyboardEvent, useRef } from 'react'
 
 import { TitleNavigationPlugin } from '@front/_components/editor/plugins/TitleNavigationPlugin'
 import { useT } from '@front/_components/i18n/I18nProvider'
@@ -16,6 +16,13 @@ export function DocumentTitle(field: ComponentProps<typeof TitleInput>) {
   const [editor] = useLexicalComposerContext()
   const input = useRef<HTMLInputElement>(null)
 
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') return
+    event.preventDefault()
+    // Where the caret was, or else the start of the text
+    editor.focus(undefined, { defaultSelection: 'rootStart' })
+  }
+
   return (
     <>
       <TitleInput
@@ -23,12 +30,7 @@ export function DocumentTitle(field: ComponentProps<typeof TitleInput>) {
         size="lg"
         aria-label={t('editor.documentTitleLabel')}
         {...field}
-        onKeyDown={(e) => {
-          if (e.key !== 'Enter') return
-          e.preventDefault()
-          // Where the caret was, or else the start of the text
-          editor.focus(undefined, { defaultSelection: 'rootStart' })
-        }}
+        onKeyDown={handleKeyDown}
       />
       <TitleNavigationPlugin title={input} />
     </>

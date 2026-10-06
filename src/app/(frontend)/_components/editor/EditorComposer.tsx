@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 
 import type { LexicalContent } from '@front/_features/binder/types'
 
+import { toEditorStateJson } from './storedContent'
 import { PageBreakNode } from './nodes/PageBreakNode'
 import { editorTheme } from './theme'
 
@@ -30,8 +31,11 @@ export function EditorComposer({ initialContent, children }: EditorComposerProps
         namespace: 'orpheus',
         theme: editorTheme,
         nodes: EDITOR_NODES,
-        // The composer parses a JSON string, not a serialized object
-        editorState: initialContent ? JSON.stringify(initialContent) : undefined,
+        /*
+         * The composer takes a JSON string, not a serialized object. A new document passes
+         * undefined, not null: the composer then adds the empty paragraph the caret goes in
+         */
+        editorState: initialContent ? toEditorStateJson(initialContent) : undefined,
         onError: (error: Error) => {
           throw error
         },

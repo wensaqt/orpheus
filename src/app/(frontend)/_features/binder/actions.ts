@@ -154,8 +154,8 @@ export const moveBinderItem = authedAction(
     }
 
     const req = await createLocalReq({ user }, payload)
-    await initTransaction(req)
     try {
+      await initTransaction(req)
       for (const { id: itemId, parent, position } of placements) {
         await payload.update({
           collection: 'binder-items',

@@ -1,11 +1,17 @@
-// Available page formats, in millimetres (portrait). Shared by the collection and the editor.
-export const PAGE_FORMATS = {
+import { clamp, finite } from './numbers'
+import { isOneOf, isRecord } from './guards'
+
+// The formats offered, in their order. Shared by the collection and the editor.
+export const PAGE_FORMAT_NAMES = ['A4', 'A5', 'Letter'] as const
+export type PageFormat = (typeof PAGE_FORMAT_NAMES)[number]
+
+// Their sizes, in millimetres (portrait)
+export const PAGE_FORMATS: Record<PageFormat, { width: number; height: number }> = {
   A4: { width: 210, height: 297 },
   A5: { width: 148, height: 210 },
   Letter: { width: 216, height: 279 },
-} as const
+}
 
-export type PageFormat = keyof typeof PAGE_FORMATS
 export const PAGE_ORIENTATIONS = ['portrait', 'landscape'] as const
 export type PageOrientation = (typeof PAGE_ORIENTATIONS)[number]
 
@@ -19,9 +25,6 @@ export type PageSettings = {
 }
 
 export type PageMargin = keyof PageSettings['margins']
-
-// The formats offered, in their order
-export const PAGE_FORMAT_NAMES = Object.keys(PAGE_FORMATS) as PageFormat[]
 
 // Actual page dimensions for the given orientation
 export const pageSize = ({ format, orientation }: Pick<PageSettings, 'format' | 'orientation'>) => {
@@ -83,7 +86,7 @@ export const maxMargin = (page: PageSettings, side: PageMargin) =>
 
 // The page with this margin set, brought within its bounds and to the step
 export function withMargin(page: PageSettings, side: PageMargin, value: number): PageSettings {
-  const fitted = Math.min(Math.max(toStep(value), 0), maxMargin(page, side))
+  const fitted = clamp(toStep(value), 0, maxMargin(page, side))
   return { ...page, margins: { ...page.margins, [side]: fitted } }
 }
 
@@ -122,24 +125,17 @@ export const toPageSettings = ({ format, orientation, margins }: StoredPage): Pa
     },
   })
 
-const isFormat = (value: unknown): value is PageFormat =>
-  typeof value === 'string' && Object.hasOwn(PAGE_FORMATS, value)
+const isFormat = (value: unknown): value is PageFormat => isOneOf(PAGE_FORMAT_NAMES, value)
 
 const isOrientation = (value: unknown): value is PageOrientation =>
-  PAGE_ORIENTATIONS.includes(value as PageOrientation)
-
-// A finite number, or null
-export const finite = (value: unknown): number | null =>
-  typeof value === 'number' && Number.isFinite(value) ? value : null
+  isOneOf(PAGE_ORIENTATIONS, value)
 
 // A page sent by a client, checked whole: a known format and orientation, margins that fit
 export function parsePageSettings(input: unknown): PageSettings | null {
-  if (typeof input !== 'object' || input === null) return null
-  const { format, orientation, margins } = input as Record<string, unknown>
-  if (!isFormat(format) || !isOrientation(orientation)) return null
-  if (typeof margins !== 'object' || margins === null) return null
-  const values = margins as Record<string, unknown>
-  const [top, right, bottom, left] = MARGINS.map((side) => finite(values[side]))
+  if (!isRecord(input)) return null
+  const { format, orientation, margins } = input
+  if (!isFormat(format) || !isOrientation(orientation) || !isRecord(margins)) return null
+  const [top, right, bottom, left] = MARGINS.map((side) => finite(margins[side]))
   if (top === null || right === null || bottom === null || left === null) return null
   const page: PageSettings = { format, orientation, margins: { top, right, bottom, left } }
   const fits = MARGINS.every(

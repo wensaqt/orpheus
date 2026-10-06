@@ -1,3 +1,4 @@
+import { normalizeWord } from './normalizeWord'
 import type { PartOfSpeech, SynonymGroup, ThesaurusEntry } from './types'
 
 /*
@@ -25,8 +26,6 @@ const PART_OF_SPEECH_ALIASES: Record<string, PartOfSpeech> = {
   interj: 'interjection',
   onomatopée: 'interjection',
 }
-
-export const normalizeWord = (word: string) => word.trim().toLowerCase().replace(/\s+/g, ' ')
 
 // "(Adjectif Nom)" → 'adjective': the first known label; unknown ones ("?") are skipped
 function mainPartOfSpeech(label: string): PartOfSpeech | undefined {

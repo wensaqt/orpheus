@@ -9,7 +9,9 @@ import { cleanupTestUsers, createTestUser, getTestPayload } from '../helpers/tes
  * The binder's server actions, run for real against Payload and the database, as a given
  * user: only the session (normally read from the request's cookie) and the language are faked.
  */
-const session = vi.hoisted(() => ({ current: null as { payload: Payload; user: User } | null }))
+const session = vi.hoisted((): { current: { payload: Payload; user: User } | null } => ({
+  current: null,
+}))
 vi.mock('@front/_lib/server/auth', () => ({
   authedAction:
     <Args extends unknown[], Result>(handler: (s: unknown, ...args: Args) => Promise<Result>) =>
@@ -75,6 +77,7 @@ describe('binder actions', () => {
   it('refuses malformed input before touching the database', async () => {
     const composition = await newComposition(alice)
     const [first] = await itemsOf(composition)
+    // Values of the wrong type, on purpose: the actions are public endpoints
     for (const result of await Promise.all([
       actions.createBinderItem(composition.id, 'chapter' as never, null),
       actions.createBinderItem(composition.id, 'document', 'root' as never),

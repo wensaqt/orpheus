@@ -1,0 +1,34 @@
+.surface {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  opacity: 0;
+  translate: 0 calc(-1 * var(--space-1));
+  transition:
+    opacity var(--duration-fast),
+    translate var(--duration-fast),
+    overlay var(--duration-fast) allow-discrete,
+    display var(--duration-fast) allow-discrete;
+}
+
+.surface:popover-open {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@starting-style {
+  .surface:popover-open {
+    opacity: 0;
+    translate: 0 calc(-1 * var(--space-1));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface {
+    transition: none;
+  }
+}

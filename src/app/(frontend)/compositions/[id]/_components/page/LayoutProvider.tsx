@@ -5,10 +5,11 @@ import { createContext, type ReactNode, use, useState } from 'react'
 import type { Layout } from '@/lib/layout'
 
 import { saveLayout } from '@front/_features/compositions/actions'
-import { type SaveStatus, useAutosave } from '@front/_hooks/useAutosave'
+import type { SaveStatus } from '@front/_hooks/types'
+import { useAutosave } from '@front/_hooks/useAutosave'
 
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
-import { SAVERS } from '../binder/state/useSaveRegistry'
+import { SAVERS } from '../binder/state/saverKeys'
 
 type LayoutValue = {
   // The composition's layout as shown: every change applies at once, and saves on its own

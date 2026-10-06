@@ -3,13 +3,10 @@
 import { type EditorState, type LexicalEditor, mergeRegister } from 'lexical'
 import { useEffect, useState } from 'react'
 
-import {
-  $readFormatting,
-  type Formatting,
-  NO_FORMATTING,
-  sameFormatting,
-} from '@front/_components/editor/formatting'
-import { type HistoryAvailability, useHistoryAvailability } from '@front/_components/editor/history'
+import { NO_FORMATTING } from '@front/_components/editor/constants'
+import { $readFormatting, sameFormatting } from '@front/_components/editor/formatting'
+import { useHistoryAvailability } from '@front/_components/editor/history'
+import type { Formatting, HistoryAvailability } from '@front/_components/editor/types'
 
 export type ToolbarState = Formatting & HistoryAvailability
 
@@ -23,7 +20,6 @@ export function useToolbarState(editor: LexicalEditor | null): ToolbarState {
   const history = useHistoryAvailability(editor)
 
   useEffect(() => {
-    setFormatting(NO_FORMATTING)
     if (!editor) return
     const read = (editorState: EditorState = editor.getEditorState()) => {
       // A read only: never an update while reading
@@ -38,5 +34,5 @@ export function useToolbarState(editor: LexicalEditor | null): ToolbarState {
     )
   }, [editor])
 
-  return { ...formatting, ...history }
+  return { ...(editor ? formatting : NO_FORMATTING), ...history }
 }

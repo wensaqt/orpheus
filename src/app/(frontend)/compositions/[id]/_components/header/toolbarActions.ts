@@ -18,16 +18,19 @@ import {
 } from 'lexical'
 
 import {
-  type Alignment,
   $blockTypeOf,
-  type BlockType,
-  type ChosenBlockType,
   $insertPageBreak,
   $setBlockType,
   $textSelection,
-  type TextFormat,
   toElementFormat,
 } from '@front/_components/editor/formatting'
+import {
+  type Alignment,
+  BlockType,
+  type ChosenBlockType,
+  type ListType,
+  type TextFormat,
+} from '@front/_components/editor/types'
 
 import { useOpenEditor } from '../editorFocus'
 
@@ -35,8 +38,6 @@ import { useOpenEditor } from '../editorFocus'
  * What the editor's menu bar and style toolbar do, shared by both, on the open document. The
  * styles apply to a text selection only (never to a selected page break).
  */
-
-export type ListType = Extract<BlockType, 'bullet' | 'number'>
 
 /*
  * A control pressed with the keyboard (a click without a pointer: `detail` is 0) keeps the
@@ -82,6 +83,8 @@ function fromHistory(
   editor.dispatchCommand(command, undefined)
 }
 
+export type ToolbarActions = ReturnType<typeof useToolbarActions>
+
 // The actions, on the open document's editor (none when no document is open)
 export function useToolbarActions() {
   const editor = useOpenEditor()
@@ -115,7 +118,9 @@ export function useToolbarActions() {
           $blockTypeOf(selection.anchor.getNode()) === type
             ? editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined)
             : editor.dispatchCommand(
-                type === 'bullet' ? INSERT_UNORDERED_LIST_COMMAND : INSERT_ORDERED_LIST_COMMAND,
+                type === BlockType.Bullet
+                  ? INSERT_UNORDERED_LIST_COMMAND
+                  : INSERT_ORDERED_LIST_COMMAND,
                 undefined,
               ),
         ),

@@ -1,6 +1,7 @@
 // Shared by the thesaurus collection, its import script and the frontend
 
-export const THESAURUS_LANGS = ['fr'] as const
+export const THESAURUS_LANGUAGE = 'fr'
+export const THESAURUS_LANGS = [THESAURUS_LANGUAGE] as const
 export type ThesaurusLang = (typeof THESAURUS_LANGS)[number]
 
 // Wiktionary: curated, grouped by sense, sometimes sparse. Dicollecte: rich but noisy.

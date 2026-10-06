@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { sessionCookie } from './fixtures'
+
 test.describe('Home', () => {
   test('shows both choices, the separator and the logo', async ({ page }) => {
     await page.goto('/')
@@ -30,7 +32,7 @@ test.describe('Home', () => {
     page,
     baseURL,
   }) => {
-    await page.context().addCookies([{ name: 'payload-token', value: 'forged', url: baseURL! }])
+    await page.context().addCookies([sessionCookie('forged', baseURL)])
     await page.goto('/compositions')
     await expect(page).toHaveURL(/^[^?]+\/\/[^/]+\/login\?redirect=%2Fcompositions$/)
   })

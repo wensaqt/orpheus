@@ -4,47 +4,19 @@ import React, {
   type ComponentProps,
   type Ref,
   useId,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
 } from 'react'
 
+import { focusStayedIn } from '../focus'
 import { placeBelow } from '../placeBelow'
 import { rovingIndex } from '../rovingFocus'
-import { ariaShortcut, type Shortcut, shortcutLabel, useIsApple } from '../shortcuts'
+import { ariaShortcut, shortcutLabel, useIsApple } from '../shortcuts'
+import { MENU_SEPARATOR } from './constants'
 import styles from './Menu.module.css'
-
-export type MenuItem = {
-  label: string
-  onSelect?: () => void
-  // Greyed out and not activatable, e.g. an action not yet available; still focusable, so
-  // the keyboard finds it and its hint
-  disabled?: boolean
-  // Tooltip, e.g. "Coming soon" on a disabled action
-  hint?: string
-  tone?: 'default' | 'danger'
-  // An option on its own (bold) or one choice among several (a language), on or not
-  kind?: 'checkbox' | 'radio'
-  checked?: boolean
-  // Shown at the item's end, e.g. ⌘B
-  shortcut?: Shortcut
-  // Decorative mark before the label (an emoji, a symbol), hidden from screen readers
-  icon?: string
-  // Language of the label, when it differs from the page's ("Français" on an English page)
-  lang?: string
-}
-
-// A hairline between groups of items
-export const MENU_SEPARATOR = 'separator'
-// Items that belong together, e.g. one set of radios among others, named for screen readers
-export type MenuGroup = { group: string; items: MenuItem[] }
-export type MenuEntry = MenuItem | MenuGroup | typeof MENU_SEPARATOR
-
-// Which item takes the focus once the menu opens
-type OpenAt = 'first' | 'last'
-
-// Opens the menu from elsewhere, e.g. a keyboard shortcut on the element it belongs to
-export type MenuHandle = { open: (at?: OpenAt) => void }
+import type { MenuEntry, MenuHandle, MenuItem, OpenAt } from './types'
 
 const ROLES = { checkbox: 'menuitemcheckbox', radio: 'menuitemradio' } as const
 
@@ -82,6 +54,9 @@ type MenuProps = {
   onSideKey?: (step: -1 | 1) => void
   // The trigger stays focusable but opens nothing (a toolbar's control with nothing to act on)
   disabled?: boolean
+  // The trigger never moves while the page scrolls (it sits in the editor's sticky header):
+  // the menu stays open then, rather than closing at the first scroll
+  fixedTrigger?: boolean
   children: React.ReactNode
 }
 
@@ -103,10 +78,10 @@ export function Menu({
   triggerProps,
   onSideKey,
   disabled,
+  fixedTrigger = false,
   children,
 }: MenuProps) {
   const id = useId()
-  const apple = useIsApple()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
@@ -114,7 +89,9 @@ export function Menu({
 
   // Disabled ones too: they stay in reach of the keyboard
   const menuItems = () =>
-    Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>(ITEM_SELECTOR) ?? [])
+    Array.from(menuRef.current?.querySelectorAll(ITEM_SELECTOR) ?? []).filter(
+      (item) => item instanceof HTMLButtonElement,
+    )
 
   const hide = () => menuRef.current?.hidePopover()
 
@@ -125,73 +102,78 @@ export function Menu({
 
   useImperativeHandle(ref, () => ({ open: show }), [])
 
-  function handleToggle(e: React.ToggleEvent<HTMLDivElement>) {
-    const isOpen = e.newState === 'open'
-    setOpen(isOpen)
-    // The menu is fixed-positioned: close it rather than let it float while scrolling
-    if (isOpen) {
-      menuItems()
-        .at(openAt.current === 'last' ? -1 : 0)
-        ?.focus()
-      openAt.current = 'first'
-      window.addEventListener('scroll', hide, { capture: true, once: true, passive: true })
-      return
-    }
-    window.removeEventListener('scroll', hide, { capture: true })
-    const active = document.activeElement
-    const inPlace =
-      active === document.body ||
-      active === triggerRef.current ||
-      Boolean(menuRef.current?.contains(active))
-    if (inPlace) onCloseInPlace?.()
+  useEffect(() => {
+    if (!open || fixedTrigger) return
+    const closeOnScroll = () => menuRef.current?.hidePopover()
+    window.addEventListener('scroll', closeOnScroll, { capture: true, once: true, passive: true })
+    return () => window.removeEventListener('scroll', closeOnScroll, { capture: true })
+  }, [open, fixedTrigger])
+
+  function handleOpened() {
+    menuItems()
+      .at(openAt.current === 'last' ? -1 : 0)
+      ?.focus()
+    openAt.current = 'first'
+  }
+
+  function handleClosed() {
+    if (focusStayedIn(triggerRef.current, menuRef.current)) onCloseInPlace?.()
     onClose?.()
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (onSideKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      e.preventDefault()
+  /*
+   * From the menu's live state, not the event's: toggle events are dispatched late, so after a
+   * quick open and close the "opened" one may come once the menu is closed again (and must
+   * not focus an item in it). An event that changes nothing is a late one.
+   */
+  function handleToggle() {
+    const isOpen = menuRef.current?.matches(':popover-open') ?? false
+    if (isOpen === open) return
+    setOpen(isOpen)
+    if (isOpen) handleOpened()
+    else handleClosed()
+  }
+
+  function handleBeforeToggle(event: React.ToggleEvent<HTMLDivElement>) {
+    if (event.newState === 'open') placeBelow(triggerRef.current, menuRef.current, align)
+  }
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (onSideKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+      event.preventDefault()
       hide()
-      onSideKey(e.key === 'ArrowLeft' ? -1 : 1)
+      onSideKey(event.key === 'ArrowLeft' ? -1 : 1)
       return
     }
     const focusable = menuItems()
-    const current = focusable.indexOf(document.activeElement as HTMLButtonElement)
-    const next = rovingIndex(e.key, current, focusable.length, 'vertical')
+    const current = focusable.findIndex((item) => item === document.activeElement)
+    const next = rovingIndex(event.key, current, focusable.length, 'vertical')
     if (next === null) return
-    e.preventDefault()
+    event.preventDefault()
     focusable[next].focus()
   }
 
+  // Pressing it again closes the menu: the focus is in the menu then, not where it was
+  function handleTriggerPointerDown() {
+    if (!open) onTriggerPointerDown?.()
+  }
+
+  function handleTriggerClick(event: React.MouseEvent<HTMLButtonElement>) {
+    // A cancelled click does not toggle the menu
+    if (disabled) event.preventDefault()
+    triggerProps?.onClick?.(event)
+  }
+
+  function handleTriggerKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
+    triggerProps?.onKeyDown?.(event)
+    const at = OPENING_KEYS[event.key]
+    if (!at || disabled || open || event.defaultPrevented) return
+    event.preventDefault()
+    show(at)
+  }
+
   const renderItem = (item: MenuItem) => (
-    <button
-      key={item.label}
-      type="button"
-      role={item.kind ? ROLES[item.kind] : 'menuitem'}
-      aria-checked={item.kind ? Boolean(item.checked) : undefined}
-      aria-disabled={item.disabled || undefined}
-      aria-keyshortcuts={item.shortcut && ariaShortcut(item.shortcut, apple)}
-      lang={item.lang}
-      className={styles.item}
-      data-tone={item.tone ?? 'default'}
-      title={item.hint}
-      onClick={() => {
-        if (item.disabled) return
-        hide()
-        item.onSelect?.()
-      }}
-    >
-      {item.icon && (
-        <span className={styles.icon} aria-hidden="true">
-          {item.icon}
-        </span>
-      )}
-      {item.label}
-      {item.shortcut && (
-        <span className={styles.shortcut} aria-hidden="true">
-          {shortcutLabel(item.shortcut, apple)}
-        </span>
-      )}
-    </button>
+    <MenuItemButton key={item.label} item={item} onChosen={hide} />
   )
 
   return (
@@ -206,20 +188,9 @@ export function Menu({
         aria-expanded={open}
         aria-label={label}
         aria-disabled={disabled || undefined}
-        // Pressing it again closes the menu: the focus is in the menu then, not where it was
-        onPointerDown={() => !open && onTriggerPointerDown?.()}
-        onClick={(e) => {
-          // A cancelled click does not toggle the menu
-          if (disabled) e.preventDefault()
-          triggerProps?.onClick?.(e)
-        }}
-        onKeyDown={(e) => {
-          triggerProps?.onKeyDown?.(e)
-          const at = OPENING_KEYS[e.key]
-          if (!at || disabled || open || e.defaultPrevented) return
-          e.preventDefault()
-          show(at)
-        }}
+        onPointerDown={handleTriggerPointerDown}
+        onClick={handleTriggerClick}
+        onKeyDown={handleTriggerKeyDown}
       >
         {children}
       </button>
@@ -231,9 +202,7 @@ export function Menu({
         aria-label={label}
         aria-describedby={header ? `${id}-header` : undefined}
         className={styles.menu}
-        onBeforeToggle={(e) =>
-          e.newState === 'open' && placeBelow(triggerRef.current, menuRef.current, align)
-        }
+        onBeforeToggle={handleBeforeToggle}
         onToggle={handleToggle}
         onKeyDown={handleKeyDown}
       >
@@ -256,5 +225,43 @@ export function Menu({
         )}
       </div>
     </>
+  )
+}
+
+// One item: an action, or an option that is on or not
+function MenuItemButton({ item, onChosen }: { item: MenuItem; onChosen: () => void }) {
+  const apple = useIsApple()
+
+  function handleClick() {
+    if (item.disabled) return
+    onChosen()
+    item.onSelect?.()
+  }
+
+  return (
+    <button
+      type="button"
+      role={item.kind ? ROLES[item.kind] : 'menuitem'}
+      aria-checked={item.kind ? Boolean(item.checked) : undefined}
+      aria-disabled={item.disabled || undefined}
+      aria-keyshortcuts={item.shortcut && ariaShortcut(item.shortcut, apple)}
+      lang={item.lang}
+      className={styles.item}
+      data-tone={item.tone ?? 'default'}
+      title={item.hint}
+      onClick={handleClick}
+    >
+      {item.icon && (
+        <span className={styles.icon} aria-hidden="true">
+          {item.icon}
+        </span>
+      )}
+      {item.label}
+      {item.shortcut && (
+        <span className={styles.shortcut} aria-hidden="true">
+          {shortcutLabel(item.shortcut, apple)}
+        </span>
+      )}
+    </button>
   )
 }

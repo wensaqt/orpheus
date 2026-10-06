@@ -1,27 +1,17 @@
 'use client'
 
-import {
-  ALIGNMENTS,
-  BLOCK_TYPES,
-  type BlockType,
-  type ChosenBlockType,
-  TEXT_FORMATS,
-} from '@front/_components/editor/formatting'
+import { useRef } from 'react'
+
+import { ALIGNMENTS, BLOCK_TYPES, TEXT_FORMATS } from '@front/_components/editor/constants'
+import { BlockType, type ChosenBlockType, type ListType } from '@front/_components/editor/types'
 import { useT } from '@front/_components/i18n/I18nProvider'
-import { IconButton } from '@front/_components/ui/IconButton/IconButton'
 import { Menu } from '@front/_components/ui/Menu/Menu'
 import { ROVING_PROPS, useRovingFocus } from '@front/_components/ui/rovingFocus'
-import {
-  ariaShortcut,
-  type Shortcut,
-  shortcutLabel,
-  useIsApple,
-} from '@front/_components/ui/shortcuts'
 import type { MessageKey } from '@front/_lib/i18n'
 
 import { useFocusReturn, useOpenEditor } from '../editorFocus'
 import styles from './StyleToolbar.module.css'
-import { type ListType, pressedWithKeyboard, useToolbarActions } from './toolbarActions'
+import { useToolbarActions } from './toolbarActions'
 import { ToolbarIcon, type ToolbarIconName } from './toolbarIcons'
 import {
   ALIGNMENT_LABELS,
@@ -30,63 +20,13 @@ import {
   TEXT_FORMAT_LABELS,
   TEXT_FORMAT_SHORTCUTS,
 } from './toolbarLabels'
+import { ToolButton } from './ToolButton'
 import type { ToolbarState } from './useToolbarState'
 
 const LISTS = [
-  { type: 'bullet', label: 'editor.actions.bulletList' },
-  { type: 'number', label: 'editor.actions.numberedList' },
+  { type: BlockType.Bullet, label: 'editor.actions.bulletList' },
+  { type: BlockType.Number, label: 'editor.actions.numberedList' },
 ] as const satisfies { type: ListType; label: MessageKey }[]
-
-type ToolButtonProps = {
-  label: string
-  icon: ToolbarIconName
-  shortcut?: Shortcut
-  // Shown after the label in the tooltip when there is no shortcut, e.g. "Coming soon", and
-  // read as the control's description
-  hint?: string
-  disabled: boolean
-  // For a toggle: whether it is on
-  pressed?: boolean
-  // Pressed; from the keyboard, with the control, which keeps the focus
-  onPress?: (control?: HTMLElement) => void
-  className?: string
-}
-
-/*
- * A control of the style toolbar. Pressing it never takes the writer out of the text: the
- * text keeps the focus under the pointer, and the keyboard leaves it on the control.
- */
-function ToolButton({
-  label,
-  icon,
-  shortcut,
-  hint,
-  disabled,
-  pressed,
-  onPress,
-  className,
-}: ToolButtonProps) {
-  const t = useT()
-  const apple = useIsApple()
-  const detail = shortcut ? shortcutLabel(shortcut, apple) : hint
-  return (
-    <IconButton
-      {...ROVING_PROPS}
-      className={className}
-      label={label}
-      tooltip={detail ? t('editor.labelWithHint', { label, hint: detail }) : label}
-      icon={<ToolbarIcon name={icon} />}
-      aria-pressed={pressed}
-      aria-description={hint}
-      aria-disabled={disabled || undefined}
-      aria-keyshortcuts={shortcut && ariaShortcut(shortcut, apple)}
-      onMouseDown={(event) => event.preventDefault()}
-      onClick={(event) =>
-        !disabled && onPress?.(pressedWithKeyboard(event) ? event.currentTarget : undefined)
-      }
-    />
-  )
-}
 
 // A control that does nothing yet: in its place, greyed out, saying so; left out when narrow
 function SoonButton({ label, icon }: { label: MessageKey; icon: ToolbarIconName }) {
@@ -115,11 +55,12 @@ function BlockTypeMenu({ blockType }: { blockType: BlockType | null }) {
   const t = useT()
   const actions = useToolbarActions()
   const focus = useFocusReturn()
-  const current = t(BLOCK_TYPE_LABELS[blockType ?? 'paragraph'])
+  const current = t(BLOCK_TYPE_LABELS[blockType ?? BlockType.Paragraph])
   return (
     <Menu
       label={t('editor.labelWithHint', { label: t('editor.blockTypes.label'), hint: current })}
       align="start"
+      fixedTrigger
       // Null: nothing to give a style to (a selected page break, no document open)
       disabled={blockType === null}
       triggerClassName={styles.blockType}
@@ -150,12 +91,13 @@ export function StyleToolbar({ state }: { state: ToolbarState }) {
   const t = useT()
   const editor = useOpenEditor()
   const actions = useToolbarActions()
-  const roving = useRovingFocus<HTMLDivElement>(() => editor?.focus())
+  const toolbarRef = useRef<HTMLDivElement>(null)
+  const roving = useRovingFocus(toolbarRef, () => editor?.focus())
   const off = !state.text
 
   return (
     <div
-      ref={roving.ref}
+      ref={toolbarRef}
       role="toolbar"
       aria-label={t('editor.toolbar')}
       aria-disabled={!editor || undefined}

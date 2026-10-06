@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { lookupCandidates, MAX_QUERY_LENGTH, parseQuery } from '@front/_features/lexicon/query'
+import { MAX_QUERY_LENGTH } from '@front/_features/lexicon/constants'
+import { lookupCandidates, parseQuery } from '@front/_features/lexicon/query'
 
 describe('parseQuery', () => {
   it('trims, lower-cases and collapses spaces', () => {

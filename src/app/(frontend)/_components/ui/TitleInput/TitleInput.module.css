@@ -27,13 +27,13 @@
 /* The short rule of the other headings, which runs the whole width while editing */
 .title[data-ruled='true'] {
   padding-block-end: var(--space-2);
-  background: linear-gradient(var(--color-divider), var(--color-divider)) left bottom / 2rem 1.5px
-    no-repeat;
+  background: linear-gradient(var(--color-divider), var(--color-divider)) left bottom /
+    var(--rule-length-short) var(--rule-thickness) no-repeat;
   transition: background-size var(--duration-slow) var(--ease-out);
 }
 
 .title[data-ruled='true']:focus {
-  background-size: 100% 1.5px;
+  background-size: 100% var(--rule-thickness);
 }
 
 @media (prefers-reduced-motion: reduce) {

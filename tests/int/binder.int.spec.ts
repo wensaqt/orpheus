@@ -13,9 +13,9 @@ let bob: User
 // Act on behalf of a user, like the server actions do (access rules enforced)
 const as = (user: User) => ({ user, overrideAccess: false, depth: 0 }) as const
 
-const content = {
+const content: BinderItem['content'] = {
   root: { type: 'root', version: 1, children: [{ type: 'paragraph', version: 1, children: [] }] },
-} as BinderItem['content']
+}
 
 const newComposition = (user: User) =>
   payload.create({
@@ -68,6 +68,7 @@ describe('binder items', () => {
   describe('ownership and access', () => {
     it('belongs to the composition’s owner, whatever owner is sent', async () => {
       const composition = await newComposition(alice)
+      // A field the helper does not take: what a client could send all the same
       const item = await add(alice, composition, { owner: bob.id } as never)
       expect(item.owner).toBe(alice.id)
     })
@@ -123,12 +124,12 @@ describe('binder items', () => {
 
     it('accepts any depth of folders', async () => {
       const composition = await newComposition(alice)
-      let parent: BinderItem | null = null
-      for (let depth = 0; depth < 6; depth++) {
-        parent = await add(alice, composition, { kind: 'folder', parent: parent?.id ?? null })
+      let parent = await add(alice, composition, { kind: 'folder', parent: null })
+      for (let depth = 1; depth < 6; depth++) {
+        parent = await add(alice, composition, { kind: 'folder', parent: parent.id })
       }
-      const deepest = await add(alice, composition, { parent: parent!.id })
-      expect(deepest.parent).toBe(parent!.id)
+      const deepest = await add(alice, composition, { parent: parent.id })
+      expect(deepest.parent).toBe(parent.id)
     })
 
     it('only nests items in a folder of the same composition', async () => {
@@ -215,6 +216,7 @@ describe('binder items', () => {
 
     it('rejects content that is not a Lexical state', async () => {
       const composition = await newComposition(alice)
+      // Not the content's type, on purpose
       await expect(add(alice, composition, { content: { foo: 1 } as never })).rejects.toThrow(
         ValidationError,
       )

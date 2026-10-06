@@ -1,6 +1,13 @@
 'use client'
 
-import { type Ref, type RefObject, useId, useState } from 'react'
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  type Ref,
+  type RefObject,
+  useId,
+  useState,
+} from 'react'
 
 import { fitLayout } from '@/lib/layout'
 import {
@@ -118,6 +125,18 @@ function MarginField({
   onValue: (value: number) => void
 }) {
   const [draft, setDraft] = useState<string | null>(null)
+  const showValue = () => setDraft(null)
+
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    setDraft(event.target.value)
+    const typed = event.target.valueAsNumber
+    if (!Number.isNaN(typed)) onValue(typed)
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') showValue()
+  }
+
   return (
     <label className={styles.field}>
       {label}
@@ -128,13 +147,9 @@ function MarginField({
           max={max}
           step={MARGIN_STEP}
           value={draft ?? value}
-          onChange={(event) => {
-            setDraft(event.target.value)
-            const typed = event.target.valueAsNumber
-            if (!Number.isNaN(typed)) onValue(typed)
-          }}
-          onBlur={() => setDraft(null)}
-          onKeyDown={(event) => event.key === 'Enter' && setDraft(null)}
+          onChange={handleChange}
+          onBlur={showValue}
+          onKeyDown={handleKeyDown}
         />
         {unit}
       </span>

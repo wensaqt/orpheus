@@ -12,6 +12,9 @@ const common = {
   'aria-hidden': true,
 }
 
+// The bold icon's strokes are heavier, like the text it sets
+const BOLD_STROKE_WIDTH = 1.75
+
 const PATHS = {
   undo: 'M5.5 4 2.75 6.75 5.5 9.5M2.75 6.75h6.5a3.5 3.5 0 0 1 0 7H7.5',
   redo: 'M10.5 4l2.75 2.75L10.5 9.5M13.25 6.75h-6.5a3.5 3.5 0 0 0 0 7H8.5',
@@ -44,7 +47,7 @@ const PATHS = {
 export type ToolbarIconName = keyof typeof PATHS
 
 export const ToolbarIcon = ({ name }: { name: ToolbarIconName }) => (
-  <svg {...common} strokeWidth={name === 'bold' ? 1.75 : common.strokeWidth}>
+  <svg {...common} strokeWidth={name === 'bold' ? BOLD_STROKE_WIDTH : common.strokeWidth}>
     <path d={PATHS[name]} />
   </svg>
 )

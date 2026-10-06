@@ -20,11 +20,11 @@
   position: absolute;
   inset-inline: 0;
   bottom: 0;
-  height: 1.5px;
+  height: var(--rule-thickness);
   background-color: var(--color-divider);
   transform-origin: left;
   scale: 0 1;
-  transition: scale 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: scale var(--duration-slowest) var(--ease-out);
 }
 
 .line:focus-within::after {
@@ -39,7 +39,7 @@
 .label {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
-  transition: color 0.2s;
+  transition: color var(--duration);
 }
 
 .line:focus-within .label {

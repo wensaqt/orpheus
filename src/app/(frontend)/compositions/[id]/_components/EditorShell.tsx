@@ -1,7 +1,7 @@
 'use client'
 
 import type { LexicalEditor } from 'lexical'
-import { type ReactNode, useRef, useState } from 'react'
+import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
 import type { Layout } from '@/lib/layout'
@@ -78,6 +78,19 @@ export function EditorShell({
   )
 }
 
+// Where the synonyms panel is
+enum SynonymsPlace {
+  Folded = 'folded',
+  Beside = 'beside',
+  // Opened over the page, for want of room beside it
+  Over = 'over',
+}
+
+function synonymsPlace(room: boolean, folded: boolean, openedOver: boolean): SynonymsPlace {
+  if (room) return folded ? SynonymsPlace.Folded : SynonymsPlace.Beside
+  return openedOver ? SynonymsPlace.Over : SynonymsPlace.Folded
+}
+
 /*
  * The binder, the sheet and the synonyms side by side. Either panel folds to a small button,
  * as the writer leaves it. Without room for the synonyms beside the sheet, they fold on their
@@ -113,7 +126,17 @@ function Desk({
     flushSync(() => setSynonymsOver(false))
     showSynonyms.current?.focus()
   }
-  const synonyms = room ? (synonymsFolded ? 'folded' : 'beside') : synonymsOver ? 'over' : 'folded'
+  const synonyms = synonymsPlace(room, synonymsFolded, synonymsOver)
+  const over = synonyms === SynonymsPlace.Over
+
+  const showBinder = () => foldBinder(false)
+  const hideBinder = () => foldBinder(true)
+  const showSynonymsPanel = () => (room ? foldSynonyms(false) : setSynonymsOver(true))
+  const hideSynonymsPanel = () => (over ? closeOver() : foldSynonyms(true))
+
+  function handleSynonymsKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (over && event.key === 'Escape') closeOver()
+  }
 
   return (
     <div ref={desk} className={styles.desk}>
@@ -123,10 +146,10 @@ function Desk({
             label={t('binder.show')}
             icon={<BinderIcon />}
             className={styles.show}
-            onClick={() => foldBinder(false)}
+            onClick={showBinder}
           />
         ) : (
-          <BinderPanel onHide={() => foldBinder(true)} />
+          <BinderPanel onHide={hideBinder} />
         )}
       </div>
       <div className={styles.column}>
@@ -136,23 +159,17 @@ function Desk({
       <div className={styles.aside}>
         {/* As wide as the open panel: whether it fits is measured with it */}
         <div ref={panelProbe} className={styles.panelProbe} aria-hidden="true" />
-        {synonyms === 'folded' ? (
+        {synonyms === SynonymsPlace.Folded ? (
           <IconButton
             ref={showSynonyms}
             label={t('synonyms.show')}
             icon={<SynonymsIcon />}
             className={styles.show}
-            onClick={() => (room ? foldSynonyms(false) : setSynonymsOver(true))}
+            onClick={showSynonymsPanel}
           />
         ) : (
-          <div
-            className={styles.synonyms}
-            data-over={synonyms === 'over'}
-            onKeyDown={(event) => synonyms === 'over' && event.key === 'Escape' && closeOver()}
-          >
-            <SynonymsPanel
-              onHide={() => (synonyms === 'over' ? closeOver() : foldSynonyms(true))}
-            />
+          <div className={styles.synonyms} data-over={over} onKeyDown={handleSynonymsKeyDown}>
+            <SynonymsPanel onHide={hideSynonymsPanel} />
           </div>
         )}
       </div>

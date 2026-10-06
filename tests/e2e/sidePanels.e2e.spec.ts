@@ -1,5 +1,5 @@
 import { prose } from '../helpers/lexicalContent'
-import { expect, test } from './fixtures'
+import { boxOf, expect, test } from './fixtures'
 import { openDocument, sheetSelector, waitForEditor } from './paginationHelpers'
 
 const synonymsTitle = (page: import('@playwright/test').Page) =>
@@ -29,8 +29,8 @@ test.describe('Synonyms panel', () => {
     // Folded: nothing lies over the sheet
     await expect(synonymsTitle(page)).toBeHidden()
     const show = page.getByRole('button', { name: 'Show synonyms' })
-    const sheet = (await page.locator(sheetSelector).first().boundingBox())!
-    expect((await show.boundingBox())!.x).toBeGreaterThanOrEqual(sheet.x + sheet.width)
+    const sheet = await boxOf(page.locator(sheetSelector).first())
+    expect((await boxOf(show)).x).toBeGreaterThanOrEqual(sheet.x + sheet.width)
 
     await show.click()
     await expect(synonymsTitle(page)).toBeVisible()
@@ -46,8 +46,8 @@ test.describe('Synonyms panel', () => {
     await expect(synonymsTitle(page)).toBeHidden()
     await page.getByRole('button', { name: 'Hide binder' }).click()
     await expect(synonymsTitle(page)).toBeVisible()
-    const sheet = (await page.locator(sheetSelector).first().boundingBox())!
-    const panel = (await synonymsTitle(page).boundingBox())!
+    const sheet = await boxOf(page.locator(sheetSelector).first())
+    const panel = await boxOf(synonymsTitle(page))
     expect(panel.x).toBeGreaterThanOrEqual(sheet.x + sheet.width)
   })
 })

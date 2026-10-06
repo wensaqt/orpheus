@@ -16,22 +16,21 @@ import {
   $setSelection,
   createEditor,
   FORMAT_TEXT_COMMAND,
-  type ElementNode,
   type LexicalEditor,
   type TextNode,
 } from 'lexical'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { NO_FORMATTING } from '@front/_components/editor/constants'
 import {
   $readFormatting,
   $setBlockType,
   $textSelection,
-  type Formatting,
-  NO_FORMATTING,
   sameFormatting,
   toAlignment,
   toElementFormat,
 } from '@front/_components/editor/formatting'
+import { Alignment, BlockType, type Formatting } from '@front/_components/editor/types'
 import { $createPageBreakNode, PageBreakNode } from '@front/_components/editor/nodes/PageBreakNode'
 
 describe('alignment', () => {
@@ -45,9 +44,9 @@ describe('alignment', () => {
   })
 
   it('sets left as no alignment at all, the others as they are', () => {
-    expect(toElementFormat('left')).toBe('')
-    expect(toElementFormat('right')).toBe('right')
-    expect(toElementFormat('justify')).toBe('justify')
+    expect(toElementFormat(Alignment.Left)).toBe('')
+    expect(toElementFormat(Alignment.Right)).toBe('right')
+    expect(toElementFormat(Alignment.Justify)).toBe('justify')
   })
 })
 
@@ -59,8 +58,8 @@ describe('sameFormatting', () => {
     expect(sameFormatting(bold, { ...bold, formats: { ...bold.formats, italic: true } })).toBe(
       false,
     )
-    expect(sameFormatting(bold, { ...bold, align: 'center' })).toBe(false)
-    expect(sameFormatting(bold, { ...bold, blockType: 'h1' })).toBe(false)
+    expect(sameFormatting(bold, { ...bold, align: Alignment.Center })).toBe(false)
+    expect(sameFormatting(bold, { ...bold, blockType: BlockType.H1 })).toBe(false)
   })
 })
 
@@ -91,7 +90,7 @@ describe('the selection’s formatting', () => {
   it('reads as at the start of the text without a selection yet', () => {
     expect(read()).toEqual({ ...NO_FORMATTING, text: true })
     update(() => {
-      $getRoot().getFirstChildOrThrow<ElementNode>().setFormat('center')
+      plain.getParentOrThrow().setFormat('center')
       plain.toggleFormat('italic')
     })
     expect(read()).toMatchObject({ text: true, align: 'center', formats: { italic: true } })
@@ -187,24 +186,24 @@ describe('the selection’s formatting', () => {
     update(() => {
       plain.getParentOrThrow().setFormat('center')
       plain.select(1, 1)
-      $setBlockType('h1')
+      $setBlockType(BlockType.H1)
     })
     expect(read()).toMatchObject({ blockType: 'h1', align: 'center' })
     expect(editor.getEditorState().read(() => $getRoot().getTextContent())).toBe('Orpheus sings')
-    update(() => $setBlockType('paragraph'))
+    update(() => $setBlockType(BlockType.Paragraph))
     expect(read()).toMatchObject({ blockType: 'paragraph', align: 'center' })
   })
   it('changes every selected block, unless all already have the type', () => {
     update(() => {
       const root = $getRoot()
       root.clear()
+      const first = $createTextNode('Un')
+      const last = $createTextNode('Trois')
       root.append(
-        $createHeadingNode('h1').append($createTextNode('Un')),
+        $createHeadingNode('h1').append(first),
         $createParagraphNode().append($createTextNode('Deux')),
-        $createHeadingNode('h1').append($createTextNode('Trois')),
+        $createHeadingNode('h1').append(last),
       )
-      const first = root.getFirstChildOrThrow<ElementNode>().getFirstChildOrThrow<TextNode>()
-      const last = root.getLastChildOrThrow<ElementNode>().getFirstChildOrThrow<TextNode>()
       const selection = first.select(0, 0)
       selection.focus.set(last.getKey(), 5, 'text')
     })
@@ -214,12 +213,12 @@ describe('the selection’s formatting', () => {
           .getChildren()
           .map((block) => block.getType() + ($isHeadingNode(block) ? block.getTag() : '')),
       )
-    update(() => $setBlockType('h1'))
+    update(() => $setBlockType(BlockType.H1))
     expect(types()).toEqual(['headingh1', 'headingh1', 'headingh1'])
     // All headings now: nothing changes, the blocks stay the same nodes
     const keys = () => editor.getEditorState().read(() => $getRoot().getChildrenKeys())
     const before = keys()
-    update(() => $setBlockType('h1'))
+    update(() => $setBlockType(BlockType.H1))
     expect(keys()).toEqual(before)
   })
 })

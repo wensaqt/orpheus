@@ -2,10 +2,11 @@ import type { Page } from '@playwright/test'
 
 import { MIN_TEXT_AREA, toPageSettings } from '@/lib/pageFormats'
 
-import { MM_TO_PX, toGeometry } from '@front/_components/editor/pagination/pageGeometry'
+import { MM_TO_PX } from '@front/_components/editor/pagination/constants'
+import { toGeometry } from '@front/_components/editor/pagination/pageGeometry'
 
 import { prose } from '../helpers/lexicalContent'
-import { type Account, expect, test } from './fixtures'
+import { type Account, boxOf, textOf, expect, test } from './fixtures'
 import {
   A4,
   editable,
@@ -26,7 +27,7 @@ const savedPage = (account: Account, id: string) => saved(account, id).then(({ p
 // Saving waits for a pause in the changes, then for the server: slower on a busy dev server
 const SAVED = { timeout: 15_000 }
 
-const firstSheet = async (page: Page) => (await page.locator(sheetSelector).first().boundingBox())!
+const firstSheet = async (page: Page) => await boxOf(page.locator(sheetSelector).first())
 
 /*
  * How far the first and second lines of a paragraph start from the text's left edge, in mm:
@@ -35,6 +36,7 @@ const firstSheet = async (page: Page) => (await page.locator(sheetSelector).firs
 const lineStarts = (page: Page, text: string) =>
   page.evaluate(
     ({ text, editable, mm }) => {
+      // Non-null: the tests look for paragraphs they wrote, in the editor waited for
       const editor = document.querySelector(editable)!
       const paragraph = [...editor.querySelectorAll('p')].find((p) => p.textContent === text)!
       // The text itself: a range over the paragraph also counts its inline boxes
@@ -71,7 +73,7 @@ test.describe('Editor header', () => {
 
     await page.evaluate(() => window.scrollTo(0, 3000))
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(1000)
-    expect((await header.boundingBox())!.y).toBeCloseTo(0, 0)
+    expect((await boxOf(header)).y).toBeCloseTo(0, 0)
     await expect(page.getByLabel('Document title')).toBeInViewport()
 
     // Renamed from the header: the binder follows, and the name is kept
@@ -158,7 +160,7 @@ test.describe('Page setup', () => {
     await settle(page)
     expect((await readLayout(page, { top: 40 * MM_TO_PX, bottom: A4.bottom })).outside).toEqual([])
     const sheet = await firstSheet(page)
-    const text = (await page.locator(editable).boundingBox())!
+    const text = await boxOf(page.locator(editable))
     expect(text.y - sheet.y).toBeGreaterThanOrEqual(40 * MM_TO_PX - 1)
     await expect
       .poll(async () => (await savedPage(account, composition.id)).margins?.top, SAVED)
@@ -206,7 +208,7 @@ test.describe('Ruler', () => {
   test('dragging the left margin moves the text, and saves', async ({ page, account }) => {
     const { composition } = await openDocument(page, account, prose(30))
     const handle = page.getByRole('slider', { name: 'Left margin' })
-    const box = (await handle.boundingBox())!
+    const box = await boxOf(handle)
     const start = { x: box.x + box.width / 2, y: box.y + box.height / 2 }
     // 20 mm to the right, in a few steps like a hand
     await page.mouse.move(start.x, start.y)
@@ -219,7 +221,7 @@ test.describe('Ruler', () => {
     expect(Math.abs(left - 45)).toBeLessThanOrEqual(0.5)
 
     const sheet = await firstSheet(page)
-    const text = (await page.locator(editable).boundingBox())!
+    const text = await boxOf(page.locator(editable))
     expect(text.x - sheet.x).toBeCloseTo(left * MM_TO_PX, 0)
     expect((await readLayout(page)).outside).toEqual([])
     await expect
@@ -251,7 +253,7 @@ test.describe('Ruler', () => {
     const { composition } = await openDocument(page, account, prose(30))
     const handle = page.getByRole('slider', { name: 'First-line indent' })
     await expect(handle).toHaveAttribute('aria-valuenow', '0')
-    const box = (await handle.boundingBox())!
+    const box = await boxOf(handle)
     const start = { x: box.x + box.width / 2, y: box.y + box.height / 2 }
     await page.mouse.move(start.x, start.y)
     await page.mouse.down()
@@ -266,7 +268,7 @@ test.describe('Ruler', () => {
       '25',
     )
 
-    const paragraph = (await page.locator(`${editable} p`).first().textContent())!
+    const paragraph = await textOf(page.locator(`${editable} p`).first())
     const [first, second] = await lineStarts(page, paragraph)
     expect(first).toBeCloseTo(indent, 0)
     expect(second).toBeCloseTo(0, 0)
@@ -309,11 +311,11 @@ test.describe('Ruler', () => {
       await openDocument(page, account, prose(5), { orientation })
       if (binder === 'hidden') await page.getByRole('button', { name: 'Hide binder' }).click()
       await settle(page)
-      const ruler = (await page.getByRole('group', { name: 'Ruler' }).boundingBox())!
+      const ruler = await boxOf(page.getByRole('group', { name: 'Ruler' }))
       const sheet = await firstSheet(page)
       expect(Math.abs(ruler.x - sheet.x)).toBeLessThanOrEqual(1.5)
-      const handle = (await page.getByRole('slider', { name: 'Left margin' }).boundingBox())!
-      const text = (await page.locator(editable).boundingBox())!
+      const handle = await boxOf(page.getByRole('slider', { name: 'Left margin' }))
+      const text = await boxOf(page.locator(editable))
       expect(Math.abs(handle.x + handle.width / 2 - text.x)).toBeLessThanOrEqual(1.5)
     })
   }
@@ -333,10 +335,10 @@ test.describe('Writing while setting the pages', () => {
   // Where the caret is: the text it is in and its offset there, and whether the text has focus
   const caret = (page: Page) =>
     page.evaluate((editable) => {
-      const selection = window.getSelection()!
+      const selection = window.getSelection()
       return {
-        text: selection.anchorNode?.textContent ?? '',
-        offset: selection.anchorOffset,
+        text: selection?.anchorNode?.textContent ?? '',
+        offset: selection?.anchorOffset,
         writing: Boolean(document.querySelector(editable)?.contains(document.activeElement)),
       }
     }, editable)
@@ -350,7 +352,7 @@ test.describe('Writing while setting the pages', () => {
     const before = await caret(page)
     expect(before.writing).toBe(true)
 
-    const box = (await page.getByRole('slider', { name: 'Left margin' }).boundingBox())!
+    const box = await boxOf(page.getByRole('slider', { name: 'Left margin' }))
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
     await page.mouse.down()
     await page.mouse.move(box.x + box.width / 2 + 10 * MM_TO_PX, box.y + box.height / 2, {

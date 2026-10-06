@@ -1,17 +1,26 @@
 'use client'
 
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { type CSSProperties, type MouseEvent, type ReactNode, useRef } from 'react'
+import { type CSSProperties, type ReactNode, useRef } from 'react'
 
 import { type PageSettings, pageSize } from '@/lib/pageFormats'
 import type { Typography } from '@/lib/typography'
 
-import { PAGE_BREAK_ATTRIBUTE } from '../nodes/PageBreakNode'
+import { classNames } from '@front/_lib/classNames'
+
+import { MM_TO_PX, PAGE_SHEET_ATTRIBUTE, PAGES_ATTRIBUTE } from './constants'
 import styles from './PagedSheet.module.css'
-import { $selectTextBefore, caretTarget, placeCaretAt } from './caretPlacement'
-import { bandHeight, contentHeight, MM_TO_PX, toGeometry } from './pageGeometry'
-import { PAGE_SHEET_ATTRIBUTE, PAGES_ATTRIBUTE } from './pageAttributes'
+import { bandHeight, contentHeight, toGeometry } from './pageGeometry'
+import paper from './paper.module.css'
+import type { PageGeometry } from './types'
+import { useCaretOnSheetClick } from './useCaretOnSheetClick'
 import { flowTopOnScreen, usePageLayout } from './usePageLayout'
+
+type PagedSheetProps = {
+  settings: PageSettings
+  // How the text is set on the pages (the first-line indent)
+  typography: Typography
+  children: ReactNode
+}
 
 /*
  * The document on real pages of its format. The text stays one flow (one editor, native
@@ -19,91 +28,83 @@ import { flowTopOnScreen, usePageLayout } from './usePageLayout'
  * pages' text areas, so every line that reaches the end of a page continues on the next one.
  * Sheets are drawn behind. Print uses the same layout with no gap between pages.
  */
-export function PagedSheet({
-  settings,
-  typography,
-  children,
-}: {
-  settings: PageSettings
-  // How the text is set on the pages (the first-line indent)
-  typography: Typography
-  children: ReactNode
-}) {
-  const [editor] = useLexicalComposerContext()
+export function PagedSheet({ settings, typography, children }: PagedSheetProps) {
   const page = toGeometry(settings)
   const root = useRef<HTMLDivElement>(null)
   const gapProbe = useRef<HTMLDivElement>(null)
   // Measured, not parsed: the gap is a token in rem on screen, and 0 in print
   const measureGap = () => gapProbe.current?.getBoundingClientRect().height ?? 0
   const pages = usePageLayout(root, measureGap, page)
-  const { width, height } = page
-
-  // A click on a sheet that misses the text puts the caret in it, as in a word processor
-  function onMouseDown(event: MouseEvent<HTMLDivElement>) {
-    const editable = editor.getRootElement()
-    const { button, target, clientX, clientY, currentTarget } = event
-    if (button !== 0 || !editable || !(target instanceof Element)) return
-    const pageBreak = target.closest(`[${PAGE_BREAK_ATTRIBUTE}]`)
-    if (editable.contains(target) && !pageBreak) return
-    // Else the browser would take the focus out of the editor
-    event.preventDefault()
-    if (pageBreak) {
-      editable.focus({ preventScroll: true })
-      editor.update(() => $selectTextBefore(pageBreak))
-      return
-    }
-    const flowTop = flowTopOnScreen(currentTarget, page)
-    const gap = measureGap()
-    placeCaretAt(
-      editable,
-      caretTarget(editable, { x: clientX, y: clientY }, { flowTop, page, gap, pages }),
-    )
-  }
-
-  const style = {
-    '--page-w': `${width}px`,
-    '--page-h': `${height}px`,
-    '--page-content-h': `${contentHeight(page)}px`,
-    '--page-band-base': `${bandHeight(page, 0)}px`,
-    '--page-padding': `${page.top}px ${page.right}px ${page.bottom}px ${page.left}px`,
-    // Read by the paragraphs of the text (see the editor's theme)
-    '--first-line-indent': `${typography.firstLineIndent * MM_TO_PX}px`,
-    '--pages': pages,
-  } as CSSProperties
-  const paper = pageSize(settings)
+  const handleMouseDown = useCaretOnSheetClick((pagesRoot) => ({
+    flowTop: flowTopOnScreen(pagesRoot, page),
+    page,
+    gap: measureGap(),
+    pages,
+  }))
 
   return (
     <div
       ref={root}
       className={styles.paged}
-      style={style}
+      style={pagesStyle(page, typography, pages)}
       {...{ [PAGES_ATTRIBUTE]: pages }}
-      onMouseDown={onMouseDown}
+      onMouseDown={handleMouseDown}
     >
-      {/* Printed at the composition's format, edge to edge: margins are the pages' own */}
-      <style>{`@page { size: ${paper.width}mm ${paper.height}mm; margin: 0; }`}</style>
+      <PrintedPageSize settings={settings} />
       <div ref={gapProbe} className={styles.gapProbe} aria-hidden="true" />
-      <div className={styles.sheets} aria-hidden="true">
-        {Array.from({ length: pages }, (_, index) => (
-          <div
-            key={index}
-            className={styles.sheet}
-            style={{ '--index': index } as CSSProperties}
-            {...{ [PAGE_SHEET_ATTRIBUTE]: '' }}
-          />
-        ))}
-      </div>
+      <Sheets pages={pages} />
       <div className={styles.flow}>
-        <div className={styles.bands} aria-hidden="true" contentEditable={false}>
-          {Array.from({ length: pages - 1 }, (_, index) => (
-            <span key={index} className={styles.boundary}>
-              <span className={styles.textArea} />
-              <span className={styles.band} />
-            </span>
-          ))}
-        </div>
+        <PageBands pages={pages} />
         <div className={styles.text}>{children}</div>
       </div>
+    </div>
+  )
+}
+
+// The sizes the pages' CSS reads, in pixels
+const pagesStyle = (page: PageGeometry, typography: Typography, pages: number): CSSProperties => ({
+  '--page-w': `${page.width}px`,
+  '--page-h': `${page.height}px`,
+  '--page-content-h': `${contentHeight(page)}px`,
+  '--page-band-base': `${bandHeight(page, 0)}px`,
+  '--page-padding': `${page.top}px ${page.right}px ${page.bottom}px ${page.left}px`,
+  // Read by the paragraphs of the text (see the editor's theme)
+  '--first-line-indent': `${typography.firstLineIndent * MM_TO_PX}px`,
+  '--pages': pages,
+})
+
+// Printed at the composition's format, edge to edge: margins are the pages' own
+function PrintedPageSize({ settings }: { settings: PageSettings }) {
+  const paperSize = pageSize(settings)
+  return <style>{`@page { size: ${paperSize.width}mm ${paperSize.height}mm; margin: 0; }`}</style>
+}
+
+// The sheets of paper, drawn behind the text
+function Sheets({ pages }: { pages: number }) {
+  return (
+    <div className={styles.sheets} aria-hidden="true">
+      {Array.from({ length: pages }, (_, index) => (
+        <div
+          key={index}
+          className={classNames(paper.paper, styles.sheet)}
+          style={{ '--index': index }}
+          {...{ [PAGE_SHEET_ATTRIBUTE]: '' }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// Between two pages, a float that pushes the lines reaching it onto the next page
+function PageBands({ pages }: { pages: number }) {
+  return (
+    <div className={styles.bands} aria-hidden="true" contentEditable={false}>
+      {Array.from({ length: pages - 1 }, (_, index) => (
+        <span key={index} className={styles.boundary}>
+          <span className={styles.textArea} />
+          <span className={styles.band} />
+        </span>
+      ))}
     </div>
   )
 }

@@ -2,13 +2,9 @@
 export const W = 120
 export const H = 300
 export const STRING_BOTTOM = 250
+const BISECTION_ITERATIONS = 30
 const YOKE_CENTER_Y = 44
 const YOKE_EDGE_Y = 86
-// Vibration amplitudes (viewBox): on mouse pass, it grows with speed
-export const BASE_AMP = 1
-export const MAX_AMP = 3
-// On click, the chord is plucked harder
-export const CHORD_AMP = 5
 
 export type LyreString = { x: number; top: number; width: number }
 
@@ -49,7 +45,7 @@ const cubicAt = ([p0, p1, p2, p3]: Cubic, t: number): Point => {
 // their rounded end then stays entirely within the arm's thickness, with no bump.
 const armXAtY = (segment: Cubic, y: number) => {
   let [lo, hi] = [0, 1]
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < BISECTION_ITERATIONS; i++) {
     const mid = (lo + hi) / 2
     if (cubicAt(segment, mid)[1] > y) lo = mid
     else hi = mid

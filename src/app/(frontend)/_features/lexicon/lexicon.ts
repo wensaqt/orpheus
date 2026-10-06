@@ -1,15 +1,17 @@
+import { THESAURUS_LANGUAGE } from '@/lib/thesaurus/types'
 import 'server-only'
 
 import type { Session } from '@front/_lib/server/auth'
 
-import { composeResult, EMPTY_RESULT, MORE_PER_GROUP } from './compose'
+import { composeResult } from './compose'
+import { EMPTY_RESULT, MORE_PER_GROUP } from './constants'
 import { lookupCandidates } from './query'
 import type { SynonymResult } from './types'
 
-const LANG = 'fr'
-
 // Dicollecte suggestions checked for coherence, per lookup (a few groups' worth of heads)
-const MAX_CHECKED_SUGGESTIONS = 4 * MORE_PER_GROUP
+// Check the heads of at most four groups per lookup
+const CHECKED_GROUPS = 4
+const MAX_CHECKED_SUGGESTIONS = CHECKED_GROUPS * MORE_PER_GROUP
 
 type Entry = Awaited<ReturnType<typeof findEntries>>[number]
 
@@ -17,7 +19,7 @@ type Entry = Awaited<ReturnType<typeof findEntries>>[number]
 async function findEntries({ payload, user }: Session, words: string[]) {
   const { docs } = await payload.find({
     collection: 'thesaurus-entries',
-    where: { lang: { equals: LANG }, word: { in: words } },
+    where: { lang: { equals: THESAURUS_LANGUAGE }, word: { in: words } },
     select: { word: true, source: true, groups: true, lemma: true, lemmaPartOfSpeech: true },
     pagination: false,
     depth: 0,

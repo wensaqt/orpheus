@@ -17,3 +17,11 @@ export type SynonymResult = {
   // Wiktionary page to credit (CC BY-SA) when some synonyms come from it
   sourceUrl: string | null
 }
+
+// Where the search stands
+export enum SynonymStatus {
+  Idle = 'idle',
+  Loading = 'loading',
+  Done = 'done',
+  Error = 'error',
+}

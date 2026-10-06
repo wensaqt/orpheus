@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { findSynonyms } from './actions'
-import type { SynonymResult } from './types'
+import { type SynonymResult, SynonymStatus } from './types'
 
 // Idle time before searching while typing
 const SEARCH_DELAY_MS = 250
-
-export type SynonymStatus = 'idle' | 'loading' | 'done' | 'error'
 
 /*
  * Synonym search driven by the panel's field. The last result stays available while the next one
@@ -15,7 +13,7 @@ export type SynonymStatus = 'idle' | 'loading' | 'done' | 'error'
  */
 export function useSynonyms() {
   const [query, setQueryValue] = useState('')
-  const [status, setStatus] = useState<SynonymStatus>('idle')
+  const [status, setStatus] = useState(SynonymStatus.Idle)
   const [result, setResult] = useState<SynonymResult | null>(null)
   const timer = useRef<number | null>(null)
   const latestRequest = useRef(0)
@@ -34,21 +32,21 @@ export function useSynonyms() {
     const request = ++latestRequest.current
     if (!word) {
       setResult(null)
-      setStatus('idle')
+      setStatus(SynonymStatus.Idle)
       return
     }
 
     timer.current = window.setTimeout(async () => {
-      setStatus('loading')
+      setStatus(SynonymStatus.Loading)
       try {
         const found = await findSynonyms(word)
         if (request !== latestRequest.current) return
         setResult(found)
-        setStatus('done')
+        setStatus(SynonymStatus.Done)
       } catch {
         if (request !== latestRequest.current) return
         setResult(null)
-        setStatus('error')
+        setStatus(SynonymStatus.Error)
       }
     }, delay)
   }

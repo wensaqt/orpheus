@@ -18,10 +18,11 @@ import {
 } from '@front/_features/binder/actions'
 import type { BinderEntry } from '@front/_features/binder/types'
 import { type ActionResult, succeeded } from '@front/_lib/actionResult'
-import { ROUTES } from '@front/_lib/routes'
+import type { Translate } from '@front/_lib/i18n'
 import { forgetDocuments, rememberDocument } from '@front/_features/binder/documentStore'
 
 import { applyBinderOp, type BinderOp } from './binderOps'
+import type { NavigateDocument } from './useOpenDocument'
 
 export type BinderCommands = ReturnType<typeof useBinderCommands>
 
@@ -32,9 +33,17 @@ type BinderCommandsOptions = {
   // Keeps a change for good / shows it while it is being saved
   apply: (op: BinderOp) => void
   showOp: (op: BinderOp) => void
-  flushAll: () => Promise<boolean>
+  navigate: NavigateDocument
   cancelDocuments: (ids: Iterable<Id>) => void
   startRename: (id: Id) => void
+}
+
+// What deleting an item takes with it: the document, or the folder and how much is inside
+function deleteWarning(t: Translate, entry: BinderEntry, insideCount: number) {
+  if (entry.kind === 'document') return t('binder.delete.document')
+  if (insideCount === 0) return t('binder.delete.folderEmpty')
+  if (insideCount === 1) return t('binder.delete.folderOne')
+  return t('binder.delete.folderMany', { count: insideCount })
 }
 
 /*
@@ -48,7 +57,7 @@ export function useBinderCommands({
   activeDocumentId,
   apply,
   showOp,
-  flushAll,
+  navigate,
   cancelDocuments,
   startRename,
 }: BinderCommandsOptions) {
@@ -67,22 +76,6 @@ export function useBinderCommands({
           resolve(accepted)
         })
       })
-
-    /*
-     * Goes to a document (or the empty binder) once everything open is saved, on the client:
-     * the URL changes and the editor shows the cached text, with no page render. A replaced
-     * entry (the document was deleted) leaves no way back to it in the history.
-     */
-    const navigate = async (documentId: Id | null, mode: 'push' | 'replace' = 'push') => {
-      if (!(await flushAll())) {
-        toast.error(t('binder.saveFirst'))
-        return false
-      }
-      const path = ROUTES.editor(compositionId, documentId)
-      if (mode === 'push') window.history.pushState(null, '', path)
-      else window.history.replaceState(null, '', path)
-      return true
-    }
 
     return {
       open: (id: Id) => (id === activeDocumentId ? Promise.resolve(true) : navigate(id)),
@@ -119,14 +112,7 @@ export function useBinderCommands({
         const inside = descendantIds(entries, entry.id)
         const confirmed = await confirm({
           title: t('binder.delete.title', { title: entry.title }),
-          description:
-            entry.kind === 'document'
-              ? t('binder.delete.document')
-              : inside.length === 0
-                ? t('binder.delete.folderEmpty')
-                : inside.length === 1
-                  ? t('binder.delete.folderOne')
-                  : t('binder.delete.folderMany', { count: inside.length }),
+          description: deleteWarning(t, entry, inside.length),
           confirmLabel: t('binder.delete.confirm'),
           tone: 'danger',
         })
@@ -153,7 +139,7 @@ export function useBinderCommands({
     activeDocumentId,
     apply,
     showOp,
-    flushAll,
+    navigate,
     cancelDocuments,
     startRename,
     t,

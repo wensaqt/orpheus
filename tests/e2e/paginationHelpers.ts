@@ -6,8 +6,9 @@ import type { Composition } from '@/payload-types'
 import {
   PAGE_SHEET_ATTRIBUTE,
   PAGES_ATTRIBUTE,
-} from '@front/_components/editor/pagination/pageAttributes'
-import { type PageGeometry, toGeometry } from '@front/_components/editor/pagination/pageGeometry'
+} from '@front/_components/editor/pagination/constants'
+import { toGeometry } from '@front/_components/editor/pagination/pageGeometry'
+import type { PageGeometry } from '@front/_components/editor/pagination/types'
 
 import type { DocumentContent } from '../helpers/lexicalContent'
 import {
@@ -120,7 +121,8 @@ export async function settle(page: Page) {
 const readScreen = (page: Page): Promise<Screen> =>
   page.evaluate(({ editable, pages, pagesAttribute, sheets }) => {
     // No named functions in here: the test runner's transpiler would wrap them with a helper
-    // the browser does not have. Plain rectangles come from DOMRect's own toJSON
+    // the browser does not have. Plain rectangles come from DOMRect's own toJSON. Non-null:
+    // the editor has been waited for
     const root = document.querySelector<HTMLElement>(pages)!
     const editor = document.querySelector(editable)!
     const lines: Screen['lines'] = []
@@ -208,6 +210,7 @@ export async function lastLineOf(page: Page, n: number) {
  */
 export const caretTop = (page: Page) =>
   page.evaluate((pages) => {
+    // Non-null: the pages are shown, and the caret was placed before
     const origin = document.querySelector(pages)!.getBoundingClientRect().top
     const range = window.getSelection()!.getRangeAt(0).cloneRange()
     const direct = range.getClientRects()[0]

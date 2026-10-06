@@ -1,3 +1,5 @@
+import { isRecord } from './guards'
+import type { BinderItem } from '@/payload-types'
 import type { JSONField } from 'payload'
 
 // Schema identifier: Payload requires it, but since the schema is provided here, nothing is downloaded
@@ -27,3 +29,11 @@ export const LEXICAL_STATE_JSON_SCHEMA: NonNullable<JSONField['jsonSchema']> = {
     },
   },
 }
+
+// The minimal JSON object shape guaranteed by the content field
+export const isLexicalContent = (value: unknown): value is NonNullable<BinderItem['content']> =>
+  isRecord(value) &&
+  isRecord(value.root) &&
+  value.root.type === 'root' &&
+  Array.isArray(value.root.children) &&
+  value.root.children.every(isRecord)

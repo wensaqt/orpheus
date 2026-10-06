@@ -4,13 +4,7 @@ import type { Id } from '@/lib/ids'
 
 import type { SaveControls } from '@front/_hooks/useAutosave'
 
-// The key each saver registers under, naming what it saves
-export const SAVERS = {
-  compositionTitle: 'composition-title',
-  layout: 'layout',
-  documentText: (id: Id) => `document:${id}`,
-  documentTitle: (id: Id) => `document-title:${id}`,
-}
+import { SAVERS } from './saverKeys'
 
 /*
  * The savers currently mounted (the open document's text and title, the composition's title),

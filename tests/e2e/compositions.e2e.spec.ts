@@ -1,10 +1,11 @@
 import { TEST_PASSWORD } from '../helpers/testUsers'
+import { editorPath } from '@front/_lib/routes'
 
 import { ID } from './binderHelpers'
 import { expect, test } from './fixtures'
 
 test.describe('Compositions', () => {
-  test('create from home, write, find it again after reload', async ({ page }) => {
+  test('create from home, write, find it again after reload', async ({ page, account }) => {
     await page.goto('/')
     await page.getByRole('button', { name: /New composition/ }).click()
     // Two redirects (the action, then the composition to its first document), each rendered by
@@ -17,8 +18,26 @@ test.describe('Compositions', () => {
     await page.locator('[contenteditable="true"]').click()
     await page.keyboard.type('# Chant\nShe walked behind him.')
 
-    // Autosave after a pause in typing
-    await page.waitForTimeout(1500)
+    const path = editorPath(new URL(page.url()).pathname)
+    if (!path?.documentId) throw new Error('Expected an open document')
+    const documentId = path.documentId
+    // Wait for persistence rather than assuming the autosave delay includes the request.
+    await expect
+      .poll(
+        async () => {
+          const composition = await account.payload.findByID({
+            collection: 'compositions',
+            id: path.compositionId,
+          })
+          const document = await account.payload.findByID({
+            collection: 'binder-items',
+            id: documentId,
+          })
+          return { title: composition.title, text: JSON.stringify(document.content) }
+        },
+        { timeout: 15_000 },
+      )
+      .toEqual({ title: 'Eurydice', text: expect.stringContaining('She walked behind him.') })
     await page.reload()
     await expect(title).toHaveValue('Eurydice')
     await expect(page.locator('[contenteditable="true"] h1')).toHaveText('Chant')

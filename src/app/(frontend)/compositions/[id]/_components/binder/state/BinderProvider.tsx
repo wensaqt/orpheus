@@ -12,7 +12,7 @@ import {
   useState,
 } from 'react'
 
-import type { Id } from '@/lib/ids'
+import { type Id, isIdList } from '@/lib/ids'
 
 import { loadBinderEntries } from '@front/_features/binder/actions'
 import type { BinderEntry } from '@front/_features/binder/types'
@@ -79,9 +79,10 @@ export function BinderProvider({
       .catch(() => {})
   }, [compositionId])
 
-  const [collapsedIds, setCollapsedIds] = useStoredState<Id[]>(
+  const [collapsedIds, setCollapsedIds] = useStoredState(
     STORAGE_KEYS.collapsedFolders(compositionId),
     [],
+    isIdList,
   )
   const collapsed = useMemo(() => new Set(collapsedIds), [collapsedIds])
   const setFolderOpen = useCallback(
@@ -98,7 +99,7 @@ export function BinderProvider({
 
   const [renamingId, setRenamingId] = useState<Id | null>(null)
   const { register, flushAll, cancelDocuments } = useSaveRegistry()
-  const activeDocumentId = useOpenDocument(compositionId, flushAll)
+  const { activeDocumentId, navigate } = useOpenDocument(compositionId, flushAll)
 
   const commands = useBinderCommands({
     compositionId,
@@ -106,7 +107,7 @@ export function BinderProvider({
     activeDocumentId,
     apply,
     showOp,
-    flushAll,
+    navigate,
     cancelDocuments,
     startRename: setRenamingId,
   })

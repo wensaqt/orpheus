@@ -1,6 +1,6 @@
 import type { BinderItem } from '@/payload-types'
 
-import { PAGE_BREAK_TYPE } from '@front/_components/editor/nodes/PageBreakNode'
+import { PAGE_BREAK_TYPE } from '@front/_components/editor/constants'
 
 // Serialized Lexical documents for tests: French prose with headings, quotes and lists
 

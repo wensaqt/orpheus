@@ -7,18 +7,14 @@ import type { Id } from '@/lib/ids'
 import { BlankPage } from '@front/_components/editor/pagination/BlankPage'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { Button } from '@front/_components/ui/Button/Button'
-import {
-  type CachedDocument,
-  neighbourDocuments,
-  newerText,
-} from '@front/_features/binder/documentCache'
+import { neighbourDocuments, newerText } from '@front/_features/binder/documentCache'
 import {
   loadDocument,
   prefetchDocument,
   seedDocument,
   useDocumentSlot,
 } from '@front/_features/binder/documentStore'
-import type { EditorDocument } from '@front/_features/binder/types'
+import type { CachedDocument, EditorDocument } from '@front/_features/binder/types'
 
 import { useBinder } from '../binder/state/BinderProvider'
 import { useLayout } from '../page/LayoutProvider'

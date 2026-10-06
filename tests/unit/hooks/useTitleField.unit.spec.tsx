@@ -16,6 +16,7 @@ describe('useTitleField', () => {
     const save = vi.fn(async (_title: string): Promise<ActionResult> => done())
     const onTitle = vi.fn()
     const hook = renderHook(() => useTitleField({ title: 'Orpheus', maxLength: 20, save, onTitle }))
+    // A change event reduced to what the hook reads
     const type = (value: string) =>
       act(() =>
         hook.result.current.inputProps.onChange({
