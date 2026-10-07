@@ -25,7 +25,13 @@ const ITALIC = 2
 // Saving waits for a pause in the changes, then for the server: slower on a busy dev server
 const SAVED = { timeout: 15_000 }
 
-type SavedNode = { type: string; text?: string; format?: number | string; children?: SavedNode[] }
+type SavedNode = {
+  type: string
+  text?: string
+  style?: string
+  format?: number | string
+  children?: SavedNode[]
+}
 
 // The document's blocks as saved, once saving has caught up
 const savedBlocks = async (account: Account, id: string) => {
@@ -50,6 +56,14 @@ const menuNamed = (page: Page, name: string) =>
   menuBar(page).getByRole('menuitem', { name, exact: true })
 const paragraphStyle = (page: Page) =>
   toolbar(page).getByRole('button', { name: /Paragraph style/ })
+const fontMenu = (page: Page) => toolbar(page).getByRole('button', { name: /^Font \(/ })
+const fontText = (page: Page) => page.locator(`${editable} span[style*="font-family"]`)
+const chooseFont = async (page: Page, name: string) => {
+  await fontMenu(page).click()
+  await page.getByRole('menuitemradio', { name, exact: true }).click()
+  await expect(fontMenu(page)).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByRole('menu', { name: /^Font \(/ })).toBeHidden()
+}
 const firstBlock = (page: Page) => page.locator(`${editable} > *`).first()
 
 // Selects characters [start, end) of the paragraph holding this text, as a hand dragging over them
@@ -101,6 +115,149 @@ async function selectPageBreakAfter(page: Page, text: string) {
 }
 
 test.describe('Style toolbar', () => {
+  test('font changes only the selection, can be undone, and persists after reload and reset', async ({
+    page,
+    account,
+  }) => {
+    const { document: savedDocument } = await openDocument(page, account, twoParagraphs())
+    const defaultFamily = await firstBlock(page).evaluate(
+      (node) => getComputedStyle(node).fontFamily,
+    )
+    await selectIn(page, FIRST, 7, 13)
+    await chooseFont(page, 'Lora')
+    await expect(fontText(page)).toHaveText('chante')
+    await expect(fontMenu(page)).toHaveAccessibleName('Font (Lora)')
+    await expect.poll(async () => (await selection(page)).writing).toBe(true)
+    expect((await selection(page)).text).toBe('chante')
+    await settle(page)
+    expect(await fontText(page).evaluate((node) => getComputedStyle(node).fontFamily)).not.toBe(
+      defaultFamily,
+    )
+    await expect
+      .poll(
+        async () =>
+          (await savedTexts(account, savedDocument.id)).map(({ text, style }) => ({
+            text,
+            font: style?.includes('font-family:') ?? false,
+          })),
+        SAVED,
+      )
+      .toEqual([
+        { text: 'Orphée ', font: false },
+        { text: 'chante', font: true },
+        { text: ' pour Eurydice.', font: false },
+        { text: SECOND, font: false },
+      ])
+
+    await tool(page, 'Undo').click()
+    await expect(fontText(page)).toHaveCount(0)
+    await tool(page, 'Redo').click()
+    await expect(fontText(page)).toHaveText('chante')
+    await expect
+      .poll(
+        async () =>
+          (await savedTexts(account, savedDocument.id)).find(({ text }) => text === 'chante')
+            ?.style,
+        SAVED,
+      )
+      .toContain('var(--font-document-lora)')
+    await page.reload()
+    await waitForEditor(page)
+    await expect(fontText(page)).toHaveText('chante')
+    await expect(fontText(page)).toHaveAttribute('style', /var\(--font-document-lora\)/)
+
+    // Select the styled fragment again: its DOM node is now one of several in the paragraph.
+    await fontText(page).click()
+    await fontText(page).evaluate((node) => {
+      const range = document.createRange()
+      range.selectNodeContents(node)
+      const selection = window.getSelection()
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+    })
+    await selectionRead(page)
+    await expect(fontMenu(page)).toHaveAccessibleName('Font (Lora)')
+    await chooseFont(page, 'Default')
+    await expect(fontText(page)).toHaveCount(0)
+    await expect(fontMenu(page)).toHaveAccessibleName('Font (Default)')
+    await expect
+      .poll(
+        async () =>
+          (await savedTexts(account, savedDocument.id)).some(({ style }) =>
+            style?.includes('font-family:'),
+          ),
+        SAVED,
+      )
+      .toBe(false)
+    await page.reload()
+    await waitForEditor(page)
+    await expect(fontText(page)).toHaveCount(0)
+    await expect(firstBlock(page)).toHaveText(FIRST)
+  })
+
+  test('font at a caret applies to the next input, and default restores inherited text', async ({
+    page,
+    account,
+  }) => {
+    const { document } = await openDocument(page, account, twoParagraphs())
+    await caretAtEndOf(page, FIRST)
+    await chooseFont(page, 'Source Code Pro')
+    await expect(fontText(page)).toHaveCount(0)
+    await expect(fontMenu(page)).toHaveAccessibleName('Font (Source Code Pro)')
+    await expect.poll(async () => (await selection(page)).writing).toBe(true)
+    await page.keyboard.type(' Encore.')
+    await expect(fontText(page)).toHaveText(' Encore.')
+    await chooseFont(page, 'Default')
+    await expect.poll(async () => (await selection(page)).writing).toBe(true)
+    await page.keyboard.type(' Fin.')
+    await expect(fontText(page)).toHaveText(' Encore.')
+    await expect(firstBlock(page)).toHaveText(`${FIRST} Encore. Fin.`)
+    await expect
+      .poll(
+        async () => (await savedTexts(account, document.id)).map(({ text }) => text).join(''),
+        SAVED,
+      )
+      .toBe(`${FIRST} Encore. Fin.${SECOND}`)
+    await expect
+      .poll(
+        async () =>
+          (await savedTexts(account, document.id)).find(({ text }) => text === ' Encore.')?.style,
+        SAVED,
+      )
+      .toContain('var(--font-document-source-code)')
+    await page.reload()
+    await waitForEditor(page)
+    await expect(fontText(page)).toHaveText(' Encore.')
+    await expect(firstBlock(page)).toHaveText(`${FIRST} Encore. Fin.`)
+  })
+
+  test('font menu reports mixed selections and preserves the selection when cancelled', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, twoParagraphs())
+    await selectIn(page, FIRST, 7, 13)
+    await chooseFont(page, 'Lora')
+    await firstBlock(page).click()
+    await firstBlock(page).evaluate((node) => {
+      const range = document.createRange()
+      range.selectNodeContents(node)
+      const selection = window.getSelection()
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+    })
+    await selectionRead(page)
+    await expect(fontMenu(page)).toHaveAccessibleName('Font (Multiple fonts)')
+    await fontMenu(page).click()
+    await expect(page.getByRole('menuitemradio', { name: 'Default', exact: true })).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(fontMenu(page)).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.getByRole('menu', { name: /^Font \(/ })).toBeHidden()
+    await expect.poll(async () => (await selection(page)).writing).toBe(true)
+    expect((await selection(page)).text).toBe(FIRST)
+    await expect(fontText(page)).toHaveText('chante')
+  })
+
   test('bold from the button: the selection stays, in the text, and is saved', async ({
     page,
     account,
@@ -380,11 +537,11 @@ test.describe('Style toolbar', () => {
   test('a placeholder is greyed out, says so, and does nothing', async ({ page, account }) => {
     await openDocument(page, account, twoParagraphs())
     await caretAtEndOf(page, FIRST)
-    const font = tool(page, 'Font')
+    const font = tool(page, 'Font size')
     await expect(font).toHaveAttribute('aria-disabled', 'true')
     await expect(font).toHaveAccessibleDescription('Coming soon')
     await font.hover()
-    await expect(font.getByText('Font (Coming soon)')).toBeVisible()
+    await expect(font.getByText('Font size (Coming soon)')).toBeVisible()
     await font.focus()
     await page.keyboard.press('Enter')
     await page.keyboard.press('Space')

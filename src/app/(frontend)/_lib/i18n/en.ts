@@ -227,6 +227,11 @@ export const en = {
       indent: 'Increase indent',
       clearFormatting: 'Clear formatting',
     },
+    fonts: {
+      default: 'Default',
+      mixed: 'Multiple fonts',
+      unknown: 'Other font',
+    },
     blockTypes: {
       label: 'Paragraph style',
       paragraph: 'Normal text',

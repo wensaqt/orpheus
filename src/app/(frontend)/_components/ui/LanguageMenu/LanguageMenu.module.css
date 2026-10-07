@@ -1,5 +1,4 @@
 .trigger {
-  composes: trigger from '../CornerActions/trigger.module.css';
   font: inherit;
   font-size: var(--text-base);
   line-height: 1;

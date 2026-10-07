@@ -45,7 +45,12 @@ export function SynonymsPanel({ onHide }: { onHide: () => void }) {
         <h2 id={titleId} className={styles.title}>
           {t('synonyms.title')}
         </h2>
-        <IconButton label={t('synonyms.hide')} icon={<ChevronIcon />} onClick={onHide} />
+        <IconButton
+          label={t('synonyms.hide')}
+          tooltipAlign="end"
+          icon={<ChevronIcon />}
+          onClick={onHide}
+        />
       </div>
 
       <input

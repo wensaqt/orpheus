@@ -10,8 +10,10 @@ import type { MenuItem } from '@front/_components/ui/Menu/types'
 import { setLocale } from '@front/_features/i18n/actions'
 import { type Locale, LOCALE_FLAGS, LOCALE_NAMES, LOCALES } from '@front/_lib/i18n'
 import { editorPath } from '@front/_lib/routes'
+import { classNames } from '@front/_lib/classNames'
 
 import styles from './LanguageMenu.module.css'
+import triggerStyles from '../CornerActions/trigger.module.css'
 
 // The current language's flag; the menu lists every language, named in itself
 export function LanguageMenu() {
@@ -48,7 +50,11 @@ export function LanguageMenu() {
   }))
 
   return (
-    <Menu label={t('language.menu')} items={items} triggerClassName={styles.trigger}>
+    <Menu
+      label={t('language.menu')}
+      items={items}
+      triggerClassName={classNames(triggerStyles.trigger, styles.trigger)}
+    >
       <span aria-hidden="true">{LOCALE_FLAGS[locale]}</span>
     </Menu>
   )

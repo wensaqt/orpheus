@@ -21,6 +21,7 @@ import {
   TEXT_FORMAT_SHORTCUTS,
 } from './toolbarLabels'
 import { ToolButton } from './ToolButton'
+import { FontMenu } from './FontMenu'
 import type { ToolbarState } from './useToolbarState'
 
 const LISTS = [
@@ -122,8 +123,8 @@ export function StyleToolbar({ state }: { state: ToolbarState }) {
       <SoonButton label="editor.actions.zoom" icon="zoom" />
       <Divider />
       <BlockTypeMenu blockType={off ? null : state.blockType} />
-      <Divider soon />
-      <SoonButton label="editor.actions.font" icon="font" />
+      <Divider />
+      <FontMenu font={off ? null : state.font} />
       <SoonButton label="editor.actions.fontSize" icon="fontSize" />
       <Divider />
       {TEXT_FORMATS.map((format) => (

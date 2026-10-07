@@ -12,6 +12,7 @@ import { useT } from '@front/_components/i18n/I18nProvider'
 import { AUTH_PAGES, ROUTES } from '@front/_lib/routes'
 
 import styles from './AccountMenu.module.css'
+import triggerStyles from '../CornerActions/trigger.module.css'
 
 // A head and shoulders, drawn with the stroke of the lyre
 function ProfileIcon() {
@@ -40,7 +41,7 @@ export function AccountMenu({ email }: AccountMenuProps) {
     return (
       <Link
         href={ROUTES.login(pathname)}
-        className={styles.trigger}
+        className={triggerStyles.trigger}
         aria-label={label}
         title={label}
       >
@@ -72,7 +73,7 @@ export function AccountMenu({ email }: AccountMenuProps) {
         </>
       }
       items={items}
-      triggerClassName={styles.trigger}
+      triggerClassName={triggerStyles.trigger}
     >
       <ProfileIcon />
     </Menu>

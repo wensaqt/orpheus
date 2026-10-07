@@ -19,9 +19,11 @@ import {
   $blockTypeOf,
   $insertPageBreak,
   $setBlockType,
+  $setSelectionFont,
   $textSelection,
   toElementFormat,
 } from '@front/_components/editor/formatting'
+import type { FontChoice } from '@front/_components/editor/fonts'
 import {
   type Alignment,
   BlockType,
@@ -65,6 +67,15 @@ function onText(
   )
 }
 
+// Wait for fonts, then give the pagination's frame scheduler time to measure the text.
+async function printDocument() {
+  await document.fonts.ready
+  await new Promise<void>((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  )
+  window.print()
+}
+
 export type ToolbarActions = ReturnType<typeof useToolbarActions>
 
 // The actions, on the open document's editor (none when no document is open)
@@ -82,11 +93,15 @@ export function useToolbarActions() {
       void history.redo().then(() => keepFocusOn?.focus())
     },
     selectAll: () => run((editor) => editor.update(() => void $selectAll())),
-    print: () => window.print(),
+    print: () => void printDocument(),
     pageBreak: () => run((editor) => onText(editor, undefined, $insertPageBreak)),
     formatText: (format: TextFormat, keepFocusOn?: HTMLElement) =>
       run((editor) =>
         onText(editor, keepFocusOn, () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, format)),
+      ),
+    font: (font: FontChoice, keepFocusOn?: HTMLElement) =>
+      run((editor) =>
+        onText(editor, keepFocusOn, (selection) => $setSelectionFont(selection, font)),
       ),
     align: (align: Alignment, keepFocusOn?: HTMLElement) =>
       run((editor) =>

@@ -8,6 +8,7 @@ import type { Layout } from '@/lib/layout'
 import type { Id } from '@/lib/ids'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
+import { classNames } from '@front/_lib/classNames'
 import { IconButton } from '@front/_components/ui/IconButton/IconButton'
 import type { BinderEntry } from '@front/_features/binder/types'
 import { toGeometry } from '@front/_components/editor/pagination/pageGeometry'
@@ -28,6 +29,7 @@ import { EditorViewProvider, useEditorView } from './editorView'
 import { SynonymsPanel } from './SynonymsPanel'
 
 type EditorShellProps = {
+  fontClassName: string
   compositionId: Id
   title: string
   layout: Layout
@@ -46,6 +48,7 @@ type EditorShellProps = {
  * synonyms the right one.
  */
 export function EditorShell({
+  fontClassName,
   compositionId,
   title,
   layout,
@@ -67,7 +70,7 @@ export function EditorShell({
           <OpenEditorContext value={{ editor: openEditor, setEditor: setOpenEditor }}>
             <EditorViewProvider rulerHidden={rulerHidden} synonymsHidden={synonymsHidden}>
               <DocumentTitleSlot value={documentTitleSlot}>
-                <HistoryScreen>
+                <HistoryScreen fontClassName={fontClassName}>
                   <EditorHeader title={title} documentTitleRef={setDocumentTitleSlot} />
                   <Desk binderHidden={binderHidden}>{children}</Desk>
                 </HistoryScreen>
@@ -139,6 +142,7 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
           <IconButton
             ref={showSynonyms}
             label={t('synonyms.show')}
+            tooltipAlign="end"
             icon={<SynonymsIcon />}
             className={styles.show}
             onClick={view.showSynonyms}
@@ -153,10 +157,16 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   )
 }
 
-function HistoryScreen({ children }: { children: ReactNode }) {
+function HistoryScreen({
+  children,
+  fontClassName,
+}: Pick<EditorShellProps, 'children' | 'fontClassName'>) {
   const history = useEditorHistory()
   return (
-    <div className={styles.screen} onKeyDownCapture={(event) => historyShortcut(history, event)}>
+    <div
+      className={classNames(styles.screen, fontClassName)}
+      onKeyDownCapture={(event) => historyShortcut(history, event)}
+    >
       {children}
     </div>
   )

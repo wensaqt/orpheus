@@ -11,8 +11,11 @@ import {
   useState,
 } from 'react'
 
+import { classNames } from '@front/_lib/classNames'
+
 import { focusStayedIn } from '../focus'
 import { placeBelow } from '../placeBelow'
+import surfaceStyles from '../popoverSurface.module.css'
 import styles from './Popover.module.css'
 
 // Opens the panel from elsewhere (a menu's item), its first control focused
@@ -110,7 +113,7 @@ export function Popover({
         popover="auto"
         role="dialog"
         aria-label={label}
-        className={styles.panel}
+        className={classNames(surfaceStyles.surface, styles.panel)}
         onBeforeToggle={handleBeforeToggle}
         onToggle={handleToggle}
       >

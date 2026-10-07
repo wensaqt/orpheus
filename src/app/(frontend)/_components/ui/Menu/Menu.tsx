@@ -10,8 +10,11 @@ import React, {
   useState,
 } from 'react'
 
+import { classNames } from '@front/_lib/classNames'
+
 import { focusStayedIn } from '../focus'
 import { placeBelow } from '../placeBelow'
+import surfaceStyles from '../popoverSurface.module.css'
 import { rovingIndex } from '../rovingFocus'
 import { ariaShortcut, shortcutLabel, useIsApple } from '../shortcuts'
 import { MENU_SEPARATOR } from './constants'
@@ -201,7 +204,7 @@ export function Menu({
         role="menu"
         aria-label={label}
         aria-describedby={header ? `${id}-header` : undefined}
-        className={styles.menu}
+        className={classNames(surfaceStyles.surface, styles.menu)}
         onBeforeToggle={handleBeforeToggle}
         onToggle={handleToggle}
         onKeyDown={handleKeyDown}

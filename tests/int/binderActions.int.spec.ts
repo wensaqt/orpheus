@@ -203,4 +203,40 @@ describe('binder actions', () => {
     expect(result.status).toBe('done')
     if (result.status === 'done') expect(typeof result.data.updatedAt).toBe('string')
   })
+
+  it('preserves text font styles in storage and removes them when saving inherited text', async () => {
+    const composition = await newComposition(alice)
+    const [document] = await itemsOf(composition)
+    const children = [
+      { type: 'text', version: 1, text: 'Orphée ', style: '', format: 0 },
+      {
+        type: 'text',
+        version: 1,
+        text: 'chante',
+        style: 'font-family:var(--font-document-lora);',
+        format: 1,
+      },
+    ]
+    const content = {
+      root: { type: 'root' as const, children: [{ type: 'paragraph', version: 1, children }] },
+    }
+    expect((await actions.saveDocument(document.id, content)).status).toBe('done')
+    const saved = await payload.findByID({ collection: 'binder-items', id: document.id, depth: 0 })
+    expect(saved.content).toEqual(content)
+    const inherited = {
+      root: {
+        type: 'root' as const,
+        children: [
+          {
+            type: 'paragraph',
+            version: 1,
+            children: children.map((node) => ({ ...node, style: '' })),
+          },
+        ],
+      },
+    }
+    expect((await actions.saveDocument(document.id, inherited)).status).toBe('done')
+    const reset = await payload.findByID({ collection: 'binder-items', id: document.id, depth: 0 })
+    expect(reset.content).toEqual(inherited)
+  })
 })
