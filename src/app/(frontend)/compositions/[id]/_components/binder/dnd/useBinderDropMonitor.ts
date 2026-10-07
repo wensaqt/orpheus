@@ -6,7 +6,7 @@ import { type RefObject, useEffect, useEffectEvent } from 'react'
 
 import type { Id } from '@/lib/ids'
 
-import type { DropOperation } from '../rows'
+import type { DropOperation } from '../types'
 import { isBinderDrag, isBinderDrop } from './dragData'
 
 /*

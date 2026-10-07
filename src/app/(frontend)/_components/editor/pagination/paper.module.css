@@ -1,0 +1,18 @@
+/*
+ * The look of a sheet of paper resting on the desk: each page's sheet, and the blank page that
+ * stands in while a document loads. Printed, a sheet is the paper itself
+ */
+.paper {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-sheet);
+  box-shadow: var(--shadow-sheet);
+}
+
+@media print {
+  .paper {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}

@@ -6,6 +6,7 @@ import { OpeningDesk } from '@front/_components/editor/OpeningDesk'
 import { preloadEditor } from '@front/_components/editor/preloadEditor'
 
 import { LyreButton } from './LyreButton/LyreButton'
+import { LyreSide } from './LyreButton/types'
 
 type NewCompositionButtonProps = {
   text: string
@@ -24,7 +25,7 @@ export function NewCompositionButton({ text, subtitle, className }: NewCompositi
       <LyreButton
         type="submit"
         className={className}
-        side="left"
+        side={LyreSide.Left}
         text={text}
         subtitle={subtitle}
         disabled={pending}

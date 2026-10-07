@@ -2,16 +2,9 @@ import { useSyncExternalStore } from 'react'
 
 import type { Id } from '@/lib/ids'
 
-import { ROUTES } from '@front/_lib/routes'
-
-import {
-  type CachedDocument,
-  type DocumentSlot,
-  type DocumentText,
-  isFresh,
-  withSlot,
-} from './documentCache'
-import type { EditorDocument } from './types'
+import { isFresh, withSlot } from './documentCache'
+import { fetchDocument } from './fetchDocument'
+import type { CachedDocument, DocumentSlot, DocumentText } from './types'
 
 /*
  * The text of the documents this tab has seen, so that switching documents needs no server
@@ -101,23 +94,6 @@ export function loadDocument(compositionId: Id, id: Id): Promise<void> {
 }
 
 export const prefetchDocument = (compositionId: Id, id: Id) => void loadDocument(compositionId, id)
-
-// The document, or null when the server says it is not there (or not the user's)
-async function fetchDocument(compositionId: Id, id: Id): Promise<EditorDocument | null> {
-  const response = await fetch(ROUTES.documentContent(compositionId, id), {
-    cache: 'no-store',
-    // Without a session, the proxy redirects to the login page: seen here, not followed
-    redirect: 'manual',
-  })
-  if (response.type === 'opaqueredirect' || response.status === 401) {
-    // The session is gone: nothing can load until the writer signs in again
-    window.location.assign(ROUTES.login(window.location.pathname))
-    return new Promise<never>(() => {})
-  }
-  if (response.status === 404) return null
-  if (!response.ok) throw new Error(`Document ${id}: HTTP ${response.status}`)
-  return response.json()
-}
 
 export function forgetDocuments(ids: Iterable<Id>) {
   const next = new Map(slots)

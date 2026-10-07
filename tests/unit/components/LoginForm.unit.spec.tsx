@@ -1,6 +1,8 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { formOf } from '../../helpers/dom'
+
 const logIn = vi.fn()
 vi.mock('@front/_features/auth/actions', () => ({ logIn }))
 
@@ -10,7 +12,7 @@ async function submit(email: string, password: string) {
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
   await act(async () => {
-    fireEvent.submit(screen.getByRole('button', { name: 'Sign in' }).closest('form')!)
+    fireEvent.submit(formOf(screen.getByRole('button', { name: 'Sign in' })))
   })
 }
 
@@ -38,9 +40,9 @@ describe('LoginForm', () => {
     await submit('orphee@example.test', 'wrong')
     const alert = screen.getByRole('alert')
     expect(alert.textContent).toBe('Incorrect email or password.')
-    const email = screen.getByLabelText('Email') as HTMLInputElement
+    const email = screen.getByLabelText('Email')
     expect(email.getAttribute('aria-invalid')).toBe('true')
     expect(email.getAttribute('aria-describedby')).toBe(alert.id)
-    expect(email.value).toBe('orphee@example.test')
+    expect(email).toHaveProperty('value', 'orphee@example.test')
   })
 })

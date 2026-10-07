@@ -12,7 +12,7 @@ import {
   useState,
 } from 'react'
 
-import type { Id } from '@/lib/ids'
+import { type Id, isIdList } from '@/lib/ids'
 
 import { loadBinderEntries } from '@front/_features/binder/actions'
 import type { BinderEntry } from '@front/_features/binder/types'
@@ -20,6 +20,9 @@ import type { SaveControls } from '@front/_hooks/useAutosave'
 import { useStoredState } from '@front/_hooks/useStoredState'
 import { STORAGE_KEYS } from '@front/_lib/preferences'
 
+import { useT } from '@front/_components/i18n/I18nProvider'
+import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
+import { useEditorHistory } from '../../history/HistoryProvider'
 import { applyBinderOp, type BinderOp } from './binderOps'
 import { type BinderCommands, useBinderCommands } from './useBinderCommands'
 import { useOpenDocument } from './useOpenDocument'
@@ -58,6 +61,9 @@ export function BinderProvider({
   entries: serverEntries,
   children,
 }: BinderProviderProps) {
+  const history = useEditorHistory()
+  const t = useT()
+  const toast = useToast()
   const [saved, setSaved] = useState(serverEntries)
   const [entries, showOp] = useOptimistic(saved, applyBinderOp)
   // Set by the first local change: from then on, this tab's binder is the newer one
@@ -79,9 +85,10 @@ export function BinderProvider({
       .catch(() => {})
   }, [compositionId])
 
-  const [collapsedIds, setCollapsedIds] = useStoredState<Id[]>(
+  const [collapsedIds, setCollapsedIds] = useStoredState(
     STORAGE_KEYS.collapsedFolders(compositionId),
     [],
+    isIdList,
   )
   const collapsed = useMemo(() => new Set(collapsedIds), [collapsedIds])
   const setFolderOpen = useCallback(
@@ -98,7 +105,15 @@ export function BinderProvider({
 
   const [renamingId, setRenamingId] = useState<Id | null>(null)
   const { register, flushAll, cancelDocuments } = useSaveRegistry()
-  const activeDocumentId = useOpenDocument(compositionId, flushAll)
+  const { activeDocumentId, navigate } = useOpenDocument(compositionId, flushAll)
+
+  useEffect(() => {
+    history.configure({
+      prepare: flushAll,
+      openDocument: (id) => navigate(id),
+      reportError: () => toast.error(t('editor.historyError')),
+    })
+  }, [history, flushAll, navigate, t, toast])
 
   const commands = useBinderCommands({
     compositionId,
@@ -106,7 +121,7 @@ export function BinderProvider({
     activeDocumentId,
     apply,
     showOp,
-    flushAll,
+    navigate,
     cancelDocuments,
     startRename: setRenamingId,
   })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { type KeyboardEvent, useRef, useState } from 'react'
 
 import { MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
 
@@ -28,6 +28,11 @@ export function RenameField({ title, onDone }: RenameFieldProps) {
     onDone(trimmed && trimmed !== title ? trimmed : null)
   }
 
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') finish(value)
+    if (event.key === 'Escape') finish(null)
+  }
+
   return (
     <input
       className={styles.rename}
@@ -37,10 +42,7 @@ export function RenameField({ title, onDone }: RenameFieldProps) {
       autoFocus
       onFocus={(e) => e.currentTarget.select()}
       onChange={(e) => setValue(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') finish(value)
-        if (e.key === 'Escape') finish(null)
-      }}
+      onKeyDown={handleKeyDown}
       onBlur={() => finish(value)}
     />
   )

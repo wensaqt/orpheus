@@ -23,16 +23,8 @@
   visibility: hidden;
 }
 
-/* The look of a sheet of paper resting on the desk (also the blank page's, see BlankPage) */
-.paper {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-sheet);
-  box-shadow: var(--shadow-sheet);
-}
-
+/* Drawn with the paper look (paper.module.css) */
 .sheet {
-  composes: paper;
   position: absolute;
   inset-inline: 0;
   top: calc(var(--index) * (var(--page-h) + var(--page-gap)));
@@ -87,11 +79,5 @@
 @media print {
   .paged {
     --page-gap: 0px;
-  }
-
-  .sheet {
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
   }
 }

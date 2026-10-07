@@ -1,3 +1,4 @@
+import { MS_PER_SECOND } from './time'
 import type { Locale } from './i18n'
 
 const MINUTE = 60
@@ -21,7 +22,7 @@ function createFormatters(locale: Locale) {
     // Relative while recent ("now", "2 hours ago", "yesterday"), then the date
     formatRelative(value: Date | string, now: Date = new Date()) {
       const target = new Date(value)
-      const seconds = (target.getTime() - now.getTime()) / 1000
+      const seconds = (target.getTime() - now.getTime()) / MS_PER_SECOND
       const elapsed = Math.abs(seconds)
 
       if (elapsed < MINUTE) return relative.format(0, 'second')

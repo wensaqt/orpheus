@@ -1,3 +1,4 @@
+import { clamp } from '../numbers'
 /*
  * Pure functions on a binder's flat list of items (as stored: each item points to its parent).
  * The whole binder of a composition is loaded at once, so they work in memory.
@@ -64,7 +65,9 @@ export function inReadingOrder<Item extends BinderNodeData>(items: Item[]): Item
   const ordered: Item[] = []
   const visit = (nodes: BinderTreeNode<Item>[]) => {
     for (const node of nodes) {
-      ordered.push(byId.get(node.id)!)
+      // The item itself, without the children the tree gave it
+      const item = byId.get(node.id)
+      if (item) ordered.push(item)
       visit(node.children)
     }
   }
@@ -81,18 +84,19 @@ export function descendantIds(items: BinderNodeData[], id: Id): Id[] {
   const childrenOf = new Map<Id, Id[]>()
   for (const item of items) {
     if (item.parent === null) continue
-    childrenOf.set(item.parent, [...(childrenOf.get(item.parent) ?? []), item.id])
+    const children = childrenOf.get(item.parent) ?? []
+    children.push(item.id)
+    childrenOf.set(item.parent, children)
   }
-  const found: Id[] = []
+  const found = new Set<Id>()
   const stack = [...(childrenOf.get(id) ?? [])]
-  while (stack.length) {
-    const next = stack.pop()!
+  for (let next = stack.pop(); next !== undefined; next = stack.pop()) {
     // Guards against a cycle in corrupted data
-    if (found.includes(next) || next === id) continue
-    found.push(next)
+    if (found.has(next) || next === id) continue
+    found.add(next)
     stack.push(...(childrenOf.get(next) ?? []))
   }
-  return found
+  return [...found]
 }
 
 // Whether moving the item under this parent would put it inside itself
@@ -131,7 +135,7 @@ export function planMove(
   }
 
   const destination = siblingsOf(items, parent, id)
-  const at = Math.min(Math.max(index, 0), destination.length)
+  const at = clamp(index, 0, destination.length)
   destination.splice(at, 0, item)
 
   const placements = destination.map((node, position) => ({ id: node.id, parent, position }))
@@ -142,7 +146,7 @@ export function planMove(
   }
   const before = new Map(items.map((node) => [node.id, node]))
   return placements.filter(({ id: placed, parent: to, position }) => {
-    const was = before.get(placed)!
-    return was.parent !== to || was.position !== position
+    const was = before.get(placed)
+    return was?.parent !== to || was.position !== position
   })
 }

@@ -26,8 +26,8 @@
   background-color: var(--color-sheet);
   box-shadow: var(--shadow-sheet);
   transition:
-    translate 0.3s,
-    border-color 0.3s;
+    translate var(--duration-medium),
+    border-color var(--duration-medium);
 }
 
 /* Tiny text preview that fades out toward the bottom of the sheet */
@@ -64,7 +64,7 @@
   font-size: var(--text-lg);
   font-weight: 300;
   color: var(--color-primary);
-  transition: color 0.3s;
+  transition: color var(--duration-medium);
 }
 
 /* Rule drawn under the title, as on the home page */
@@ -72,11 +72,11 @@
   content: '';
   position: absolute;
   inset: auto 0 0;
-  height: 1.5px;
+  height: var(--rule-thickness);
   background-color: var(--color-divider);
   scale: 0 1;
   transform-origin: left;
-  transition: scale 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: scale var(--duration-slower) var(--ease-out);
 }
 
 .link:is(:hover, :focus-visible) .title {

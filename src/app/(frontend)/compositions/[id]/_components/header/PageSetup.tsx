@@ -1,6 +1,14 @@
 'use client'
 
-import { type Ref, type RefObject, useId, useState } from 'react'
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  type Ref,
+  type RefObject,
+  useId,
+  useRef,
+  useState,
+} from 'react'
 
 import { fitLayout } from '@/lib/layout'
 import {
@@ -16,6 +24,7 @@ import {
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { Popover, type PopoverHandle } from '@front/_components/ui/Popover/Popover'
 
+import { useHistoryState } from '../history/HistoryProvider'
 import { useLayout } from '../page/LayoutProvider'
 import styles from './PageSetup.module.css'
 
@@ -41,8 +50,8 @@ export function PageSetup({ ref, anchor, onClose }: PageSetupProps) {
   const { layout, change } = useLayout()
   const { page } = layout
   // The page changed, then everything fitted to it (margins, then the indent)
-  const changePage = (update: (page: PageSettings) => PageSettings) =>
-    change((current) => fitLayout({ ...current, page: update(current.page) }))
+  const changePage = (update: (page: PageSettings) => PageSettings, group?: object) =>
+    change((current) => fitLayout({ ...current, page: update(current.page) }), group)
 
   return (
     <Popover ref={ref} anchor={anchor} label={t('editor.pageSetup.open')} onCloseInPlace={onClose}>
@@ -89,7 +98,9 @@ export function PageSetup({ ref, anchor, onClose }: PageSetupProps) {
                 unit={t('editor.pageSetup.unit')}
                 value={page.margins[side]}
                 max={maxMargin(page, side)}
-                onValue={(value) => changePage((current) => withMargin(current, side, value))}
+                onValue={(value, group) =>
+                  changePage((current) => withMargin(current, side, value), group)
+                }
               />
             ))}
           </div>
@@ -115,26 +126,40 @@ function MarginField({
   unit: string
   value: number
   max: number
-  onValue: (value: number) => void
+  onValue: (value: number, group: object) => void
 }) {
-  const [draft, setDraft] = useState<string | null>(null)
+  const { generation } = useHistoryState()
+  const group = useRef<object>({})
+  const [draft, setDraft] = useState<{ value: string; generation: number } | null>(null)
+  const showValue = () => {
+    setDraft(null)
+    group.current = {}
+  }
+
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    setDraft({ value: event.target.value, generation })
+    const typed = event.target.valueAsNumber
+    if (!Number.isNaN(typed)) onValue(typed, group.current)
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') showValue()
+  }
+
   return (
     <label className={styles.field}>
       {label}
       <span className={styles.number}>
         <input
           type="number"
+          data-layout-history=""
           min={0}
           max={max}
           step={MARGIN_STEP}
-          value={draft ?? value}
-          onChange={(event) => {
-            setDraft(event.target.value)
-            const typed = event.target.valueAsNumber
-            if (!Number.isNaN(typed)) onValue(typed)
-          }}
-          onBlur={() => setDraft(null)}
-          onKeyDown={(event) => event.key === 'Enter' && setDraft(null)}
+          value={draft?.generation === generation ? draft.value : value}
+          onChange={handleChange}
+          onBlur={showValue}
+          onKeyDown={handleKeyDown}
         />
         {unit}
       </span>

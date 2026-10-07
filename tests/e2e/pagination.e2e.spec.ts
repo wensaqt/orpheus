@@ -1,11 +1,10 @@
-import {
-  PAGE_BREAK_ATTRIBUTE,
-  PAGE_BREAK_TYPE,
-} from '@front/_components/editor/nodes/PageBreakNode'
+import type { RequiredDataFromCollectionSlug } from 'payload'
+
+import { PAGE_BREAK_ATTRIBUTE, PAGE_BREAK_TYPE } from '@front/_components/editor/constants'
 import { toGeometry } from '@front/_components/editor/pagination/pageGeometry'
 
 import { documentOf, pageBreakNode, paragraphNode, prose } from '../helpers/lexicalContent'
-import { expect, test } from './fixtures'
+import { boxOf, expect, test, textOf } from './fixtures'
 import {
   A4,
   caretTop,
@@ -29,7 +28,7 @@ test.describe('Pagination', () => {
     await openDocument(page, account, documentOf([paragraphNode('')]))
     const layout = await readLayout(page)
     expect([layout.pages, layout.sheets]).toEqual([1, 1])
-    const sheet = (await page.locator(sheetSelector).first().boundingBox())!
+    const sheet = await boxOf(page.locator(sheetSelector).first())
     expect(sheet.width).toBeCloseTo(A4.width, 0)
     expect(sheet.height).toBeCloseTo(A4.height, 0)
   })
@@ -57,6 +56,7 @@ test.describe('Pagination', () => {
     await page.locator(editable).click()
     await page.keyboard.press(END_OF_TEXT)
     await selectionRead(page)
+    const paragraphsBefore = await page.locator(`${editable} p`).count()
     for (let line = 0; line < 30; line++) await page.keyboard.press('Enter')
     // Every new empty line is already on a page, the caret with it
     await settle(page)
@@ -67,11 +67,12 @@ test.describe('Pagination', () => {
     expect(after.pages).toBe(2)
     expect(after.outside).toEqual([])
     // Typed at the end of the text, so on the new page
-    const sheet2 = (await page.locator(sheetSelector).nth(1).boundingBox())!
-    const line = (await page.getByText('Sur la page suivante.').boundingBox())!
+    const sheet2 = await boxOf(page.locator(sheetSelector).nth(1))
+    const line = await boxOf(page.getByText('Sur la page suivante.'))
     expect(line.y).toBeGreaterThan(sheet2.y)
 
     for (let step = 0; step < 40; step++) await page.keyboard.press('ControlOrMeta+z')
+    await expect(page.locator(`${editable} p`)).toHaveCount(paragraphsBefore, { timeout: 15_000 })
     await settle(page)
     expect((await readLayout(page)).pages).toBe(1)
   })
@@ -96,7 +97,7 @@ test.describe('Pagination', () => {
     await page.keyboard.down('Shift')
     for (let line = 0; line < 4; line++) await page.keyboard.press('ArrowDown')
     await page.keyboard.up('Shift')
-    const selected = await page.evaluate(() => window.getSelection()!.toString())
+    const selected = await page.evaluate(() => window.getSelection()?.toString() ?? '')
     expect(selected.length).toBeGreaterThan(80)
   })
 
@@ -105,7 +106,7 @@ test.describe('Pagination', () => {
     account,
   }) => {
     await openDocument(page, account, prose(30))
-    const textBefore = await page.locator(editable).textContent()
+    const textBefore = await textOf(page.locator(editable))
     const pagesBefore = (await readLayout(page)).pages
     const last = await lastLineOf(page, 1)
     await page.mouse.click(last.x, last.y)
@@ -117,11 +118,12 @@ test.describe('Pagination', () => {
     await settle(page)
     const afterDelete = await readLayout(page)
     expect(afterDelete.outside).toEqual([])
-    expect((await page.locator(editable).textContent())!.length).toBeLessThan(textBefore!.length)
+    expect((await textOf(page.locator(editable))).length).toBeLessThan(textBefore.length)
 
     await page.keyboard.press('ControlOrMeta+z')
+    await expect.poll(() => textOf(page.locator(editable))).toBe(textBefore)
     await settle(page)
-    expect(await page.locator(editable).textContent()).toBe(textBefore)
+    expect(await textOf(page.locator(editable))).toBe(textBefore)
     expect((await readLayout(page)).pages).toBe(pagesBefore)
   })
 
@@ -158,14 +160,14 @@ test.describe('Pagination', () => {
     const last = await lastLineOf(page, 1)
     // Between the bottom of page 1 and the top of page 2
     await page.mouse.click(last.x, last.pageBottom + 8)
-    const length = (await page.locator(editable).textContent())!.length
+    const length = (await textOf(page.locator(editable))).length
     await page.keyboard.insertText('x')
-    expect((await page.locator(editable).textContent())!.length).toBe(length + 1)
+    expect((await textOf(page.locator(editable))).length).toBe(length + 1)
   })
 
   test('a click below the last line puts the caret in the text', async ({ page, account }) => {
     await openDocument(page, account, documentOf([paragraphNode('Une seule ligne.')]))
-    const sheet = (await page.locator(sheetSelector).first().boundingBox())!
+    const sheet = await boxOf(page.locator(sheetSelector).first())
     // Well below the text, still in the page's text area
     await page.mouse.click(sheet.x + sheet.width / 2, sheet.y + sheet.height / 2)
     await page.keyboard.insertText('!')
@@ -181,9 +183,10 @@ test.describe('Pagination', () => {
       account,
       documentOf([paragraphNode('Avant le saut.'), pageBreakNode(), paragraphNode('Après.')]),
     )
-    const pageBreak = (await page.locator(`[${PAGE_BREAK_ATTRIBUTE}]`).boundingBox())!
+    const pageBreak = await boxOf(page.locator(`[${PAGE_BREAK_ATTRIBUTE}]`))
     // In the middle of the part on screen: it runs to the page's end, below the window
-    const bottom = Math.min(pageBreak.y + pageBreak.height, page.viewportSize()!.height)
+    const { height } = page.viewportSize() ?? { height: Number.POSITIVE_INFINITY }
+    const bottom = Math.min(pageBreak.y + pageBreak.height, height)
     await page.mouse.click(pageBreak.x + pageBreak.width / 2, (pageBreak.y + bottom) / 2)
     await page.keyboard.insertText('!')
     await expect(page.getByText('Avant le saut.!')).toBeVisible()
@@ -202,8 +205,8 @@ test.describe('Pagination', () => {
     expect(layout.pages).toBe(2)
     expect(layout.outside).toEqual([])
     // The text after the break is the first line of page 2
-    const sheet2 = (await page.locator(sheetSelector).nth(1).boundingBox())!
-    const line = (await page.getByText('Une nouvelle page.').boundingBox())!
+    const sheet2 = await boxOf(page.locator(sheetSelector).nth(1))
+    const line = await boxOf(page.getByText('Une nouvelle page.'))
     expect(line.y - sheet2.y).toBeGreaterThan(A4.top - 2)
     expect(line.y - sheet2.y).toBeLessThan(A4.top + 40)
 
@@ -222,7 +225,7 @@ test.describe('Pagination', () => {
   test('the composition’s format and margins shape the pages', async ({ page, account }) => {
     const margins = { top: 15, right: 15, bottom: 15, left: 15 }
     await openDocument(page, account, prose(30), { format: 'A5', margins })
-    const sheet = (await page.locator(sheetSelector).first().boundingBox())!
+    const sheet = await boxOf(page.locator(sheetSelector).first())
     const a5 = toGeometry({ format: 'A5', orientation: 'portrait', margins })
     expect(sheet.width).toBeCloseTo(a5.width, 0)
     expect(sheet.height).toBeCloseTo(a5.height, 0)
@@ -250,7 +253,8 @@ test.describe('Pagination', () => {
         kind: 'document',
         title: 'Second',
         content: prose(30, 3),
-      } as never,
+        // Owner and position are filled in by the collection, which the types cannot know
+      } as RequiredDataFromCollectionSlug<'binder-items'>,
       user: account.user,
       overrideAccess: false,
     })
@@ -309,6 +313,8 @@ test.describe('Pagination', () => {
     await expect(page.locator(editable)).toContainText('Après le saut.')
 
     await page.keyboard.press('ControlOrMeta+z')
+    await expect(page.locator(`[${PAGE_BREAK_ATTRIBUTE}]`)).toHaveCount(1)
+    await expect(page.locator(editable)).toBeVisible()
     await settle(page)
     expect((await readLayout(page)).pages).toBe(2)
     expect(await sheetOf(page, 'Après le saut.')).toBe(2)
@@ -335,7 +341,7 @@ test.describe('Pagination', () => {
 
   test('landscape pages are the format turned', async ({ page, account }) => {
     await openDocument(page, account, prose(30), { orientation: 'landscape' })
-    const sheet = (await page.locator(sheetSelector).first().boundingBox())!
+    const sheet = await boxOf(page.locator(sheetSelector).first())
     expect(sheet.width).toBeCloseTo(A4.height, 0)
     expect(sheet.height).toBeCloseTo(A4.width, 0)
     const layout = await readLayout(page)

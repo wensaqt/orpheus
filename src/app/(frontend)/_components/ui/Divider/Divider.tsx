@@ -1,4 +1,4 @@
-import React from 'react'
+import { classNames } from '@front/_lib/classNames'
 
 import styles from './Divider.module.css'
 
@@ -11,7 +11,7 @@ type DividerProps = {
 export function Divider({ orientation = 'vertical', className }: DividerProps) {
   return (
     <span
-      className={[styles.divider, styles[orientation], className].filter(Boolean).join(' ')}
+      className={classNames(styles.divider, styles[orientation], className)}
       aria-hidden="true"
     />
   )

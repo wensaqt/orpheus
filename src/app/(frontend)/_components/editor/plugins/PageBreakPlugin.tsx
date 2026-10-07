@@ -4,6 +4,8 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { COMMAND_PRIORITY_LOW, KEY_ENTER_COMMAND } from 'lexical'
 import { useEffect } from 'react'
 
+import { isModShortcut } from '@front/_components/ui/shortcuts'
+
 import { $insertPageBreak } from '../formatting'
 
 /*
@@ -19,7 +21,8 @@ export function PageBreakPlugin() {
       editor.registerCommand(
         KEY_ENTER_COMMAND,
         (event) => {
-          if (!event || !(event.metaKey || event.ctrlKey)) return false
+          // No event: a composition (IME input) that ended with a line break
+          if (!event || !isModShortcut(event, 'Enter')) return false
           event.preventDefault()
           // Command listeners already run inside an editor update
           $insertPageBreak()

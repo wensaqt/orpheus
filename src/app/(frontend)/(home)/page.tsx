@@ -4,6 +4,7 @@ import { getT } from '@front/_lib/server/i18n'
 import { ROUTES } from '@front/_lib/routes'
 
 import { LyreButton } from './_components/LyreButton/LyreButton'
+import { LyreSide } from './_components/LyreButton/types'
 import { NewCompositionButton } from './_components/NewCompositionButton'
 import styles from './page.module.css'
 
@@ -21,7 +22,7 @@ export default async function HomePage() {
       </form>
       <LyreButton
         className={styles.sectionButton}
-        side="right"
+        side={LyreSide.Right}
         href={ROUTES.compositions}
         text={t('home.browse.title')}
         subtitle={t('home.browse.subtitle')}

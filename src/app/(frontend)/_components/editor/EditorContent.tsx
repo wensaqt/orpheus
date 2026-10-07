@@ -18,6 +18,7 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin'
 import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 
+import type { ReactNode } from 'react'
 import styles from './EditorContent.module.css'
 import { HistoryPlugin } from './plugins/HistoryPlugin'
 import { PageBreakPlugin } from './plugins/PageBreakPlugin'
@@ -40,7 +41,13 @@ const TRANSFORMERS = [
  * The editable text with its core plugins (history, lists, markdown shortcuts). No
  * placeholder: the blank page says enough
  */
-export function EditorContent({ label }: { label: string }) {
+export function EditorContent({
+  label,
+  historyPlugin = <HistoryPlugin />,
+}: {
+  label: string
+  historyPlugin?: ReactNode
+}) {
   return (
     <>
       <div className={styles.editor}>
@@ -49,7 +56,7 @@ export function EditorContent({ label }: { label: string }) {
           ErrorBoundary={LexicalErrorBoundary}
         />
       </div>
-      <HistoryPlugin />
+      {historyPlugin}
       <ListPlugin />
       <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
       <PageBreakPlugin />

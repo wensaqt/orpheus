@@ -7,10 +7,11 @@ import { MAX_COMPOSITION_TITLE_LENGTH } from '@/lib/compositions'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { TitleInput } from '@front/_components/ui/TitleInput/TitleInput'
 import { saveComposition } from '@front/_features/compositions/actions'
+import { SaveStatus } from '@front/_hooks/types'
 import { useTitleField } from '@front/_hooks/useTitleField'
 
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
-import { SAVERS } from '../binder/state/useSaveRegistry'
+import { SAVERS } from '../binder/state/saverKeys'
 import { useOpenEditor } from '../editorFocus'
 import { useLayout } from '../page/LayoutProvider'
 import styles from './EditorHeader.module.css'
@@ -55,7 +56,7 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
         </span>
         <div ref={documentTitleRef} className={styles.documentTitle} />
         {/* Only save failures are reported; everything else happens silently */}
-        {field.status === 'error' || layoutStatus === 'error' ? (
+        {field.status === SaveStatus.Error || layoutStatus === SaveStatus.Error ? (
           <p className={styles.saveError} role="alert">
             {t('editor.saveError')}
           </p>

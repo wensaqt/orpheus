@@ -1,3 +1,5 @@
+import { isOneOf } from '@/lib/guards'
+
 // Languages of the interface; the first one is the fallback
 export const LOCALES = ['en', 'fr'] as const
 export type Locale = (typeof LOCALES)[number]
@@ -5,7 +7,6 @@ export const DEFAULT_LOCALE: Locale = 'en'
 
 // Remembers the chosen language (no account needed)
 export const LOCALE_COOKIE = 'orpheus-locale'
-export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 // Each language named in itself, as a language picker shows it
 export const LOCALE_NAMES: Record<Locale, string> = { en: 'English', fr: 'Français' }
@@ -13,8 +14,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: 'English', fr: 'Franç
 // Flag shown for each language (decorative: the name above is what is read out)
 export const LOCALE_FLAGS: Record<Locale, string> = { en: '🇬🇧', fr: '🇫🇷' }
 
-export const isLocale = (value: unknown): value is Locale =>
-  typeof value === 'string' && (LOCALES as readonly string[]).includes(value)
+export const isLocale = (value: unknown): value is Locale => isOneOf(LOCALES, value)
 
 /*
  * The language to show: the one chosen (cookie), otherwise the browser's preferred one that we

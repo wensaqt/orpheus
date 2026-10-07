@@ -98,6 +98,8 @@ export const fr: Messages = {
   },
   synonyms: {
     title: 'Synonymes',
+    hide: 'Masquer les synonymes',
+    show: 'Afficher les synonymes',
     searchLabel: 'Chercher des synonymes',
     placeholder: 'Tapez un mot…',
     hint: 'Tapez un mot pour voir ses synonymes. Cliquez sur l’un d’eux pour le copier.',
@@ -176,6 +178,7 @@ export const fr: Messages = {
     documentTitleLabel: 'Titre du document',
     textLabel: 'Texte du document',
     saveError: 'Échec de l’enregistrement — nouvel essai…',
+    historyError: 'Impossible d’annuler ou de rétablir cette modification. Réessayez.',
     toolbar: 'Barre d’outils de l’éditeur',
     menuBar: 'Barre de menus',
     alignment: 'Alignement',

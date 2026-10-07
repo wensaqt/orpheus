@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react'
 
+import { focusStayedIn } from '../focus'
 import { placeBelow } from '../placeBelow'
 import styles from './Popover.module.css'
 
@@ -61,24 +62,31 @@ export function Popover({
     () => ({
       open: () => {
         panelRef.current?.showPopover()
-        panelRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus()
+        const first = panelRef.current?.querySelector(FOCUSABLE)
+        if (first instanceof HTMLElement) first.focus()
       },
     }),
     [],
   )
 
-  function handleToggle(event: ToggleEvent<HTMLDivElement>) {
-    const isOpen = event.newState === 'open'
+  // From the live state, not the event's: toggle events come late (see Menu)
+  function handleToggle() {
+    const isOpen = panelRef.current?.matches(':popover-open') ?? false
+    if (isOpen === open) return
     setOpen(isOpen)
     if (isOpen) return
-    const active = document.activeElement
-    const inPlace =
-      active === document.body ||
-      active === triggerRef.current ||
-      // Back on what opened it (the browser returns the focus there)
-      Boolean(active && anchor?.current?.contains(active)) ||
-      Boolean(panelRef.current?.contains(active))
-    if (inPlace) onCloseInPlace?.()
+    // The anchor: back on what opened it (the browser returns the focus there)
+    if (focusStayedIn(triggerRef.current, anchor?.current, panelRef.current)) onCloseInPlace?.()
+  }
+
+  function handleBeforeToggle(event: ToggleEvent<HTMLDivElement>) {
+    if (event.newState !== 'open') return
+    placeBelow(triggerRef.current ?? anchor?.current ?? null, panelRef.current, 'start')
+  }
+
+  // Pressing it again closes the panel: the focus is in the panel then, not where it was
+  function handleTriggerPointerDown() {
+    if (!open) onTriggerPointerDown?.()
   }
 
   return (
@@ -89,8 +97,7 @@ export function Popover({
           type="button"
           className={triggerClassName}
           popoverTarget={id}
-          // Pressing it again closes the panel: the focus is in the panel then, not where it was
-          onPointerDown={() => !open && onTriggerPointerDown?.()}
+          onPointerDown={handleTriggerPointerDown}
           aria-haspopup="dialog"
           aria-expanded={open}
         >
@@ -104,10 +111,7 @@ export function Popover({
         role="dialog"
         aria-label={label}
         className={styles.panel}
-        onBeforeToggle={(event) =>
-          event.newState === 'open' &&
-          placeBelow(triggerRef.current ?? anchor?.current ?? null, panelRef.current, 'start')
-        }
+        onBeforeToggle={handleBeforeToggle}
         onToggle={handleToggle}
       >
         {children}

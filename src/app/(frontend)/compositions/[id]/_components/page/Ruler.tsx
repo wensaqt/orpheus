@@ -1,11 +1,19 @@
 'use client'
 
-import { type CSSProperties, type RefObject, useRef, useState } from 'react'
+import {
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+  type RefObject,
+  useRef,
+  useState,
+} from 'react'
 
 import { pageSize } from '@/lib/pageFormats'
 
-import { MM_TO_PX } from '@front/_components/editor/pagination/pageGeometry'
+import { MM_TO_PX } from '@front/_components/editor/pagination/constants'
 import { useLocale, useT } from '@front/_components/i18n/I18nProvider'
+import { isMainButton } from '@front/_components/ui/pointer'
 
 import { useBinder } from '../binder/state/BinderProvider'
 import { isWriting, useOpenEditor } from '../editorFocus'
@@ -15,15 +23,15 @@ import {
   handleMax,
   handlePosition,
   handleValue,
-  type RulerHandle,
   rulerLabels,
   valueAfterKey,
   valueAt,
   withHandleValue,
 } from './rulerGeometry'
+import { RulerHandle } from './types'
 
 // The indent's marker comes last, so it sits over the left margin's when they meet
-const HANDLES: RulerHandle[] = ['left', 'right', 'indent']
+const HANDLES = [RulerHandle.Left, RulerHandle.Right, RulerHandle.Indent]
 
 /*
  * The ruler over the sheet, as wide as the page and right above it (so they line up whatever
@@ -41,16 +49,17 @@ export function Ruler() {
   if (activeDocumentId === null) return null
   const { width } = pageSize(layout.page)
   const { left, right } = layout.page.margins
-  const style = {
+  const style: CSSProperties = {
     '--ruler-width': `${width}mm`,
     '--margin-left': `${left}mm`,
     '--margin-right': `${right}mm`,
     '--first-line-indent': `${layout.typography.firstLineIndent}mm`,
-  } as CSSProperties
+  }
 
   return (
     <div
       ref={ruler}
+      data-editor-ruler=""
       role="group"
       aria-label={t('editor.ruler.label')}
       className={styles.ruler}
@@ -58,7 +67,7 @@ export function Ruler() {
     >
       <div className={styles.scale} aria-hidden="true">
         {rulerLabels(width, left).map(({ at, label }) => (
-          <span key={at} className={styles.label} style={{ '--at': `${at}mm` } as CSSProperties}>
+          <span key={at} className={styles.label} style={{ '--at': `${at}mm` }}>
             {label}
           </span>
         ))}
@@ -84,6 +93,7 @@ function Handle({
   const [dragging, setDragging] = useState(false)
   // How far from the handle's mark the pointer took it: the mark does not jump to the pointer
   const grab = useRef(0)
+  const group = useRef<object | undefined>(undefined)
   const value = handleValue(handle, layout)
   const max = handleMax(handle, layout)
   const label = t(`editor.ruler.${handle}`)
@@ -92,6 +102,43 @@ function Handle({
   // Where the pointer is on the ruler, in millimetres from the page's left edge
   const pointerAt = (clientX: number) =>
     (clientX - (ruler.current?.getBoundingClientRect().left ?? 0)) / MM_TO_PX
+
+  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+    if (!isMainButton(event)) return
+    /*
+     * No text selection, and the focus stays where it is: a writer in the text stays there,
+     * the caret following the text as it moves; else the handle takes it (for the keyboard
+     * next)
+     */
+    event.preventDefault()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    if (!isWriting(editor)) event.currentTarget.focus()
+    group.current = {}
+    grab.current = pointerAt(event.clientX) - handlePosition(handle, layout)
+    setDragging(true)
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
+    const position = pointerAt(event.clientX) - grab.current
+    change(
+      (current) => withHandleValue(handle, current, valueAt(handle, position, current)),
+      group.current,
+    )
+  }
+
+  const stopDragging = () => {
+    group.current = undefined
+    setDragging(false)
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const next = valueAfterKey(handle, event, value, max)
+    if (next === null) return
+    event.preventDefault()
+    if (!event.repeat) group.current = {}
+    change((current) => withHandleValue(handle, current, next), group.current)
+  }
 
   return (
     <div
@@ -106,32 +153,16 @@ function Handle({
       className={styles.handle}
       data-handle={handle}
       data-dragging={dragging}
-      onPointerDown={(event) => {
-        if (event.button !== 0) return
-        /*
-         * No text selection, and the focus stays where it is: a writer in the text stays
-         * there, the caret following the text as it moves; else the handle takes it (for
-         * the keyboard next)
-         */
-        event.preventDefault()
-        event.currentTarget.setPointerCapture(event.pointerId)
-        if (!isWriting(editor)) event.currentTarget.focus()
-        grab.current = pointerAt(event.clientX) - handlePosition(handle, layout)
-        setDragging(true)
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={stopDragging}
+      onPointerCancel={stopDragging}
+      onLostPointerCapture={stopDragging}
+      onKeyUp={() => {
+        group.current = undefined
       }}
-      onPointerMove={(event) => {
-        if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
-        const position = pointerAt(event.clientX) - grab.current
-        change((current) => withHandleValue(handle, current, valueAt(handle, position, current)))
-      }}
-      onPointerUp={() => setDragging(false)}
-      onPointerCancel={() => setDragging(false)}
-      onKeyDown={(event) => {
-        const next = valueAfterKey(handle, event, value, max)
-        if (next === null) return
-        event.preventDefault()
-        change((current) => withHandleValue(handle, current, next))
-      }}
+      onBlur={stopDragging}
+      onKeyDown={handleKeyDown}
     >
       <span className={styles.tooltip} aria-hidden="true">
         {t('editor.ruler.tooltip', { label, value: valueText })}

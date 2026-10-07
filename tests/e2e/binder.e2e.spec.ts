@@ -1,7 +1,7 @@
 import type { Id } from '@/lib/ids'
 
 import { ID, item, itemMenu, openEditor, seed } from './binderHelpers'
-import { expect, test } from './fixtures'
+import { boxOf, expect, test } from './fixtures'
 
 test.describe('Binder', () => {
   test('each document has its own URL and text, saved before switching', async ({
@@ -115,7 +115,7 @@ test.describe('Binder', () => {
 
     // The middle of the folder's line means "inside"; its edges, "before" and "after"
     const folder = item(page, 'Part I')
-    const box = (await folder.boundingBox())!
+    const box = await boxOf(folder)
     await item(page, 'Loose page').dragTo(folder, {
       targetPosition: { x: box.width / 2, y: box.height / 2 },
     })

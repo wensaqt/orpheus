@@ -1,4 +1,4 @@
-import type { Payload } from 'payload'
+import { type Payload, ValidationError } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { Composition, User } from '@/payload-types'
@@ -26,7 +26,7 @@ const createFor = (user: User, data: Partial<Composition> = {}) =>
   })
 
 const validationMessages = (error: unknown) =>
-  (error as { data?: { errors?: { message: string }[] } }).data?.errors?.map((e) => e.message) ?? []
+  error instanceof ValidationError ? error.data.errors.map((e) => e.message) : []
 
 describe('compositions collection', () => {
   beforeAll(async () => {
@@ -129,6 +129,7 @@ describe('compositions collection', () => {
         .update({
           collection: 'compositions',
           id: composition.id,
+          // Invalid on purpose: what a client could send
           data: data as never,
           ...as(alice),
         })

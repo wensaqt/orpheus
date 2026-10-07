@@ -28,6 +28,7 @@ describe('findSynonyms', () => {
   })
 
   it('returns an empty result for unusable input, without a lookup', async () => {
+    // The last one is not text, on purpose: the action is a public endpoint
     for (const input of ['   ', 'x'.repeat(61), 42 as unknown as string]) {
       await expect(findSynonyms(input)).resolves.toEqual({
         query: '',

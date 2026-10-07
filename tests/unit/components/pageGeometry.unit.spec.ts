@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
+import { LINE_INSET } from '@front/_components/editor/pagination/constants'
 import {
   bandHeight,
   caretPoint,
   contentHeight,
-  LINE_INSET,
   nearestTextOffset,
   pageBreakFill,
   pagesFor,

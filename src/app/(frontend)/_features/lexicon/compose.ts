@@ -1,15 +1,8 @@
 import { wiktionaryPageUrl } from '@/lib/thesaurus/source'
 import type { PartOfSpeech, SynonymGroup, ThesaurusSource } from '@/lib/thesaurus/types'
 
+import { EMPTY_RESULT, MORE_PER_GROUP, MIN_SHARED_WITH_CURATED } from './constants'
 import type { ResultGroup, SynonymResult } from './types'
-
-// Dicollecte lists the best synonyms first and drifts towards other senses: keep the head
-export const MORE_PER_GROUP = 12
-/*
- * Curated words a suggestion must share to be kept. One is not enough: noise often goes through
- * a single shared word ("toilettes" and "heureux" both list "content").
- */
-export const MIN_SHARED_WITH_CURATED = 2
 
 export type SourceEntry = { source: ThesaurusSource; groups: SynonymGroup[] }
 
@@ -18,13 +11,6 @@ export type ComposeOptions = {
   preferredPartOfSpeech?: PartOfSpeech | null
   // Synonyms of each Dicollecte suggestion, to check it against the curated ones
   neighboursOf?: (word: string) => Iterable<string> | undefined
-}
-
-export const EMPTY_RESULT: Omit<SynonymResult, 'query'> = {
-  word: null,
-  groups: [],
-  more: [],
-  sourceUrl: null,
 }
 
 // Stable sort: groups of the preferred part of speech first, others keep their order

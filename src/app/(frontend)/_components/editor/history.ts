@@ -4,8 +4,7 @@ import { type HistoryState, registerHistory } from '@lexical/history'
 import type { LexicalEditor } from 'lexical'
 import { useCallback, useSyncExternalStore } from 'react'
 
-// Whether an editor has something to undo and to redo
-export type HistoryAvailability = { canUndo: boolean; canRedo: boolean }
+import type { HistoryAvailability } from './types'
 
 const NOTHING: HistoryAvailability = { canUndo: false, canRedo: false }
 
@@ -19,18 +18,20 @@ const availability = new WeakMap<LexicalEditor, HistoryAvailability>()
 const listeners = new WeakMap<LexicalEditor, Set<() => void>>()
 
 // How long consecutive changes merge into one undo step: Lexical's own plugin's default
-const MERGE_DELAY = 1000
-
-// Called each time an editor's history changes
-export function publishHistory(editor: LexicalEditor, { undoStack, redoStack }: HistoryState) {
-  const next = { canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 }
-  const current = historyOf(editor)
-  if (current.canUndo === next.canUndo && current.canRedo === next.canRedo) return
-  availability.set(editor, next)
-  for (const listener of listeners.get(editor) ?? []) listener()
-}
+export const HISTORY_MERGE_DELAY_MS = 1000
 
 const historyOf = (editor: LexicalEditor | null) => (editor && availability.get(editor)) ?? NOTHING
+
+const sameAvailability = (a: HistoryAvailability, b: HistoryAvailability) =>
+  a.canUndo === b.canUndo && a.canRedo === b.canRedo
+
+// Called each time an editor's history changes; tells the subscribers only of a new availability
+export function publishHistory(editor: LexicalEditor, { undoStack, redoStack }: HistoryState) {
+  const next = { canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 }
+  if (sameAvailability(historyOf(editor), next)) return
+  availability.set(editor, next)
+  listeners.get(editor)?.forEach((listener) => listener())
+}
 
 function subscribe(editor: LexicalEditor | null, listener: () => void) {
   if (!editor) return () => {}
@@ -46,7 +47,9 @@ function subscribe(editor: LexicalEditor | null, listener: () => void) {
  * included. Returns the unregistration.
  */
 export const registerPublishedHistory = (editor: LexicalEditor, state: HistoryState) =>
-  registerHistory(editor, state, MERGE_DELAY, Date.now, (next) => publishHistory(editor, next))
+  registerHistory(editor, state, HISTORY_MERGE_DELAY_MS, Date.now, (next) =>
+    publishHistory(editor, next),
+  )
 
 // What the editor can undo and redo now, and again whenever that changes
 export function useHistoryAvailability(editor: LexicalEditor | null) {

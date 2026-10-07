@@ -1,33 +1,8 @@
 /* Fixed-positioned by the component (top / right) below its trigger */
 .menu {
-  position: fixed;
-  inset: auto;
-  margin: 0;
+  composes: surface from '../popoverSurface.module.css';
   min-width: 10rem;
   padding: var(--space-1);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
-  opacity: 0;
-  translate: 0 calc(-1 * var(--space-1));
-  transition:
-    opacity 0.15s,
-    translate 0.15s,
-    overlay 0.15s allow-discrete,
-    display 0.15s allow-discrete;
-}
-
-.menu:popover-open {
-  opacity: 1;
-  translate: 0 0;
-}
-
-@starting-style {
-  .menu:popover-open {
-    opacity: 0;
-    translate: 0 calc(-1 * var(--space-1));
-  }
 }
 
 .item {
@@ -90,12 +65,6 @@
 .separator {
   margin-block: var(--space-1);
   border-block-start: 1px solid var(--color-border);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .menu {
-    transition: none;
-  }
 }
 
 /* Above the items, separated from them by a hairline */

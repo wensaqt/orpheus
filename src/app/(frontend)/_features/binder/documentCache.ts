@@ -1,30 +1,13 @@
 import type { Id } from '@/lib/ids'
 import { inReadingOrder } from '@/lib/binder/tree'
 
-import type { BinderEntry, EditorDocument, LexicalContent } from './types'
+import { DOCUMENT_FRESH_FOR_MS, MAX_CACHED_DOCUMENTS } from './constants'
+import type { BinderEntry, DocumentSlot, DocumentText, LexicalContent } from './types'
 
 /*
  * Pure rules of the client cache of documents' text (see documentStore.ts). Titles are not
  * cached: the binder entries hold them, live.
  */
-
-// The text of a document as some version of the server had it
-export type DocumentText = Pick<EditorDocument, 'content' | 'updatedAt'>
-
-// checkedAt: when the server last confirmed this version (ms since the epoch)
-export type CachedDocument = DocumentText & { checkedAt: number }
-
-export type DocumentSlot =
-  | { status: 'ready'; document: CachedDocument }
-  | { status: 'loading' }
-  // Gone or never readable (deleted, someone else's): asking again would not change that
-  | { status: 'missing' }
-  | { status: 'error' }
-
-// Documents kept in memory, the least recently used dropped first
-export const MAX_CACHED_DOCUMENTS = 40
-// A cached version reopened later than this is checked against the server in the background
-export const DOCUMENT_FRESH_FOR_MS = 60_000
 
 // The more recent of two versions (ISO 8601 timestamps from one server compare as strings)
 export function newerText(a?: DocumentText, b?: DocumentText): DocumentText | undefined {
@@ -54,7 +37,7 @@ export const isFresh = (slot: DocumentSlot | undefined, now: number) =>
   (slot?.status === 'ready' && now - slot.document.checkedAt < DOCUMENT_FRESH_FOR_MS)
 
 /*
- * The slots with this one set and moved last (most recently used), the oldest dropped beyond
+ * The slots with this one set and moved last (most recently confirmed), the oldest dropped beyond
  * the limit; a load in flight is never dropped, its answer would have nowhere to go.
  */
 export function withSlot(

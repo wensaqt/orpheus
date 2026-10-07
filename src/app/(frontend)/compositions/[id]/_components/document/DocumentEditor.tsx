@@ -1,8 +1,6 @@
 'use client'
 
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { CLEAR_HISTORY_COMMAND, HISTORY_MERGE_TAG } from 'lexical'
-import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 import { MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
@@ -11,21 +9,22 @@ import type { Id } from '@/lib/ids'
 import { EditorComposer } from '@front/_components/editor/EditorComposer'
 import { EditorContent } from '@front/_components/editor/EditorContent'
 import { PagedSheet } from '@front/_components/editor/pagination/PagedSheet'
-import { useAutosavePlugin } from '@front/_components/editor/plugins/AutosavePlugin'
 import { useT } from '@front/_components/i18n/I18nProvider'
-import { renameBinderItem, saveDocument } from '@front/_features/binder/actions'
-import { type DocumentText, replacesShown } from '@front/_features/binder/documentCache'
-import { rememberDocument, useDocumentSlot } from '@front/_features/binder/documentStore'
-import type { LexicalContent } from '@front/_features/binder/types'
+import { renameBinderItem } from '@front/_features/binder/actions'
+import type { DocumentText } from '@front/_features/binder/types'
+import { SaveStatus } from '@front/_hooks/types'
 import { useTitleField } from '@front/_hooks/useTitleField'
 
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
-import { SAVERS } from '../binder/state/useSaveRegistry'
+import { SAVERS } from '../binder/state/saverKeys'
 import { useDocumentTitleSlot } from '../header/documentTitleSlot'
 import { useRegisterOpenEditor } from '../editorFocus'
+import { CompositionHistoryPlugin } from '../history/CompositionHistoryPlugin'
+import { useHistoryState } from '../history/HistoryProvider'
 import { useLayout } from '../page/LayoutProvider'
 import styles from './DocumentEditor.module.css'
 import { DocumentTitle } from './DocumentTitle'
+import { useDocumentText } from './useDocumentText'
 
 type DocumentEditorProps = {
   id: Id
@@ -58,57 +57,35 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
   const { layout } = useLayout()
   const titleSlot = useDocumentTitleSlot()
   useRegisterOpenEditor(editor)
-  // The version shown, to tell a newer one from elsewhere (another tab) from this tab's saves
-  const shownVersion = useRef(text.updatedAt)
-
-  const autosave = useAutosavePlugin(async (content) => {
-    const result = await saveDocument(id, content)
-    if (result.status === 'done') {
-      shownVersion.current = result.data.updatedAt
-      rememberDocument(id, { content, updatedAt: result.data.updatedAt })
-    }
-    return result
-  })
+  const autosave = useDocumentText(id, text)
+  const { generation, busy } = useHistoryState()
   const titleField = useTitleField({
+    resetVersion: generation,
     title,
     maxLength: MAX_BINDER_TITLE_LENGTH,
     save: (next) => renameBinderItem(id, next),
     // The binder shows the title as it is typed
-    onTitle: (next) => commands.setTitle(id, next),
+    onTitle: (next, previous, group) => commands.setTitle(id, next, previous, group),
   })
 
   useRegisterSaver(SAVERS.documentText(id), autosave)
   useRegisterSaver(SAVERS.documentTitle(id), titleField)
 
-  /*
-   * A newer version arrived (the document was changed in another tab, and the cache checked
-   * it): shown in place if the writer has nothing unsaved here, as a history merge so it is
-   * not saved again, and with the undo history cleared.
-   */
-  const slot = useDocumentSlot(id)
-  useEffect(() => {
-    if (slot?.status !== 'ready' || autosave.status !== 'saved') return
-    const shown = editor.getEditorState().toJSON() as LexicalContent
-    if (!replacesShown(shownVersion.current, shown, slot.document)) return
-    shownVersion.current = slot.document.updatedAt
-    editor.setEditorState(editor.parseEditorState(JSON.stringify(slot.document.content)), {
-      tag: HISTORY_MERGE_TAG,
-    })
-    // Undoing would bring this tab's older text back, and save it over the newer one
-    editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined)
-  }, [slot, autosave.status, editor])
-
   return (
     <>
-      {titleSlot && createPortal(<DocumentTitle {...titleField.inputProps} />, titleSlot)}
+      {titleSlot &&
+        createPortal(<DocumentTitle {...titleField.inputProps} disabled={busy} />, titleSlot)}
       {/* Only save failures are reported; everything else happens silently */}
-      {titleField.status === 'error' || autosave.status === 'error' ? (
+      {titleField.status === SaveStatus.Error || autosave.status === SaveStatus.Error ? (
         <p className={styles.saveError} role="alert">
           {t('editor.saveError')}
         </p>
       ) : null}
       <PagedSheet settings={layout.page} typography={layout.typography}>
-        <EditorContent label={t('editor.textLabel')} />
+        <EditorContent
+          historyPlugin={<CompositionHistoryPlugin id={id} />}
+          label={t('editor.textLabel')}
+        />
       </PagedSheet>
     </>
   )

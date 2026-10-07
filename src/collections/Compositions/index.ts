@@ -6,16 +6,16 @@ import {
   DEFAULT_PAGE_FORMAT,
   DEFAULT_PAGE_MARGIN,
   MAX_PAGE_MARGIN,
-  PAGE_FORMATS,
+  PAGE_FORMAT_NAMES,
   PAGE_ORIENTATIONS,
   type PageMargin,
 } from '@/lib/pageFormats'
 
 import { MAX_FIRST_LINE_INDENT } from '@/lib/typography'
 
-import { ownCompositions } from './access'
+import { ownedByUser } from '@/access/ownedByUser'
 import { addFirstDocument, deleteBinder, fitLayoutOnChange, setOwnerOnCreate } from './hooks'
-import { validateTitle } from './validators'
+import { validateTitle } from '../validators'
 
 // Each margin alone; together with the page and the indent, they are fitted on every save
 const margin = (name: PageMargin) => ({
@@ -35,9 +35,9 @@ export const Compositions: CollectionConfig = {
   },
   access: {
     create: isLoggedIn,
-    read: ownCompositions,
-    update: ownCompositions,
-    delete: ownCompositions,
+    read: ownedByUser,
+    update: ownedByUser,
+    delete: ownedByUser,
   },
   hooks: {
     beforeValidate: [setOwnerOnCreate],
@@ -76,7 +76,7 @@ export const Compositions: CollectionConfig = {
               type: 'select',
               required: true,
               defaultValue: DEFAULT_PAGE_FORMAT,
-              options: Object.keys(PAGE_FORMATS),
+              options: [...PAGE_FORMAT_NAMES],
             },
             {
               name: 'orientation',

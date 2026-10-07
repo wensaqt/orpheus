@@ -5,12 +5,12 @@ import React, { useCallback, useRef } from 'react'
 import { descendantIds } from '@/lib/binder/tree'
 import type { Id } from '@/lib/ids'
 
-import type { MenuHandle } from '@front/_components/ui/Menu/Menu'
+import type { MenuHandle } from '@front/_components/ui/Menu/types'
 import { prefetchDocument } from '@front/_features/binder/documentStore'
 
 import { useRowDragAndDrop } from '../dnd/useRowDragAndDrop'
-import { ChevronIcon, DocumentIcon, FolderIcon } from '../icons'
-import type { BinderRow as Row } from '../rows'
+import { ChevronIcon, DocumentIcon, FolderIcon } from '../../icons'
+import type { BinderRow as Row } from '../types'
 import { useBinder } from '../state/BinderProvider'
 import styles from './BinderRow.module.css'
 import { RenameField } from './RenameField'
@@ -70,8 +70,32 @@ export function BinderRow({ row, tabbable, register, onFocus, onMoveTo }: Binder
   // Clicks in the rename field or on the menu are theirs
   const isOwnControl = (target: EventTarget) =>
     target instanceof Element && target.closest('input, button') !== null
-  const activate = () =>
-    isFolder ? setFolderOpen(entry.id, !expanded) : void commands.open(entry.id)
+  const toggleFolder = () => setFolderOpen(entry.id, !expanded)
+  const activate = () => (isFolder ? toggleFolder() : void commands.open(entry.id))
+  // Likely opened next: its text is loaded ahead, so opening it is instant
+  const prefetch = () => prefetchDocument(compositionId, entry.id)
+
+  function handleFocus(event: React.FocusEvent<HTMLLIElement>) {
+    if (event.target !== event.currentTarget) return
+    onFocus(entry.id)
+    if (!isFolder) prefetch()
+  }
+
+  function handleClick(event: React.MouseEvent<HTMLLIElement>) {
+    if (isOwnControl(event.target)) return
+    onFocus(entry.id)
+    activate()
+  }
+
+  function handleDoubleClick(event: React.MouseEvent<HTMLLIElement>) {
+    if (!isOwnControl(event.target)) setRenamingId(entry.id)
+  }
+
+  function handleRenamed(title: string | null) {
+    setRenamingId(null)
+    focusRow()
+    if (title) void commands.rename(entry.id, title)
+  }
 
   return (
     <li
@@ -88,22 +112,11 @@ export function BinderRow({ row, tabbable, register, onFocus, onMoveTo }: Binder
       className={styles.row}
       data-dragging={dragging}
       data-drop={drop ?? undefined}
-      style={{ '--level': level - 1 } as React.CSSProperties}
-      // Likely opened next: its text is loaded ahead, so opening it is instant
-      onPointerEnter={isFolder ? undefined : () => prefetchDocument(compositionId, entry.id)}
-      onFocus={(e) => {
-        if (e.target !== e.currentTarget) return
-        onFocus(entry.id)
-        if (!isFolder) prefetchDocument(compositionId, entry.id)
-      }}
-      onClick={(e) => {
-        if (isOwnControl(e.target)) return
-        onFocus(entry.id)
-        activate()
-      }}
-      onDoubleClick={(e) => {
-        if (!isOwnControl(e.target)) setRenamingId(entry.id)
-      }}
+      style={{ '--level': level - 1 }}
+      onPointerEnter={isFolder ? undefined : prefetch}
+      onFocus={handleFocus}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
     >
       {isFolder ? (
         <button
@@ -112,7 +125,7 @@ export function BinderRow({ row, tabbable, register, onFocus, onMoveTo }: Binder
           aria-hidden="true"
           className={styles.chevron}
           data-open={expanded}
-          onClick={() => setFolderOpen(entry.id, !expanded)}
+          onClick={toggleFolder}
         >
           <ChevronIcon />
         </button>
@@ -123,14 +136,7 @@ export function BinderRow({ row, tabbable, register, onFocus, onMoveTo }: Binder
         {isFolder ? <FolderIcon open={expanded} /> : <DocumentIcon />}
       </span>
       {renaming ? (
-        <RenameField
-          title={entry.title}
-          onDone={(title) => {
-            setRenamingId(null)
-            focusRow()
-            if (title) void commands.rename(entry.id, title)
-          }}
-        />
+        <RenameField title={entry.title} onDone={handleRenamed} />
       ) : (
         <span className={styles.title}>{entry.title}</span>
       )}

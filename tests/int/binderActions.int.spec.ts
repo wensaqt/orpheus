@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { toBinderNode } from '@/lib/binder/tree'
 import type { Composition, User } from '@/payload-types'
 
 import { cleanupTestUsers, createTestUser, getTestPayload } from '../helpers/testUsers'
@@ -9,7 +10,9 @@ import { cleanupTestUsers, createTestUser, getTestPayload } from '../helpers/tes
  * The binder's server actions, run for real against Payload and the database, as a given
  * user: only the session (normally read from the request's cookie) and the language are faked.
  */
-const session = vi.hoisted(() => ({ current: null as { payload: Payload; user: User } | null }))
+const session = vi.hoisted((): { current: { payload: Payload; user: User } | null } => ({
+  current: null,
+}))
 vi.mock('@front/_lib/server/auth', () => ({
   authedAction:
     <Args extends unknown[], Result>(handler: (s: unknown, ...args: Args) => Promise<Result>) =>
@@ -75,6 +78,7 @@ describe('binder actions', () => {
   it('refuses malformed input before touching the database', async () => {
     const composition = await newComposition(alice)
     const [first] = await itemsOf(composition)
+    // Values of the wrong type, on purpose: the actions are public endpoints
     for (const result of await Promise.all([
       actions.createBinderItem(composition.id, 'chapter' as never, null),
       actions.createBinderItem(composition.id, 'document', 'root' as never),
@@ -87,6 +91,49 @@ describe('binder actions', () => {
       expect(result).toEqual({ status: 'error' })
     }
     expect(await itemsOf(composition)).toHaveLength(1)
+  })
+
+  it('refuses a rename if another writer changed the expected title', async () => {
+    const composition = await newComposition(alice)
+    const [first] = await itemsOf(composition)
+    expect(await actions.renameBinderItem(first.id, 'Chant', first.title)).toEqual({
+      status: 'done',
+      data: undefined,
+    })
+    expect(await actions.renameBinderItem(first.id, 'Old title', first.title)).toEqual({
+      status: 'error',
+    })
+    expect((await itemsOf(composition))[0].title).toBe('Chant')
+  })
+
+  it('refuses an inverse move against a changed tree and validates expected snapshots', async () => {
+    const composition = await newComposition(alice)
+    const folder = await actions.createBinderItem(composition.id, 'folder', null)
+    if (folder.status !== 'done') throw new Error('Folder creation failed')
+    const before = await itemsOf(composition)
+    const document = before.find((item) => item.kind === 'document')
+    if (!document) throw new Error('Missing document')
+    const expected = before.map(toBinderNode)
+    expect(
+      await actions.moveBinderItem(document.id, { parent: folder.data.id, index: 0 }, expected),
+    ).toEqual({ status: 'done', data: undefined })
+    const moved = await itemsOf(composition)
+    expect(await actions.moveBinderItem(document.id, { parent: null, index: 0 }, expected)).toEqual(
+      { status: 'error' },
+    )
+    expect(await itemsOf(composition)).toEqual(moved)
+    expect(
+      await actions.moveBinderItem(document.id, { parent: null, index: 0 }, [
+        { broken: true },
+      ] as never),
+    ).toEqual({ status: 'error' })
+    expect(
+      await actions.moveBinderItem(
+        document.id,
+        { parent: null, index: 0 },
+        moved.map(toBinderNode),
+      ),
+    ).toEqual({ status: 'done', data: undefined })
   })
 
   it('trims titles', async () => {

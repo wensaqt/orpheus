@@ -2,7 +2,7 @@
 
 import { authedAction } from '@front/_lib/server/auth'
 
-import { EMPTY_RESULT } from './compose'
+import { EMPTY_RESULT } from './constants'
 import { lookupSynonyms } from './lexicon'
 import { parseQuery } from './query'
 import type { SynonymResult } from './types'

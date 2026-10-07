@@ -2,10 +2,10 @@ import { useCallback, useEffect, useEffectEvent, useLayoutEffect, useRef, useSta
 
 import { type ActionResult, succeeded } from '@front/_lib/actionResult'
 
-export type SaveStatus = 'saved' | 'pending' | 'saving' | 'error'
+import { SaveStatus } from './types'
 
 // Idle delay before saving
-const AUTOSAVE_DELAY = 800
+const AUTOSAVE_DELAY_MS = 800
 // After a failure, tries again on its own, less and less often (the last delay repeats)
 const RETRY_DELAYS = [2_000, 5_000, 15_000, 30_000]
 
@@ -15,7 +15,7 @@ const RETRY_DELAYS = [2_000, 5_000, 15_000, 30_000]
  * chained to keep their order; a failed one is retried, sooner if the writer keeps typing.
  */
 export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
-  const [status, setStatus] = useState<SaveStatus>('saved')
+  const [status, setStatus] = useState(SaveStatus.Saved)
   // Changes not sent yet, and a save on its way
   const dirty = useRef(false)
   const sending = useRef(false)
@@ -30,22 +30,22 @@ export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
     latestSave.current = save
   })
 
-  const flush = useCallback((): Promise<boolean> => {
+  const flush = useCallback(function flush(): Promise<boolean> {
     window.clearTimeout(timer.current)
     chain.current = chain.current.then(async () => {
       if (!dirty.current) return true
       dirty.current = false
       sending.current = true
-      setStatus('saving')
+      setStatus(SaveStatus.Saving)
       const saved = await succeeded(latestSave.current())
       sending.current = false
       if (saved) {
         failures.current = 0
-        setStatus(dirty.current ? 'pending' : 'saved')
+        setStatus(dirty.current ? SaveStatus.Pending : SaveStatus.Saved)
         return true
       }
       dirty.current = true
-      setStatus('error')
+      setStatus(SaveStatus.Error)
       const delay = RETRY_DELAYS[Math.min(failures.current++, RETRY_DELAYS.length - 1)]
       if (mounted.current) timer.current = window.setTimeout(() => void flush(), delay)
       return false
@@ -55,16 +55,16 @@ export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
 
   const queue = useCallback(() => {
     dirty.current = true
-    setStatus((current) => (current === 'error' ? current : 'pending'))
+    setStatus((current) => (current === SaveStatus.Error ? current : SaveStatus.Pending))
     window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => void flush(), AUTOSAVE_DELAY)
+    timer.current = window.setTimeout(() => void flush(), AUTOSAVE_DELAY_MS)
   }, [flush])
 
   // Drops the changes not sent yet, e.g. for a document that was just deleted
   const cancel = useCallback(() => {
     window.clearTimeout(timer.current)
     dirty.current = false
-    setStatus('saved')
+    setStatus(SaveStatus.Saved)
   }, [])
 
   const flushOnLeave = useEffectEvent(() => void flush())

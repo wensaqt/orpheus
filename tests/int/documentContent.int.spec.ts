@@ -10,8 +10,8 @@ import { cleanupTestUsers, createTestUser, getTestPayload } from '../helpers/tes
  * The GET route that feeds the editor's client cache, run for real against Payload and the
  * database: only the session (normally read from the request's cookie) is faked.
  */
-const session = vi.hoisted(() => ({
-  current: { payload: null, user: null } as Record<string, unknown>,
+const session = vi.hoisted((): { current: Record<string, unknown> } => ({
+  current: { payload: null, user: null },
 }))
 vi.mock('@front/_lib/server/auth', () => ({ getSession: async () => session.current }))
 

@@ -1,6 +1,8 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { descriptionOf } from '../../helpers/dom'
+
 const logOut = vi.fn()
 vi.mock('@front/_features/auth/actions', () => ({ logOut }))
 const pathname = vi.fn()
@@ -22,7 +24,7 @@ describe('AccountMenu', () => {
   it('says who is signed in, with the profile greyed out for now', () => {
     render(<AccountMenu email="orphee@example.test" />)
     const menu = screen.getByRole('menu', { hidden: true })
-    const description = document.getElementById(menu.getAttribute('aria-describedby')!)
+    const description = descriptionOf(menu)
     expect(description?.textContent).toBe('Signed in as orphee@example.test')
     const profile = screen.getByRole('menuitem', { name: 'Profile', hidden: true })
     expect(profile.getAttribute('aria-disabled')).toBe('true')

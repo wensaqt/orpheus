@@ -1,5 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react'
 
+import { classNames } from '@front/_lib/classNames'
+
 import styles from './IconButton.module.css'
 
 type IconButtonProps = Omit<ComponentProps<'button'>, 'aria-label' | 'title' | 'children'> & {
@@ -20,7 +22,7 @@ export function IconButton({ label, tooltip, icon, className, ...button }: IconB
       type="button"
       {...button}
       aria-label={label}
-      className={[styles.button, className].filter(Boolean).join(' ')}
+      className={classNames(styles.button, className)}
     >
       {icon}
       {/* The label is already the button's name: the tooltip is for sighted users only */}

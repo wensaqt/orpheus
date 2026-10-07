@@ -26,16 +26,18 @@ export function Dialog({ open, onClose, labelledBy, children }: DialogProps) {
     if (!open && dialog.open) dialog.close()
   }, [open])
 
+  // The content fills the dialog: only a backdrop click reaches the <dialog> itself
+  function handleClick(event: React.MouseEvent<HTMLDialogElement>) {
+    if (event.target === event.currentTarget) onClose()
+  }
+
   return (
     <dialog
       ref={ref}
       className={styles.dialog}
       aria-labelledby={labelledBy}
       onClose={onClose}
-      // The content fills the dialog: only a backdrop click reaches the <dialog> itself
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
+      onClick={handleClick}
     >
       <div className={styles.content}>{children}</div>
     </dialog>

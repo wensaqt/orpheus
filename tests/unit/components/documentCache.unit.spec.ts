@@ -1,15 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { DOCUMENT_FRESH_FOR_MS } from '@front/_features/binder/constants'
 import {
-  DOCUMENT_FRESH_FOR_MS,
-  type DocumentSlot,
   isFresh,
   neighbourDocuments,
   newerText,
   replacesShown,
   withSlot,
 } from '@front/_features/binder/documentCache'
-import type { BinderEntry } from '@front/_features/binder/types'
+import type { BinderEntry, DocumentSlot } from '@front/_features/binder/types'
 import { documentIdFromPath, editorPath, ROUTES } from '@front/_lib/routes'
 
 import { uuid } from '../../helpers/ids'
@@ -47,7 +46,7 @@ describe('isFresh', () => {
 })
 
 describe('withSlot', () => {
-  it('keeps the most recently used documents, never a load in flight', () => {
+  it('keeps the most recently confirmed documents, never a load in flight', () => {
     let slots = new Map<string, DocumentSlot>()
     slots = withSlot(slots, uuid(1), { status: 'loading' }, 2)
     slots = withSlot(slots, uuid(2), ready(0), 2)

@@ -137,6 +137,7 @@ describe('users', () => {
   })
 
   it('opens the admin panel to admins only', async () => {
+    // The collection defines admin access (optional in Payload's type); a request needs no more
     const canAccessAdmin = (as: User) =>
       payload.collections.users.config.access.admin!({ req: { user: as, payload } as never })
     expect(await canAccessAdmin(admin)).toBe(true)

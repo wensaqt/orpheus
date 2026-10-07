@@ -10,6 +10,14 @@
   max-height: calc(100dvh - var(--editor-header-height) - 2 * var(--space-4));
 }
 
+/* The title, and the button that folds the panel away to the right */
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
 /* Panel title, underlined with a short rule as on the other pages */
 .title {
   font-size: var(--text-lg);
@@ -21,8 +29,8 @@
 .title::after {
   content: '';
   display: block;
-  width: 2rem;
-  height: 1.5px;
+  width: var(--rule-length-short);
+  height: var(--rule-thickness);
   margin-block-start: var(--space-2);
   background-color: var(--color-divider);
 }
@@ -37,7 +45,7 @@
   font: inherit;
   color: var(--color-text);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--duration);
 }
 
 .search:focus-visible {
@@ -67,7 +75,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  transition: opacity 0.2s;
+  transition: opacity var(--duration);
 }
 
 /* While loading, previous results stay visible, faded */
@@ -125,8 +133,10 @@
 
 /* Synonyms cascade in */
 .chips > li {
-  animation: appear 0.3s ease-out both;
-  animation-delay: calc(min(var(--position), 30) * 12ms);
+  animation: appear var(--duration-medium) ease-out both;
+  --stagger-cap: 30;
+  --stagger-step: 12ms;
+  animation-delay: calc(min(var(--position), var(--stagger-cap)) * var(--stagger-step));
 }
 
 @keyframes appear {
@@ -146,9 +156,9 @@
   color: var(--color-text);
   cursor: pointer;
   transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    color 0.2s;
+    background-color var(--duration),
+    border-color var(--duration),
+    color var(--duration);
 }
 
 /* Less reliable group: paler chips, so trusted synonyms stand out at a glance */
@@ -177,7 +187,7 @@
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color var(--duration);
 }
 
 .moreSummary:hover {

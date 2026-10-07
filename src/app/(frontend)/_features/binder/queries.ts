@@ -1,10 +1,10 @@
 import 'server-only'
 
-import { Forbidden, NotFound } from 'payload'
 import { cache } from 'react'
 
 import { type BinderNodeData, firstDocument, toBinderNode } from '@/lib/binder/tree'
 import { relationId } from '@/lib/relationId'
+import { nullIfUnreadable } from '@/lib/payloadErrors'
 import type { Id } from '@/lib/ids'
 import type { BinderItem } from '@/payload-types'
 
@@ -47,12 +47,11 @@ export const getBinder = cache(async (compositionId: Id) => {
       overrideAccess: false,
       depth: 0,
     })
-    .catch(() => null)
+    .catch(nullIfUnreadable)
   if (!composition) return null
   return { composition, entries: await binderEntries({ payload, user }, composition.id) }
 })
 
-// A document of the composition with its text, or null (missing, a folder, or not this one)
 /*
  * A document of the composition with its text, or null: missing, a folder, someone else's or
  * from another composition all read the same, so nothing is disclosed.
@@ -64,11 +63,7 @@ export async function findDocument(
 ): Promise<EditorDocument | null> {
   const item = await payload
     .findByID({ collection: 'binder-items', id: documentId, user, overrideAccess: false, depth: 0 })
-    .catch((error: unknown) => {
-      // Not found or not readable is an answer; a database failure is not, and must show
-      if (error instanceof NotFound || error instanceof Forbidden) return null
-      throw error
-    })
+    .catch(nullIfUnreadable)
   if (!item || item.kind !== 'document' || relationId(item.composition) !== compositionId) {
     return null
   }
@@ -81,8 +76,11 @@ export async function findDocument(
   }
 }
 
-export const getDocument = async (compositionId: Id, documentId: Id) =>
-  findDocument(await requireSession(), compositionId, documentId)
+// A full page load confirms this document now; restored pages keep their original check time.
+export async function getDocument(compositionId: Id, documentId: Id) {
+  const document = await findDocument(await requireSession(), compositionId, documentId)
+  return document && { ...document, checkedAt: Date.now() }
+}
 
 /*
  * The first document of each given composition (reading order of its binder), with its content.
@@ -107,7 +105,9 @@ export async function firstDocuments(
   const byComposition = new Map<Id, BinderNodeData[]>()
   for (const item of structure) {
     const composition = relationId(item.composition)
-    byComposition.set(composition, [...(byComposition.get(composition) ?? []), toBinderNode(item)])
+    const nodes = byComposition.get(composition) ?? []
+    nodes.push(toBinderNode(item))
+    byComposition.set(composition, nodes)
   }
   const firstIds = [...byComposition.values()].flatMap((nodes) => firstDocument(nodes)?.id ?? [])
   if (!firstIds.length) return new Map()

@@ -5,9 +5,11 @@ import type { Ref } from 'react'
 import type { BinderItemKind } from '@/lib/binder/constants'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
-import { Menu, type MenuHandle, type MenuItem } from '@front/_components/ui/Menu/Menu'
+import { Menu } from '@front/_components/ui/Menu/Menu'
+import type { MenuHandle, MenuItem } from '@front/_components/ui/Menu/types'
 
-import { type BinderRow, reorderDestination } from '../rows'
+import { reorderDestination } from '../rows'
+import type { BinderRow } from '../types'
 import { useBinder } from '../state/BinderProvider'
 import styles from './BinderRow.module.css'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useEffect, useEffectEvent, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useState } from 'react'
 
 import type { Id } from '@/lib/ids'
 
@@ -41,5 +41,23 @@ export function useOpenDocument(compositionId: Id, flushAll: () => Promise<boole
     }
   }, [requested, openId, flushAll])
 
-  return openId
+  // Programmatic navigation commits the URL and shown document together, after one save.
+  const navigate = useCallback(
+    async (documentId: Id | null, mode: 'push' | 'replace' = 'push') => {
+      if (!(await flushAll())) {
+        toast.error(t('binder.saveFirst'))
+        return false
+      }
+      const path = ROUTES.editor(compositionId, documentId)
+      if (mode === 'push') window.history.pushState(null, '', path)
+      else window.history.replaceState(null, '', path)
+      setOpenId(documentId)
+      return true
+    },
+    [compositionId, flushAll, t, toast],
+  )
+
+  return { activeDocumentId: openId, navigate }
 }
+
+export type NavigateDocument = ReturnType<typeof useOpenDocument>['navigate']

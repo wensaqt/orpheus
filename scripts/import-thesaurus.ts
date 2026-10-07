@@ -22,19 +22,29 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { createKaikkiCollector, extractRecord, mayContribute } from '@/lib/thesaurus/kaikki'
 import { parseMyThes } from '@/lib/thesaurus/mythes'
-import type { ThesaurusEntry, ThesaurusSource } from '@/lib/thesaurus/types'
+import {
+  THESAURUS_LANGUAGE,
+  THESAURUS_SOURCES,
+  type ThesaurusEntry,
+  type ThesaurusSource,
+} from '@/lib/thesaurus/types'
+import { isOneOf } from '@/lib/guards'
 
 const DICOLLECTE_URL =
   'https://raw.githubusercontent.com/LibreOffice/dictionaries/master/fr_FR/dictionaries/thes_fr.dat'
 const KAIKKI_URL =
   'https://kaikki.org/frwiktionary/Fran%C3%A7ais/kaikki.org-dictionary-Fran%C3%A7ais.jsonl'
-const LANG = 'fr'
 const BATCH_SIZE = 1000
 const PROGRESS_EVERY = 500_000
 
-type Row = ThesaurusEntry
+const requested = process.argv[2]
+if (requested !== undefined && !isOneOf(THESAURUS_SOURCES, requested)) {
+  console.error('Usage: pnpm thesaurus:import [wiktionary|dicollecte]')
+  process.exit(1)
+}
 
 const payload = await getPayload({ config })
+// Payload exposes a generic adapter; payload.config.ts installs the Postgres adapter.
 const db = payload.db as unknown as PostgresAdapter
 const table = db.tables.thesaurus_entries
 
@@ -45,13 +55,13 @@ async function download(url: string) {
   return response
 }
 
-async function replaceSource(source: ThesaurusSource, rows: Row[]) {
+async function replaceSource(source: ThesaurusSource, rows: ThesaurusEntry[]) {
   await db.drizzle.transaction(async (tx) => {
-    await tx.delete(table).where(and(eq(table.lang, LANG), eq(table.source, source)))
+    await tx.delete(table).where(and(eq(table.lang, THESAURUS_LANGUAGE), eq(table.source, source)))
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       const batch = rows.slice(i, i + BATCH_SIZE).map((row) => ({
         word: row.word,
-        lang: LANG,
+        lang: THESAURUS_LANGUAGE,
         source,
         groups: row.groups,
         lemma: row.lemma ?? null,
@@ -73,7 +83,8 @@ async function importWiktionary(dicollecteWords: Set<string>) {
   const response = await download(KAIKKI_URL)
   const collector = createKaikkiCollector()
   const lines = createInterface({
-    input: Readable.fromWeb(response.body as never),
+    // Fetch uses DOM stream types; Node's adapter expects its own compatible stream type.
+    input: Readable.fromWeb(response.body as Parameters<typeof Readable.fromWeb>[0]),
     crlfDelay: Infinity,
   })
 
@@ -91,7 +102,6 @@ async function importWiktionary(dicollecteWords: Set<string>) {
   )
 }
 
-const requested = process.argv[2] as ThesaurusSource | undefined
 // Dicollecte words are needed to decide which Wiktionary inflected forms are worth keeping
 const dicollecteWords =
   requested === 'wiktionary'

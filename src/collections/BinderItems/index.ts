@@ -7,8 +7,9 @@ import {
 } from '@/lib/binder/constants'
 import { LEXICAL_STATE_JSON_SCHEMA } from '@/lib/lexical'
 
-import { validateTitle } from '../Compositions/validators'
-import { canAddToComposition, ownBinderItems } from './access'
+import { validateTitle } from '../validators'
+import { ownedByUser } from '@/access/ownedByUser'
+import { canAddToComposition } from './access'
 import { deleteContents, keepBinderTree } from './hooks'
 
 // Set once, at creation: an item never changes composition, owner or kind
@@ -26,9 +27,9 @@ export const BinderItems: CollectionConfig = {
   },
   access: {
     create: canAddToComposition,
-    read: ownBinderItems,
-    update: ownBinderItems,
-    delete: ownBinderItems,
+    read: ownedByUser,
+    update: ownedByUser,
+    delete: ownedByUser,
   },
   hooks: {
     beforeValidate: [keepBinderTree],

@@ -1,32 +1,6 @@
-/* Same round as the account icon, with the language's flag in place of a drawing */
 .trigger {
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  background-color: var(--color-surface-raised);
+  composes: trigger from '../CornerActions/trigger.module.css';
   font: inherit;
   font-size: var(--text-base);
   line-height: 1;
-  color: var(--color-primary);
-  cursor: pointer;
-  opacity: 0.7;
-  transition:
-    opacity 0.2s,
-    background-color 0.2s,
-    border-color 0.2s;
-}
-
-.trigger:is(:hover, :focus-visible),
-.trigger[aria-expanded='true'] {
-  opacity: 1;
-  border-color: var(--color-primary);
-  background-color: var(--color-surface-accent);
-}
-
-.trigger:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
 }

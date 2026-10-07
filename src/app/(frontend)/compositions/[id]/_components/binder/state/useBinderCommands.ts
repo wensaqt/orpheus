@@ -1,9 +1,15 @@
 'use client'
 
-import { startTransition, useMemo } from 'react'
+import { startTransition, useMemo, useRef } from 'react'
 
 import { type BinderItemKind, MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
-import { type BinderMove, descendantIds, firstDocument } from '@/lib/binder/tree'
+import {
+  type BinderMove,
+  descendantIds,
+  firstDocument,
+  siblingsOf,
+  toBinderNode,
+} from '@/lib/binder/tree'
 import { cleanTitle } from '@/lib/titles'
 import type { Id } from '@/lib/ids'
 
@@ -18,10 +24,12 @@ import {
 } from '@front/_features/binder/actions'
 import type { BinderEntry } from '@front/_features/binder/types'
 import { type ActionResult, succeeded } from '@front/_lib/actionResult'
-import { ROUTES } from '@front/_lib/routes'
+import type { Translate } from '@front/_lib/i18n'
 import { forgetDocuments, rememberDocument } from '@front/_features/binder/documentStore'
 
+import { useEditorHistory } from '../../history/HistoryProvider'
 import { applyBinderOp, type BinderOp } from './binderOps'
+import type { NavigateDocument } from './useOpenDocument'
 
 export type BinderCommands = ReturnType<typeof useBinderCommands>
 
@@ -32,9 +40,17 @@ type BinderCommandsOptions = {
   // Keeps a change for good / shows it while it is being saved
   apply: (op: BinderOp) => void
   showOp: (op: BinderOp) => void
-  flushAll: () => Promise<boolean>
+  navigate: NavigateDocument
   cancelDocuments: (ids: Iterable<Id>) => void
   startRename: (id: Id) => void
+}
+
+// What deleting an item takes with it: the document, or the folder and how much is inside
+function deleteWarning(t: Translate, entry: BinderEntry, insideCount: number) {
+  if (entry.kind === 'document') return t('binder.delete.document')
+  if (insideCount === 0) return t('binder.delete.folderEmpty')
+  if (insideCount === 1) return t('binder.delete.folderOne')
+  return t('binder.delete.folderMany', { count: insideCount })
 }
 
 /*
@@ -48,10 +64,14 @@ export function useBinderCommands({
   activeDocumentId,
   apply,
   showOp,
-  flushAll,
+  navigate,
   cancelDocuments,
   startRename,
 }: BinderCommandsOptions) {
+  const renameGroups = useRef(
+    new WeakMap<object, { before: string; after: string; generation: number }>(),
+  )
+  const history = useEditorHistory()
   const t = useT()
   const toast = useToast()
   const confirm = useConfirm()
@@ -63,43 +83,61 @@ export function useBinderCommands({
           showOp(op)
           const accepted = await succeeded(call())
           if (accepted) apply(op)
-          else toast.error(t('binder.error'))
+          else if (!history.getSnapshot().busy) toast.error(t('binder.error'))
           resolve(accepted)
         })
       })
 
-    /*
-     * Goes to a document (or the empty binder) once everything open is saved, on the client:
-     * the URL changes and the editor shows the cached text, with no page render. A replaced
-     * entry (the document was deleted) leaves no way back to it in the history.
-     */
-    const navigate = async (documentId: Id | null, mode: 'push' | 'replace' = 'push') => {
-      if (!(await flushAll())) {
-        toast.error(t('binder.saveFirst'))
-        return false
-      }
-      const path = ROUTES.editor(compositionId, documentId)
-      if (mode === 'push') window.history.pushState(null, '', path)
-      else window.history.replaceState(null, '', path)
-      return true
+    const recordRename = (id: Id, before: string, after: string, group?: object) => {
+      if (before === after) return
+      const previous = group && renameGroups.current.get(group)
+      const generation = history.getSnapshot().generation
+      const change =
+        previous && previous.generation === generation && history.canMerge(previous)
+          ? previous
+          : { before, after, generation }
+      change.after = after
+      if (group) renameGroups.current.set(group, change)
+      const restore = (expected: string, title: string) =>
+        run({ type: 'rename', id, title }, () => renameBinderItem(id, title, expected))
+      history.record(
+        {
+          scope: { kind: 'binder', ids: [id], operation: 'rename' },
+          isEmpty: () => change.before === change.after,
+          undo: () => restore(change.after, change.before),
+          redo: () => restore(change.before, change.after),
+        },
+        group ? change : undefined,
+      )
     }
-
+    const perform = (action: () => Promise<boolean>) =>
+      history.perform(action, () => toast.error(t('binder.error')))
     return {
-      open: (id: Id) => (id === activeDocumentId ? Promise.resolve(true) : navigate(id)),
+      open: (id: Id) =>
+        history.getSnapshot().busy
+          ? Promise.resolve(false)
+          : id === activeDocumentId
+            ? Promise.resolve(true)
+            : navigate(id),
 
       // A new folder is named straight away; a new document opens
       async create(kind: BinderItemKind, parent: Id | null) {
-        const result = await createBinderItem(compositionId, kind, parent).catch(() => null)
-        if (result?.status !== 'done') {
-          toast.error(t('binder.error'))
-          return null
-        }
-        const { updatedAt, ...entry } = result.data
-        apply({ type: 'add', entry })
+        const createdItem: { entry: BinderEntry | null } = { entry: null }
+        const accepted = await perform(async () => {
+          const result = await createBinderItem(compositionId, kind, parent)
+          if (result.status !== 'done') return false
+          const { updatedAt, ...created } = result.data
+          history.discard((scope) => scope.kind === 'binder' && scope.operation === 'move')
+          apply({ type: 'add', entry: created })
+          if (kind === 'document') rememberDocument(created.id, { content: null, updatedAt })
+          createdItem.entry = created
+          return true
+        })
+        const entry = createdItem.entry
+        if (!accepted || !entry) return null
         if (kind === 'folder') startRename(entry.id)
         else {
           // Known to be empty: it opens without asking the server
-          rememberDocument(entry.id, { content: null, updatedAt })
           await navigate(entry.id)
         }
         return entry
@@ -108,34 +146,46 @@ export function useBinderCommands({
       // From the tree's rename field
       rename(id: Id, title: string) {
         const cleaned = cleanTitle(title, MAX_BINDER_TITLE_LENGTH)
-        if (!cleaned) return Promise.resolve(false)
-        return run({ type: 'rename', id, title: cleaned }, () => renameBinderItem(id, cleaned))
+        const before = entries.find((entry) => entry.id === id)?.title
+        if (!cleaned || before === undefined) return Promise.resolve(false)
+        if (cleaned === before) return Promise.resolve(true)
+        return perform(async () => {
+          if (
+            !(await run({ type: 'rename', id, title: cleaned }, () =>
+              renameBinderItem(id, cleaned, before),
+            ))
+          )
+            return false
+          recordRename(id, before, cleaned)
+          return true
+        })
       },
 
-      // From a title field that saves on its own: the binder only shows the new title
-      setTitle: (id: Id, title: string) => apply({ type: 'rename', id, title }),
+      // A focused header title is one rename, recorded as it changes and saved by its field.
+      setTitle(id: Id, title: string, before: string, group: object) {
+        apply({ type: 'rename', id, title })
+        recordRename(id, before, title, group)
+      },
 
       async remove(entry: BinderEntry) {
         const inside = descendantIds(entries, entry.id)
         const confirmed = await confirm({
           title: t('binder.delete.title', { title: entry.title }),
-          description:
-            entry.kind === 'document'
-              ? t('binder.delete.document')
-              : inside.length === 0
-                ? t('binder.delete.folderEmpty')
-                : inside.length === 1
-                  ? t('binder.delete.folderOne')
-                  : t('binder.delete.folderMany', { count: inside.length }),
+          description: deleteWarning(t, entry, inside.length),
           confirmLabel: t('binder.delete.confirm'),
           tone: 'danger',
         })
         if (!confirmed) return
 
         const op: BinderOp = { type: 'remove', id: entry.id }
-        if (!(await run(op, () => deleteBinderItem(entry.id)))) return
+        if (!(await perform(() => run(op, () => deleteBinderItem(entry.id))))) return
         const removed = [entry.id, ...inside]
         // Their pending changes would be saved to documents that no longer exist
+        history.discard((scope) =>
+          scope.kind === 'binder'
+            ? scope.operation === 'move' || scope.ids.some((id) => removed.includes(id))
+            : scope.kind === 'text' && removed.includes(scope.id),
+        )
         cancelDocuments(removed)
         forgetDocuments(removed)
         toast.success(t('binder.delete.done', { title: entry.title }))
@@ -144,16 +194,38 @@ export function useBinderCommands({
         }
       },
 
-      move: (id: Id, move: BinderMove) =>
-        run({ type: 'move', id, move }, () => moveBinderItem(id, move)),
+      move(id: Id, move: BinderMove) {
+        const item = entries.find((entry) => entry.id === id)
+        if (!item) return Promise.resolve(false)
+        const inverse = {
+          parent: item.parent,
+          index: siblingsOf(entries, item.parent).findIndex((entry) => entry.id === id),
+        }
+        const forward: BinderOp = { type: 'move', id, move }
+        const backward: BinderOp = { type: 'move', id, move: inverse }
+        const after = applyBinderOp(entries, forward)
+        if (after === entries) return Promise.resolve(true)
+        const reverted = applyBinderOp(after, backward)
+        return perform(async () => {
+          if (!(await run(forward, () => moveBinderItem(id, move, entries.map(toBinderNode)))))
+            return false
+          history.record({
+            scope: { kind: 'binder', ids: [id], operation: 'move' },
+            undo: () => run(backward, () => moveBinderItem(id, inverse, after.map(toBinderNode))),
+            redo: () => run(forward, () => moveBinderItem(id, move, reverted.map(toBinderNode))),
+          })
+          return true
+        })
+      },
     }
   }, [
+    history,
     compositionId,
     entries,
     activeDocumentId,
     apply,
     showOp,
-    flushAll,
+    navigate,
     cancelDocuments,
     startRename,
     t,

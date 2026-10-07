@@ -8,3 +8,5 @@ export const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-
 const UUID = new RegExp(`^${UUID_PATTERN}$`)
 
 export const isId = (value: unknown): value is Id => typeof value === 'string' && UUID.test(value)
+
+export const isIdList = (value: unknown): value is Id[] => Array.isArray(value) && value.every(isId)

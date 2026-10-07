@@ -12,7 +12,7 @@
   cursor: pointer;
   /* On touch, a horizontal swipe plays the strings instead of being captured by the browser */
   touch-action: pan-y;
-  transition: background-color 0.2s;
+  transition: background-color var(--duration);
 }
 
 .button:hover {

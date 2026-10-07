@@ -105,6 +105,7 @@ describe('thesaurus', () => {
   it('rejects groups that do not match the schema', async () => {
     await expect(
       seedThesaurusEntry(payload, `${TEST_WORD_PREFIX}bad`, [
+        // A word that is not text, on purpose
         { partOfSpeech: 'pronoun', sense: null, words: [42 as unknown as string] },
       ]),
     ).rejects.toThrow()

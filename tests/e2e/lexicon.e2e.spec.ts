@@ -7,7 +7,11 @@ import { type Account, expect, test } from './fixtures'
 const word = `${TEST_WORD_PREFIX}lyre`
 
 test.describe('Synonyms panel', () => {
-  test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
+  // Wide enough for the panel to sit beside the sheet (narrower, it folds away: sidePanels)
+  test.use({
+    permissions: ['clipboard-read', 'clipboard-write'],
+    viewport: { width: 1440, height: 900 },
+  })
 
   test.beforeEach(async ({ account }) => {
     await cleanupThesaurusEntries(account.payload)

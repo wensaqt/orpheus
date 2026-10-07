@@ -39,12 +39,12 @@ export default defineConfig({
     // caret, keeps the focus and tracks a pointer: all three run them
     {
       name: 'firefox',
-      testMatch: /(pagination|pageSettings|toolbar)\.e2e\.spec\.ts/,
+      testMatch: /(pagination|pageSettings|toolbar|editorHistory)\.e2e\.spec\.ts/,
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
-      testMatch: /(pagination|pageSettings|toolbar)\.e2e\.spec\.ts/,
+      testMatch: /(pagination|pageSettings|toolbar|editorHistory)\.e2e\.spec\.ts/,
       use: { ...devices['Desktop Safari'] },
     },
   ],

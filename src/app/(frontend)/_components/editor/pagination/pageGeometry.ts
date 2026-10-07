@@ -1,4 +1,8 @@
+import { clamp } from '@/lib/numbers'
 import { type PageSettings, pageSize } from '@/lib/pageFormats'
+
+import { LINE_INSET, MM_TO_PX, SUBPIXEL_TOLERANCE } from './constants'
+import type { PageBreakPlace, PageGeometry, Point } from './types'
 
 /*
  * Page geometry in CSS pixels, for laying the text out on pages. Pure: the layout reads the
@@ -6,18 +10,6 @@ import { type PageSettings, pageSize } from '@/lib/pageFormats'
  * page's text area (its sheet's top plus the top margin), bands between pages included, so
  * page n's text area spans n × pitch to n × pitch + its content height.
  */
-
-// CSS pixels per millimetre (96 px per inch, also what print uses)
-export const MM_TO_PX = 96 / 25.4
-
-export type PageGeometry = {
-  width: number
-  height: number
-  top: number
-  right: number
-  bottom: number
-  left: number
-}
 
 export function toGeometry(
   settings: Pick<PageSettings, 'format' | 'orientation' | 'margins'>,
@@ -43,12 +35,6 @@ export const bandHeight = (page: PageGeometry, gap: number) => page.bottom + gap
 // One page's text area plus the band below it: the period of the layout
 const pitch = (page: PageGeometry, gap: number) => contentHeight(page) + bandHeight(page, gap)
 
-// Measured sizes are rounded to fractions of a pixel: within this, two of them are equal
-export const SUBPIXEL_TOLERANCE = 0.5
-
-// How far inside a text area a point must be to hit a line, rather than the area's edge
-export const LINE_INSET = 2
-
 /*
  * Pages needed for a text flow of this height. The flow already includes the bands between
  * the pages shown, which is consistent: N pages hold N text areas and N - 1 bands.
@@ -56,13 +42,6 @@ export const LINE_INSET = 2
 export function pagesFor(flowHeight: number, page: PageGeometry, gap: number): number {
   const band = bandHeight(page, gap)
   return Math.max(1, Math.ceil((flowHeight - SUBPIXEL_TOLERANCE + band) / pitch(page, gap)))
-}
-
-// A page break in the flow: where it starts, and where the text before it ends
-export type PageBreakPlace = {
-  start: number
-  // The bottom of the block before it, margins left out (its own start when it opens the text)
-  textEnd: number
 }
 
 /*
@@ -77,10 +56,11 @@ export function pageBreakFill(
   gap: number,
 ): number {
   const period = pitch(page, gap)
-  const content = contentHeight(page)
-  let pageIndex = Math.floor(textEnd / period)
-  if (textEnd > pageIndex * period + content - SUBPIXEL_TOLERANCE) pageIndex++
-  return Math.max(0, pageIndex * period + content - start)
+  const areaEnd = (index: number) => index * period + contentHeight(page)
+  const index = Math.floor(textEnd / period)
+  // Text that ends past its text area (in the band, or right at its end) has no room left there
+  const breakPage = textEnd > areaEnd(index) - SUBPIXEL_TOLERANCE ? index + 1 : index
+  return Math.max(0, areaEnd(breakPage) - start)
 }
 
 /*
@@ -95,21 +75,19 @@ export function nearestTextOffset(
   pages: number,
 ): number {
   const period = pitch(page, gap)
-  const content = contentHeight(page)
-  let best = LINE_INSET
-  let distance = Number.POSITIVE_INFINITY
-  for (let index = 0; index < pages; index++) {
+  // The point of a page's text area nearest to the offset, just inside it
+  const onPage = (index: number) => {
     const start = index * period
-    const candidate = clamp(offset, start + LINE_INSET, start + content - LINE_INSET)
-    if (Math.abs(candidate - offset) < distance) {
-      distance = Math.abs(candidate - offset)
-      best = candidate
-    }
+    return clamp(offset, start + LINE_INSET, start + contentHeight(page) - LINE_INSET)
   }
-  return best
+  const index = clamp(Math.floor(offset / period), 0, pages - 1)
+  const here = onPage(index)
+  // Level with that page's text area, above it, or below the last page: nothing is nearer
+  if (here >= offset || index === pages - 1) return here
+  // In the band below it: the nearer of that page's end and the next page's start
+  const next = onPage(index + 1)
+  return next - offset < offset - here ? next : here
 }
-
-export type Point = { x: number; y: number }
 
 /*
  * The point to put the caret at, on screen: the click's, brought inside the text's box, at
@@ -125,5 +103,3 @@ export function caretPoint(
     y: Math.min(lineY, text.bottom - LINE_INSET),
   }
 }
-
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)

@@ -13,3 +13,17 @@ export type EditorDocument = Pick<BinderItem, 'id' | 'title' | 'updatedAt'> & {
 
 // One line of the binder column: its place in the tree and its title, never its content
 export type BinderEntry = BinderNodeData & Pick<BinderItem, 'title'>
+
+// The text of a document as some version of the server had it
+export type DocumentText = Pick<EditorDocument, 'content' | 'updatedAt'>
+
+// checkedAt: when the server last confirmed this version (ms since the epoch)
+export type CachedDocument = DocumentText & { checkedAt: number }
+
+// A document in the client cache, or where its loading stands
+export type DocumentSlot =
+  | { status: 'ready'; document: CachedDocument }
+  | { status: 'loading' }
+  // Gone or never readable (deleted, someone else's): asking again would not change that
+  | { status: 'missing' }
+  | { status: 'error' }

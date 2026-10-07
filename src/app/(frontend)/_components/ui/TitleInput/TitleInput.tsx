@@ -1,5 +1,7 @@
 import type { ComponentProps } from 'react'
 
+import { classNames } from '@front/_lib/classNames'
+
 import styles from './TitleInput.module.css'
 
 type TitleInputProps = Omit<ComponentProps<'input'>, 'size'> & {
@@ -16,7 +18,7 @@ export function TitleInput({ size = 'xl', ruled = false, className, ...input }: 
       {...input}
       data-size={size}
       data-ruled={ruled}
-      className={[styles.title, className].filter(Boolean).join(' ')}
+      className={classNames(styles.title, className)}
     />
   )
 }

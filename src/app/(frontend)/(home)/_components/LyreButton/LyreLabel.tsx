@@ -1,7 +1,5 @@
-import React from 'react'
-
 import styles from './LyreLabel.module.css'
-import type { LyreSide } from './types'
+import { LyreSide } from './types'
 
 type LyreLabelProps = {
   side: LyreSide

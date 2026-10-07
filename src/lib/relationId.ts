@@ -1,3 +1,4 @@
+import { isRecord } from './guards'
 import { type Id, isId } from './ids'
 
 type Relation = Id | { id: Id }
@@ -11,6 +12,6 @@ export function relationId(value: Relation): Id
 export function relationId(value: unknown): Id | null
 export function relationId(value: unknown): Id | null {
   if (isId(value)) return value
-  if (value && typeof value === 'object' && 'id' in value && isId(value.id)) return value.id
+  if (isRecord(value) && isId(value.id)) return value.id
   return null
 }

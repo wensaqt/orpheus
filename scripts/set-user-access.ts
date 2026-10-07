@@ -8,13 +8,17 @@
 import { getPayload } from 'payload'
 
 import config from '@payload-config'
+import { isOneOf } from '@/lib/guards'
 import { PLANS, USER_ROLES } from '@/lib/users'
 
-const ALLOWED = { role: USER_ROLES, plan: PLANS } as const
-
 const [email, field, value] = process.argv.slice(2)
-const allowed = ALLOWED[field as keyof typeof ALLOWED] as readonly string[] | undefined
-if (!email || !allowed?.includes(value)) {
+const data =
+  field === 'role' && isOneOf(USER_ROLES, value)
+    ? { role: value }
+    : field === 'plan' && isOneOf(PLANS, value)
+      ? { plan: value }
+      : null
+if (!email || !data) {
   console.error('Usage: pnpm users:set <email> role <admin|user> | plan <free|pro>')
   process.exit(1)
 }
@@ -23,7 +27,7 @@ const payload = await getPayload({ config })
 const { docs } = await payload.update({
   collection: 'users',
   where: { email: { equals: email } },
-  data: { [field]: value },
+  data,
   depth: 0,
 })
 if (!docs.length) {

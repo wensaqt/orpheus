@@ -8,7 +8,8 @@ import { type RefObject, useEffect, useEffectEvent, useState } from 'react'
 
 import type { Id } from '@/lib/ids'
 
-import { type BinderRow, DROP, type DropOperation } from '../rows'
+import { DROP } from '../constants'
+import type { BinderRow, DropOperation } from '../types'
 import { binderDragData, isBinderDrag } from './dragData'
 
 type RowDragOptions = {

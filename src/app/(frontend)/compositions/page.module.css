@@ -36,8 +36,8 @@
 .heading::after {
   content: '';
   display: block;
-  width: 3rem;
-  height: 1.5px;
+  width: var(--rule-length);
+  height: var(--rule-thickness);
   margin-block-start: var(--space-3);
   background-color: var(--color-divider);
 }

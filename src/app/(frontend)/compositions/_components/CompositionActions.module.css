@@ -5,8 +5,8 @@
   right: var(--space-2);
   display: grid;
   place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: var(--control-size);
+  height: var(--control-size);
   border: none;
   border-radius: 50%;
   background-color: var(--color-surface-raised);
@@ -16,9 +16,9 @@
   cursor: pointer;
   opacity: 0;
   transition:
-    opacity 0.2s,
-    color 0.2s,
-    background-color 0.2s;
+    opacity var(--duration),
+    color var(--duration),
+    background-color var(--duration);
 }
 
 :hover > .trigger,
