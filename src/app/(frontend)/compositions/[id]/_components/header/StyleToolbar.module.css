@@ -19,7 +19,8 @@
 }
 
 /* The paragraph style: its name, wide enough for the longest, and a chevron */
-.blockType {
+.blockType,
+.font {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
@@ -40,29 +41,48 @@
     background-color var(--duration);
 }
 
-.blockType:is(:hover, :focus-visible, [aria-expanded='true']):not([aria-disabled='true']) {
+:is(.blockType, .font):is(:hover, :focus-visible, [aria-expanded='true']):not(
+    [aria-disabled='true']
+  ) {
   background-color: var(--color-surface-accent);
   color: var(--color-primary-hover);
 }
 
-.blockType:focus-visible {
+:is(.blockType, .font):focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-.blockType[aria-disabled='true'] {
+:is(.blockType, .font)[aria-disabled='true'] {
   color: var(--color-text-muted);
   cursor: default;
 }
 
-.blockType[aria-disabled='true'] > * {
+:is(.blockType, .font)[aria-disabled='true'] > * {
   opacity: 0.4;
 }
 
 .blockTypeLabel {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: start;
+}
+
+.font {
+  flex-shrink: 1;
+  min-width: var(--control-size);
+  width: 10rem;
+}
+
+.fontChevron {
+  flex-shrink: 0;
+}
+
+.fontIcon {
+  display: none;
 }
 
 /*
@@ -75,10 +95,37 @@
   .toolbar .soon {
     display: none;
   }
+
+  .font {
+    width: 8rem;
+  }
+}
+
+/* Keep the font menu available alongside the working controls on narrower screens */
+@container (max-width: 40rem) {
+  .blockType {
+    width: 6rem;
+  }
+
+  .font {
+    width: var(--control-size);
+    padding: 0;
+    justify-content: center;
+  }
+
+  .font .blockTypeLabel,
+  .fontChevron {
+    display: none;
+  }
+
+  .fontIcon {
+    display: block;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blockType {
+  .blockType,
+  .font {
     transition: none;
   }
 }

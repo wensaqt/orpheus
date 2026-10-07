@@ -1,6 +1,5 @@
 /* Fixed-positioned by the component (top / right) below its trigger */
 .menu {
-  composes: surface from '../popoverSurface.module.css';
   min-width: 10rem;
   padding: var(--space-1);
 }

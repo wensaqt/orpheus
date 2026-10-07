@@ -9,6 +9,7 @@ type IconButtonProps = Omit<ComponentProps<'button'>, 'aria-label' | 'title' | '
   label: string
   // What the tooltip shows instead, e.g. the label with its shortcut
   tooltip?: string
+  tooltipAlign?: 'center' | 'end'
   icon: ReactNode
 }
 
@@ -16,7 +17,14 @@ type IconButtonProps = Omit<ComponentProps<'button'>, 'aria-label' | 'title' | '
  * A small, discreet button showing only an icon. Its label appears in a tooltip on hover and
  * on keyboard focus (the native title tooltip is slow and unstyled).
  */
-export function IconButton({ label, tooltip, icon, className, ...button }: IconButtonProps) {
+export function IconButton({
+  label,
+  tooltip,
+  tooltipAlign = 'center',
+  icon,
+  className,
+  ...button
+}: IconButtonProps) {
   return (
     <button
       type="button"
@@ -26,7 +34,7 @@ export function IconButton({ label, tooltip, icon, className, ...button }: IconB
     >
       {icon}
       {/* The label is already the button's name: the tooltip is for sighted users only */}
-      <span className={styles.tooltip} aria-hidden="true">
+      <span className={styles.tooltip} data-align={tooltipAlign} aria-hidden="true">
         {tooltip ?? label}
       </span>
     </button>

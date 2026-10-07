@@ -1,7 +1,3 @@
-.trigger {
-  composes: trigger from '../CornerActions/trigger.module.css';
-}
-
 .icon {
   fill: none;
   stroke: currentColor;

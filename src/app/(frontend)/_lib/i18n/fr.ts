@@ -230,6 +230,11 @@ export const fr: Messages = {
       indent: 'Augmenter le retrait',
       clearFormatting: 'Effacer la mise en forme',
     },
+    fonts: {
+      default: 'Par défaut',
+      mixed: 'Plusieurs polices',
+      unknown: 'Autre police',
+    },
     blockTypes: {
       label: 'Style de paragraphe',
       paragraph: 'Texte normal',

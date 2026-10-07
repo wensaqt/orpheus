@@ -6,10 +6,15 @@ import {
   $isQuoteNode,
   type HeadingTagType,
 } from '@lexical/rich-text'
-import { $setBlocksType } from '@lexical/selection'
+import {
+  $getSelectionStyleValueForProperty,
+  $patchStyleText,
+  $setBlocksType,
+} from '@lexical/selection'
 import { $getNearestNodeOfType, $insertNodeToNearestRoot } from '@lexical/utils'
 import {
   $createParagraphNode,
+  $addUpdateTag,
   $findMatchingParent,
   $getRoot,
   $getSelection,
@@ -17,12 +22,21 @@ import {
   $isRangeSelection,
   $isRootOrShadowRoot,
   $isTextNode,
+  getStyleObjectFromCSS,
+  HISTORY_PUSH_TAG,
   type ElementFormatType,
   type LexicalNode,
   type RangeSelection,
 } from 'lexical'
 
 import { NO_FORMATTING, TEXT_FORMATS } from './constants'
+import {
+  FONT_FAMILY_PROPERTY,
+  fontFamilyOf,
+  fontFromFamily,
+  type FontChoice,
+  type SelectedFont,
+} from './fonts'
 import { $createPageBreakNode } from './nodes/PageBreakNode'
 import {
   Alignment,
@@ -53,6 +67,7 @@ export const toElementFormat = (align: Alignment): ElementFormatType =>
 
 export const sameFormatting = (a: Formatting, b: Formatting) =>
   a.text === b.text &&
+  a.font === b.font &&
   a.blockType === b.blockType &&
   a.align === b.align &&
   TEXT_FORMATS.every((format) => a.formats[format] === b.formats[format])
@@ -88,10 +103,15 @@ const formatsOf = (source: { hasFormat: (format: TextFormat) => boolean }) => ({
   [TextFormat.Strikethrough]: source.hasFormat(TextFormat.Strikethrough),
 })
 
-function $formattingAt(node: LexicalNode, formats: Formatting['formats']): Formatting {
+function $formattingAt(
+  node: LexicalNode,
+  formats: Formatting['formats'],
+  font: SelectedFont,
+): Formatting {
   const block = $findMatchingParent(node, (parent) => $isElementNode(parent) && !parent.isInline())
   return {
     text: true,
+    font,
     formats,
     blockType: $blockTypeOf(node),
     align:
@@ -99,6 +119,22 @@ function $formattingAt(node: LexicalNode, formats: Formatting['formats']): Forma
         ? toAlignment(block.getFormatType())
         : Alignment.Left,
   }
+}
+
+// At a caret, selection.style describes the next typed text, including a cleared font.
+export function $selectionFont(selection: RangeSelection): SelectedFont {
+  if (selection.isCollapsed()) {
+    return fontFromFamily(getStyleObjectFromCSS(selection.style)[FONT_FAMILY_PROPERTY])
+  }
+  const family = $getSelectionStyleValueForProperty(selection, FONT_FAMILY_PROPERTY, 'inherit')
+  return family === '' ? 'mixed' : fontFromFamily(family)
+}
+
+export function $setSelectionFont(selection: RangeSelection, font: FontChoice) {
+  if ($selectionFont(selection) === font) return
+  $patchStyleText(selection, { [FONT_FAMILY_PROPERTY]: fontFamilyOf(font) })
+  // A text change is its own undo step; at a caret this prepares the next typed text.
+  $addUpdateTag(HISTORY_PUSH_TAG)
 }
 
 /*
@@ -111,13 +147,17 @@ export function $readFormatting(): Formatting {
   const selection = $getSelection()
   if (selection === null) {
     const first = $getRoot().getFirstDescendant()
+    let style = ''
+    if ($isTextNode(first)) style = first.getStyle()
+    else if ($isElementNode(first)) style = first.getTextStyle()
     return $formattingAt(
       first ?? $getRoot(),
       $isTextNode(first) ? formatsOf(first) : NO_FORMATTING.formats,
+      fontFromFamily(getStyleObjectFromCSS(style)[FONT_FAMILY_PROPERTY]),
     )
   }
   if (!$isRangeSelection(selection)) return NO_FORMATTING
-  return $formattingAt(selection.anchor.getNode(), formatsOf(selection))
+  return $formattingAt(selection.anchor.getNode(), formatsOf(selection), $selectionFont(selection))
 }
 
 /*

@@ -13,6 +13,7 @@ import {
 import { parseId } from '@front/_lib/validation'
 
 import { EditorShell } from './_components/EditorShell'
+import { documentFontClasses } from '@front/_styles/fonts/documentFonts'
 
 /*
  * The editor around every document of a composition: binder on the left, synonyms on the
@@ -37,6 +38,7 @@ export default async function CompositionLayout({
 
   return (
     <EditorShell
+      fontClassName={documentFontClasses}
       compositionId={binder.composition.id}
       title={binder.composition.title}
       layout={toLayout(binder.composition)}

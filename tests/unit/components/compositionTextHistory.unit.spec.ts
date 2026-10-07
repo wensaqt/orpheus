@@ -9,6 +9,8 @@ import { describe, expect, it } from 'vitest'
 import type { Id } from '@/lib/ids'
 import { createHistoryStore } from '@front/compositions/[id]/_components/history/historyStore'
 import { registerCompositionHistory } from '@front/compositions/[id]/_components/history/lexicalHistory'
+import { $setSelectionFont } from '@front/_components/editor/formatting'
+import { FontId } from '@front/_components/editor/fonts'
 
 const id: Id = '01960000-0000-7000-8000-000000000001'
 const otherId: Id = '01960000-0000-7000-8000-000000000002'
@@ -33,6 +35,27 @@ const textOf = (editor: ReturnType<typeof createEditor>) =>
   editor.getEditorState().read(() => $getRoot().getTextContent())
 
 describe('composition text history', () => {
+  it('keeps a font change separate from typing and restores its styles with undo and redo', async () => {
+    const editor = emptyEditor()
+    const history = createHistoryStore()
+    const stop = registerCompositionHistory(editor, id, history)
+    type(editor, 'Orpheus')
+    const before = editor.getEditorState().toJSON()
+    editor.update(() => $setSelectionFont($getRoot().select(0, 1), FontId.Lora), { discrete: true })
+    const withFont = editor.getEditorState().toJSON()
+    type(editor, '!')
+    const afterTyping = editor.getEditorState().toJSON()
+    expect(await history.undo()).toBe(true)
+    expect(editor.getEditorState().toJSON()).toEqual(withFont)
+    expect(await history.undo()).toBe(true)
+    expect(editor.getEditorState().toJSON()).toEqual(before)
+    expect(await history.redo()).toBe(true)
+    expect(editor.getEditorState().toJSON()).toEqual(withFont)
+    expect(await history.redo()).toBe(true)
+    expect(editor.getEditorState().toJSON()).toEqual(afterTyping)
+    stop()
+  })
+
   it('splits typing around a layout action and preserves the complete merged redo', async () => {
     const editor = emptyEditor()
     const history = createHistoryStore()

@@ -13,6 +13,7 @@ export const ALIGNMENTS = Object.values(Alignment)
 
 export const NO_FORMATTING: Formatting = {
   text: false,
+  font: 'default',
   formats: {
     [TextFormat.Bold]: false,
     [TextFormat.Italic]: false,

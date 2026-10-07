@@ -57,6 +57,7 @@
   white-space: nowrap;
   color: var(--color-surface-raised);
   pointer-events: none;
+  visibility: hidden;
   opacity: 0;
   translate: -50% calc(-1 * var(--space-1));
   transition:
@@ -64,11 +65,22 @@
     translate var(--duration-fast);
 }
 
+.tooltip[data-align='end'] {
+  left: auto;
+  right: 0;
+  translate: 0 calc(-1 * var(--space-1));
+}
+
 .button:hover .tooltip,
 .button:focus-visible .tooltip {
+  visibility: visible;
   opacity: 1;
   translate: -50% 0;
   transition-delay: var(--duration-slow);
+}
+
+.button:is(:hover, :focus-visible) .tooltip[data-align='end'] {
+  translate: 0 0;
 }
 
 /* Keyboard focus shows it at once: there is no mouse passing by */

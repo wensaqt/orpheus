@@ -1,4 +1,6 @@
-// The text formats the toolbar toggles, named as Lexical names them
+import type { SelectedFont } from './fonts'
+
+// The text formats the toolbar togggles, named as Lexical names them
 export enum TextFormat {
   Bold = 'bold',
   Italic = 'italic',
@@ -37,6 +39,7 @@ export enum Alignment {
 export type Formatting = {
   // A text selection, or none yet (see $textSelection), not a page break: the styles apply
   text: boolean
+  font: SelectedFont
   formats: Record<TextFormat, boolean>
   blockType: BlockType
   align: Alignment
