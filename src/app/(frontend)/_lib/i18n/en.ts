@@ -174,6 +174,7 @@ export const en = {
     documentTitleLabel: 'Document title',
     textLabel: 'Document text',
     saveError: 'Could not save — trying again…',
+    historyError: 'Could not undo or redo this change. Try again.',
     toolbar: 'Editor toolbar',
     menuBar: 'Menu bar',
     // The Format menu's set of alignments

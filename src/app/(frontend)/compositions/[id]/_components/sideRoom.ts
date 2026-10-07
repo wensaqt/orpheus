@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useEffect, useState } from 'react'
+import { type RefObject, useEffect } from 'react'
 
 // The desk's widths, measured in pixels
 export type DeskWidths = {
@@ -29,9 +29,8 @@ export function useSideRoom(
   binder: RefObject<HTMLElement | null>,
   panelProbe: RefObject<HTMLElement | null>,
   pageWidth: number,
+  setRoom: (room: boolean) => void,
 ) {
-  const [room, setRoom] = useState(true)
-
   useEffect(() => {
     const deskElement = desk.current
     const binderElement = binder.current
@@ -54,7 +53,5 @@ export function useSideRoom(
     observer.observe(deskElement)
     observer.observe(binderElement)
     return () => observer.disconnect()
-  }, [desk, binder, panelProbe, pageWidth])
-
-  return room
+  }, [desk, binder, panelProbe, pageWidth, setRoom])
 }

@@ -29,7 +29,7 @@ describe('useTitleField', () => {
   it('saves the trimmed title after a pause and reports it as typed', async () => {
     const { save, onTitle, type } = setup()
     type('  Eurydice ')
-    expect(onTitle).toHaveBeenLastCalledWith('Eurydice')
+    expect(onTitle).toHaveBeenLastCalledWith('Eurydice', 'Orpheus', expect.any(Object))
     await act(async () => vi.advanceTimersByTimeAsync(800))
     expect(save).toHaveBeenCalledWith('Eurydice')
   })
@@ -43,5 +43,31 @@ describe('useTitleField', () => {
     expect(result.current.inputProps.value).toBe('Eurydice')
     expect(save).toHaveBeenCalledTimes(1)
     expect(save).toHaveBeenCalledWith('Eurydice')
+  })
+
+  it('keeps a live trimmed draft, but follows an external rename and history reset', async () => {
+    const save = vi.fn(async (_title: string): Promise<ActionResult> => done())
+    const hook = renderHook(
+      ({ title, resetVersion }) => useTitleField({ title, maxLength: 20, save, resetVersion }),
+      { initialProps: { title: 'Orpheus', resetVersion: 0 } },
+    )
+    act(() =>
+      hook.result.current.inputProps.onChange({
+        target: { value: '  Eurydice ' },
+      } as ChangeEvent<HTMLInputElement>),
+    )
+    hook.rerender({ title: 'Eurydice', resetVersion: 0 })
+    expect(hook.result.current.inputProps.value).toBe('  Eurydice ')
+    await act(async () => hook.result.current.flush())
+    expect(save).toHaveBeenLastCalledWith('Eurydice')
+    hook.rerender({ title: 'Chant', resetVersion: 0 })
+    expect(hook.result.current.inputProps.value).toBe('Chant')
+    act(() =>
+      hook.result.current.inputProps.onChange({
+        target: { value: '' },
+      } as ChangeEvent<HTMLInputElement>),
+    )
+    hook.rerender({ title: 'Chant', resetVersion: 1 })
+    expect(hook.result.current.inputProps.value).toBe('Chant')
   })
 })

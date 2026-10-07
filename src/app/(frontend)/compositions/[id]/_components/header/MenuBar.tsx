@@ -8,6 +8,7 @@ import type { MenuHandle } from '@front/_components/ui/Menu/types'
 import type { PopoverHandle } from '@front/_components/ui/Popover/Popover'
 import { ROVING_PROPS, useRovingFocus } from '@front/_components/ui/rovingFocus'
 
+import { useEditorView } from '../editorView'
 import { useFocusReturn, useOpenEditor } from '../editorFocus'
 import styles from './MenuBar.module.css'
 import { PageSetup } from './PageSetup'
@@ -25,6 +26,7 @@ import type { ToolbarState } from './useToolbarState'
  */
 export function MenuBar({ state }: { state: ToolbarState }) {
   const t = useT()
+  const view = useEditorView()
   const editor = useOpenEditor()
   const actions = useToolbarActions()
   const focus = useFocusReturn()
@@ -42,6 +44,7 @@ export function MenuBar({ state }: { state: ToolbarState }) {
     actions,
     hasEditor: editor !== null,
     onPageSetup,
+    view,
   })
 
   // The menu at this index, opened with the focus on its first item

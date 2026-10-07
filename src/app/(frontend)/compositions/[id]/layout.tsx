@@ -6,6 +6,7 @@ import { toLayout } from '@/lib/layout'
 import { getBinder } from '@front/_features/binder/queries'
 import {
   BINDER_HIDDEN_COOKIE,
+  RULER_HIDDEN_COOKIE,
   isPreferenceOn,
   SYNONYMS_HIDDEN_COOKIE,
 } from '@front/_lib/preferences'
@@ -40,6 +41,7 @@ export default async function CompositionLayout({
       title={binder.composition.title}
       layout={toLayout(binder.composition)}
       entries={binder.entries}
+      rulerHidden={isPreferenceOn(cookieStore.get(RULER_HIDDEN_COOKIE)?.value)}
       binderHidden={isPreferenceOn(cookieStore.get(BINDER_HIDDEN_COOKIE)?.value)}
       synonymsHidden={isPreferenceOn(cookieStore.get(SYNONYMS_HIDDEN_COOKIE)?.value)}
     >

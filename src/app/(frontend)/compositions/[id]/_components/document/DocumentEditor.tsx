@@ -19,6 +19,8 @@ import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
 import { SAVERS } from '../binder/state/saverKeys'
 import { useDocumentTitleSlot } from '../header/documentTitleSlot'
 import { useRegisterOpenEditor } from '../editorFocus'
+import { CompositionHistoryPlugin } from '../history/CompositionHistoryPlugin'
+import { useHistoryState } from '../history/HistoryProvider'
 import { useLayout } from '../page/LayoutProvider'
 import styles from './DocumentEditor.module.css'
 import { DocumentTitle } from './DocumentTitle'
@@ -56,12 +58,14 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
   const titleSlot = useDocumentTitleSlot()
   useRegisterOpenEditor(editor)
   const autosave = useDocumentText(id, text)
+  const { generation, busy } = useHistoryState()
   const titleField = useTitleField({
+    resetVersion: generation,
     title,
     maxLength: MAX_BINDER_TITLE_LENGTH,
     save: (next) => renameBinderItem(id, next),
     // The binder shows the title as it is typed
-    onTitle: (next) => commands.setTitle(id, next),
+    onTitle: (next, previous, group) => commands.setTitle(id, next, previous, group),
   })
 
   useRegisterSaver(SAVERS.documentText(id), autosave)
@@ -69,7 +73,8 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
 
   return (
     <>
-      {titleSlot && createPortal(<DocumentTitle {...titleField.inputProps} />, titleSlot)}
+      {titleSlot &&
+        createPortal(<DocumentTitle {...titleField.inputProps} disabled={busy} />, titleSlot)}
       {/* Only save failures are reported; everything else happens silently */}
       {titleField.status === SaveStatus.Error || autosave.status === SaveStatus.Error ? (
         <p className={styles.saveError} role="alert">
@@ -77,7 +82,10 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
         </p>
       ) : null}
       <PagedSheet settings={layout.page} typography={layout.typography}>
-        <EditorContent label={t('editor.textLabel')} />
+        <EditorContent
+          historyPlugin={<CompositionHistoryPlugin id={id} />}
+          label={t('editor.textLabel')}
+        />
       </PagedSheet>
     </>
   )

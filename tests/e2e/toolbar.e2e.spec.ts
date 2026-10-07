@@ -434,7 +434,7 @@ test.describe('Menu bar', () => {
     await page.keyboard.press('ArrowRight')
     await expect(edit).toHaveAttribute('aria-expanded', 'false')
     await expect(view).toHaveAttribute('aria-expanded', 'true')
-    await expect(page.getByRole('menuitem', { name: 'Show ruler' })).toBeFocused()
+    await expect(page.getByRole('menuitemcheckbox', { name: 'Show ruler' })).toBeFocused()
     await page.keyboard.press('Escape')
     await expect(view).toHaveAttribute('aria-expanded', 'false')
     await expect(view).toBeFocused()
@@ -443,7 +443,7 @@ test.describe('Menu bar', () => {
     await page.keyboard.press('ArrowLeft')
     await expect(menuNamed(page, 'Tools')).toBeFocused()
     await page.keyboard.press('Enter')
-    await expect(page.getByRole('menuitem', { name: 'Synonyms' })).toBeFocused()
+    await expect(page.getByRole('menuitemcheckbox', { name: 'Synonyms' })).toBeFocused()
     // Up on a name: its menu, on the last item
     await page.keyboard.press('Escape')
     await page.keyboard.press('ArrowLeft')

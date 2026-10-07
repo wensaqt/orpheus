@@ -18,7 +18,7 @@ const availability = new WeakMap<LexicalEditor, HistoryAvailability>()
 const listeners = new WeakMap<LexicalEditor, Set<() => void>>()
 
 // How long consecutive changes merge into one undo step: Lexical's own plugin's default
-const MERGE_DELAY_MS = 1000
+export const HISTORY_MERGE_DELAY_MS = 1000
 
 const historyOf = (editor: LexicalEditor | null) => (editor && availability.get(editor)) ?? NOTHING
 
@@ -47,7 +47,9 @@ function subscribe(editor: LexicalEditor | null, listener: () => void) {
  * included. Returns the unregistration.
  */
 export const registerPublishedHistory = (editor: LexicalEditor, state: HistoryState) =>
-  registerHistory(editor, state, MERGE_DELAY_MS, Date.now, (next) => publishHistory(editor, next))
+  registerHistory(editor, state, HISTORY_MERGE_DELAY_MS, Date.now, (next) =>
+    publishHistory(editor, next),
+  )
 
 // What the editor can undo and redo now, and again whenever that changes
 export function useHistoryAvailability(editor: LexicalEditor | null) {

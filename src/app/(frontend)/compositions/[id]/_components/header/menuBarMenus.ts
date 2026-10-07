@@ -3,6 +3,7 @@ import { MENU_SEPARATOR } from '@front/_components/ui/Menu/constants'
 import type { MenuEntry, MenuGroup, MenuItem } from '@front/_components/ui/Menu/types'
 import type { MessageKey, Translate } from '@front/_lib/i18n'
 
+import type { useEditorView } from '../editorView'
 import type { ToolbarActions } from './toolbarActions'
 import {
   ALIGNMENT_LABELS,
@@ -21,6 +22,7 @@ import type { ToolbarState } from './useToolbarState'
 export type MenuDefinition = { label: MessageKey; items: MenuEntry[] }
 
 type MenuContext = {
+  view: ReturnType<typeof useEditorView>
   t: Translate
   state: ToolbarState
   actions: ToolbarActions
@@ -74,9 +76,17 @@ const editMenu = ({ t, state, actions, hasEditor }: MenuContext): MenuDefinition
   ],
 })
 
-const viewMenu = ({ t }: MenuContext): MenuDefinition => ({
+const viewMenu = ({ t, view }: MenuContext): MenuDefinition => ({
   label: 'editor.menus.view',
-  items: [soon(t, 'editor.actions.showRuler'), soon(t, 'editor.actions.bookView')],
+  items: [
+    {
+      label: t('editor.actions.showRuler'),
+      kind: 'checkbox',
+      checked: view.rulerVisible,
+      onSelect: view.toggleRuler,
+    },
+    soon(t, 'editor.actions.bookView'),
+  ],
 })
 
 const insertMenu = ({ t, state, actions }: MenuContext): MenuDefinition => ({
@@ -144,9 +154,17 @@ const formatMenu = (context: MenuContext): MenuDefinition => ({
   ],
 })
 
-const toolsMenu = ({ t }: MenuContext): MenuDefinition => ({
+const toolsMenu = ({ t, view }: MenuContext): MenuDefinition => ({
   label: 'editor.menus.tools',
-  items: [soon(t, 'editor.actions.synonyms'), soon(t, 'editor.actions.wordCount')],
+  items: [
+    {
+      label: t('editor.actions.synonyms'),
+      kind: 'checkbox',
+      checked: view.synonymsVisible,
+      onSelect: view.toggleSynonyms,
+    },
+    soon(t, 'editor.actions.wordCount'),
+  ],
 })
 
 export const menuBarMenus = (context: MenuContext): MenuDefinition[] =>

@@ -8,6 +8,7 @@ export const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
  * (no jump after loading). Set from the browser; read by layouts with cookies().
  */
 export const BINDER_HIDDEN_COOKIE = 'orpheus-binder-hidden'
+export const RULER_HIDDEN_COOKIE = 'orpheus-ruler-hidden'
 export const SYNONYMS_HIDDEN_COOKIE = 'orpheus-synonyms-hidden'
 
 // How a preference cookie spells on and off

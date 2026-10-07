@@ -9,7 +9,7 @@ import {
 } from 'payload'
 
 import { type BinderItemKind, MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
-import { type BinderMove, planMove } from '@/lib/binder/tree'
+import { type BinderMove, type BinderNodeData, planMove } from '@/lib/binder/tree'
 import { relationId } from '@/lib/relationId'
 import { cleanTitle } from '@/lib/titles'
 import type { Id } from '@/lib/ids'
@@ -22,7 +22,7 @@ import { getT } from '@front/_lib/server/i18n'
 
 import { binderEntries, toEntry } from './queries'
 import type { BinderEntry, LexicalContent } from './types'
-import { isKind, isMove, isParent } from './validation'
+import { isBinderNodes, isKind, isMove, isParent } from './validation'
 
 /*
  * Binder changes from the editor. Each action checks its input (server actions are public
@@ -100,10 +100,21 @@ export const createBinderItem = authedAction(
 
 // Renames an item; an empty or overlong title is refused
 export const renameBinderItem = authedAction(
-  async ({ payload, user }, id: Id, title: string): Promise<ActionResult> => {
+  async ({ payload, user }, id: Id, title: string, expected?: string): Promise<ActionResult> => {
     const cleaned = cleanTitle(title, MAX_BINDER_TITLE_LENGTH)
-    if (!isId(id) || !cleaned) return failed
+    if (!isId(id) || !cleaned || (expected !== undefined && typeof expected !== 'string'))
+      return failed
     try {
+      if (expected !== undefined) {
+        const item = await payload.findByID({
+          collection: 'binder-items',
+          id,
+          user,
+          overrideAccess: false,
+          depth: 0,
+        })
+        if (item.title !== expected) return failed
+      }
       await payload.update({
         collection: 'binder-items',
         id,
@@ -138,8 +149,9 @@ export const deleteBinderItem = authedAction(
  * binder, then written in one transaction: either every renumbered item changes, or none.
  */
 export const moveBinderItem = authedAction(
-  async (session, id: Id, move: BinderMove): Promise<ActionResult> => {
-    if (!isId(id) || !isMove(move)) return failed
+  async (session, id: Id, move: BinderMove, expected?: BinderNodeData[]): Promise<ActionResult> => {
+    if (!isId(id) || !isMove(move) || (expected !== undefined && !isBinderNodes(expected)))
+      return failed
     const { payload, user } = session
     const item = await payload
       .findByID({ collection: 'binder-items', id, user, overrideAccess: false, depth: 0 })
@@ -148,7 +160,22 @@ export const moveBinderItem = authedAction(
 
     let placements
     try {
-      placements = planMove(await binderEntries(session, relationId(item.composition)), id, move)
+      const entries = await binderEntries(session, relationId(item.composition))
+      if (
+        expected !== undefined &&
+        (expected.length !== entries.length ||
+          expected.some((node) => {
+            const current = entries.find((entry) => entry.id === node.id)
+            return (
+              !current ||
+              current.kind !== node.kind ||
+              current.parent !== node.parent ||
+              current.position !== node.position
+            )
+          }))
+      )
+        return failed
+      placements = planMove(entries, id, move)
     } catch {
       return failed
     }

@@ -12,9 +12,7 @@ import {
   FORMAT_TEXT_COMMAND,
   type LexicalEditor,
   type RangeSelection,
-  REDO_COMMAND,
   SKIP_SELECTION_FOCUS_TAG,
-  UNDO_COMMAND,
 } from 'lexical'
 
 import {
@@ -32,6 +30,7 @@ import {
   type TextFormat,
 } from '@front/_components/editor/types'
 
+import { useEditorHistory } from '../history/HistoryProvider'
 import { useOpenEditor } from '../editorFocus'
 
 /*
@@ -66,36 +65,22 @@ function onText(
   )
 }
 
-/*
- * Undo or redo. The history brings its selection back, which focuses the text once drawn (in
- * the updates it commits right away, more than one): a control to keep the focus on takes it
- * back after each
- */
-function fromHistory(
-  editor: LexicalEditor,
-  command: typeof UNDO_COMMAND | typeof REDO_COMMAND,
-  keepFocusOn: HTMLElement | undefined,
-) {
-  if (keepFocusOn) {
-    const stop = editor.registerUpdateListener(() => keepFocusOn.focus())
-    setTimeout(stop)
-  }
-  editor.dispatchCommand(command, undefined)
-}
-
 export type ToolbarActions = ReturnType<typeof useToolbarActions>
 
 // The actions, on the open document's editor (none when no document is open)
 export function useToolbarActions() {
   const editor = useOpenEditor()
+  const history = useEditorHistory()
   const run = (action: (editor: LexicalEditor) => void) => {
-    if (editor) action(editor)
+    if (editor && !history.getSnapshot().busy) action(editor)
   }
   return {
-    undo: (keepFocusOn?: HTMLElement) =>
-      run((editor) => fromHistory(editor, UNDO_COMMAND, keepFocusOn)),
-    redo: (keepFocusOn?: HTMLElement) =>
-      run((editor) => fromHistory(editor, REDO_COMMAND, keepFocusOn)),
+    undo: (keepFocusOn?: HTMLElement) => {
+      void history.undo().then(() => keepFocusOn?.focus())
+    },
+    redo: (keepFocusOn?: HTMLElement) => {
+      void history.redo().then(() => keepFocusOn?.focus())
+    },
     selectAll: () => run((editor) => editor.update(() => void $selectAll())),
     print: () => window.print(),
     pageBreak: () => run((editor) => onText(editor, undefined, $insertPageBreak)),

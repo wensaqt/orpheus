@@ -114,7 +114,9 @@ export function BinderTree({ label }: { label: string }) {
   function handleKeyDown(event: React.KeyboardEvent<HTMLUListElement>) {
     // Keys typed in a row's menu or rename field are theirs, not the tree's
     if (!isTreeItem(event.target)) return
-    const current = focusedId ?? tabbableId
+    // Focus events can precede React's state commit. Execute on the actual event target.
+    const current = rows.find((row) => handles.current.get(row.entry.id)?.element === event.target)
+      ?.entry.id
     if (current === undefined) return
     const command = treeKeyCommand(rows, current, event)
     if (!command) return

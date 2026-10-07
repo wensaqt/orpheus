@@ -56,6 +56,7 @@ test.describe('Pagination', () => {
     await page.locator(editable).click()
     await page.keyboard.press(END_OF_TEXT)
     await selectionRead(page)
+    const paragraphsBefore = await page.locator(`${editable} p`).count()
     for (let line = 0; line < 30; line++) await page.keyboard.press('Enter')
     // Every new empty line is already on a page, the caret with it
     await settle(page)
@@ -71,6 +72,7 @@ test.describe('Pagination', () => {
     expect(line.y).toBeGreaterThan(sheet2.y)
 
     for (let step = 0; step < 40; step++) await page.keyboard.press('ControlOrMeta+z')
+    await expect(page.locator(`${editable} p`)).toHaveCount(paragraphsBefore, { timeout: 15_000 })
     await settle(page)
     expect((await readLayout(page)).pages).toBe(1)
   })
@@ -119,6 +121,7 @@ test.describe('Pagination', () => {
     expect((await textOf(page.locator(editable))).length).toBeLessThan(textBefore.length)
 
     await page.keyboard.press('ControlOrMeta+z')
+    await expect.poll(() => textOf(page.locator(editable))).toBe(textBefore)
     await settle(page)
     expect(await textOf(page.locator(editable))).toBe(textBefore)
     expect((await readLayout(page)).pages).toBe(pagesBefore)
@@ -310,6 +313,8 @@ test.describe('Pagination', () => {
     await expect(page.locator(editable)).toContainText('Après le saut.')
 
     await page.keyboard.press('ControlOrMeta+z')
+    await expect(page.locator(`[${PAGE_BREAK_ATTRIBUTE}]`)).toHaveCount(1)
+    await expect(page.locator(editable)).toBeVisible()
     await settle(page)
     expect((await readLayout(page)).pages).toBe(2)
     expect(await sheetOf(page, 'Après le saut.')).toBe(2)

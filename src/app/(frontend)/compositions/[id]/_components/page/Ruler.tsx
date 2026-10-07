@@ -59,6 +59,7 @@ export function Ruler() {
   return (
     <div
       ref={ruler}
+      data-editor-ruler=""
       role="group"
       aria-label={t('editor.ruler.label')}
       className={styles.ruler}
@@ -92,6 +93,7 @@ function Handle({
   const [dragging, setDragging] = useState(false)
   // How far from the handle's mark the pointer took it: the mark does not jump to the pointer
   const grab = useRef(0)
+  const group = useRef<object | undefined>(undefined)
   const value = handleValue(handle, layout)
   const max = handleMax(handle, layout)
   const label = t(`editor.ruler.${handle}`)
@@ -111,6 +113,7 @@ function Handle({
     event.preventDefault()
     event.currentTarget.setPointerCapture(event.pointerId)
     if (!isWriting(editor)) event.currentTarget.focus()
+    group.current = {}
     grab.current = pointerAt(event.clientX) - handlePosition(handle, layout)
     setDragging(true)
   }
@@ -118,16 +121,23 @@ function Handle({
   function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
     if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
     const position = pointerAt(event.clientX) - grab.current
-    change((current) => withHandleValue(handle, current, valueAt(handle, position, current)))
+    change(
+      (current) => withHandleValue(handle, current, valueAt(handle, position, current)),
+      group.current,
+    )
   }
 
-  const stopDragging = () => setDragging(false)
+  const stopDragging = () => {
+    group.current = undefined
+    setDragging(false)
+  }
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const next = valueAfterKey(handle, event, value, max)
     if (next === null) return
     event.preventDefault()
-    change((current) => withHandleValue(handle, current, next))
+    if (!event.repeat) group.current = {}
+    change((current) => withHandleValue(handle, current, next), group.current)
   }
 
   return (
@@ -147,6 +157,11 @@ function Handle({
       onPointerMove={handlePointerMove}
       onPointerUp={stopDragging}
       onPointerCancel={stopDragging}
+      onLostPointerCapture={stopDragging}
+      onKeyUp={() => {
+        group.current = undefined
+      }}
+      onBlur={stopDragging}
       onKeyDown={handleKeyDown}
     >
       <span className={styles.tooltip} aria-hidden="true">
