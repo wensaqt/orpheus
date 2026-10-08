@@ -2,7 +2,12 @@
 
 A personal writing and composition app built with Next.js, React, Lexical, Payload CMS and Postgres.
 It includes an editor with autosave, a document and folder binder, pagination, page settings,
-formatting tools and French synonyms. The interface is available in English and French.
+formatting tools, an editable two-page book view and French synonyms. The interface is available
+in English and French. Page formats are A4 and A5, in portrait.
+
+In the editor, **View → Book view** presents pages left to right in spreads, stacked vertically
+for continuous scrolling: pages 1–2, then 3–4, and so on. Writing flows between the pages.
+The view preference is remembered, and printing uses individual portrait sheets.
 
 ## Local development
 
@@ -13,6 +18,11 @@ formatting tools and French synonyms. The interface is available in English and 
 
 The local `DATABASE_URL` in `.env.example` targets the Docker Postgres service. Payload pushes
 schema changes in development; production requires migrations before deployment.
+
+`pnpm payload migrate` applies `20261007_120000_portrait_pages` to an existing database before
+deploying the A4/A5 portrait restriction. It converts US Letter to A4, landscape to portrait,
+and fits margins and indentation to the new dimensions. Rolling back restores the available
+formats, not each document's previous dimensions.
 
 ## Checks
 

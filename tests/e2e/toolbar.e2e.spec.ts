@@ -759,8 +759,8 @@ test.describe('Menu bar', () => {
     await page.getByRole('menuitem', { name: 'Page setup…' }).click()
     const dialog = page.getByRole('dialog', { name: 'Page setup' })
     await expect(dialog).toBeVisible()
-    await dialog.locator('label', { hasText: 'Landscape' }).click()
-    await expect(dialog.getByRole('radio', { name: 'Landscape' })).toBeChecked()
+    await dialog.locator('label', { hasText: 'A5' }).click()
+    await expect(dialog.getByRole('radio', { name: 'A5' })).toBeChecked()
     // Closed: back in the text
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()

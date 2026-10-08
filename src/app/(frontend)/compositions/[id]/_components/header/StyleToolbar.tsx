@@ -161,6 +161,7 @@ export function StyleToolbar({ state }: { state: ToolbarState }) {
           key={type}
           label={t(label)}
           icon={type}
+          tooltipAlign="end"
           disabled={off}
           pressed={!off && state.blockType === type}
           onPress={(control) => actions.list(type, control)}

@@ -2,17 +2,16 @@ import { clamp, finite } from './numbers'
 import { isOneOf, isRecord } from './guards'
 
 // The formats offered, in their order. Shared by the collection and the editor.
-export const PAGE_FORMAT_NAMES = ['A4', 'A5', 'Letter'] as const
+export const PAGE_FORMAT_NAMES = ['A4', 'A5'] as const
 export type PageFormat = (typeof PAGE_FORMAT_NAMES)[number]
 
 // Their sizes, in millimetres (portrait)
 export const PAGE_FORMATS: Record<PageFormat, { width: number; height: number }> = {
   A4: { width: 210, height: 297 },
   A5: { width: 148, height: 210 },
-  Letter: { width: 216, height: 279 },
 }
 
-export const PAGE_ORIENTATIONS = ['portrait', 'landscape'] as const
+export const PAGE_ORIENTATIONS = ['portrait'] as const
 export type PageOrientation = (typeof PAGE_ORIENTATIONS)[number]
 
 export const DEFAULT_PAGE_FORMAT: PageFormat = 'A4'
@@ -26,15 +25,14 @@ export type PageSettings = {
 
 export type PageMargin = keyof PageSettings['margins']
 
-// Actual page dimensions for the given orientation
-export const pageSize = ({ format, orientation }: Pick<PageSettings, 'format' | 'orientation'>) => {
-  const { width, height } = PAGE_FORMATS[format]
-  return orientation === 'landscape' ? { width: height, height: width } : { width, height }
-}
+// Page dimensions in portrait
+export const pageSize = ({ format }: Pick<PageSettings, 'format' | 'orientation'>) =>
+  PAGE_FORMATS[format]
 
 export type StoredPage = {
-  format: PageFormat
-  orientation: PageOrientation
+  // Previous documents may still carry the retired formats until migrated.
+  format: PageFormat | 'Letter'
+  orientation: PageOrientation | 'landscape'
   margins?: Partial<Record<PageMargin, number | null>> | null
 }
 
@@ -91,7 +89,7 @@ export function withMargin(page: PageSettings, side: PageMargin, value: number):
 }
 
 /*
- * The page with margins that fit it (after a change of format or orientation, or as stored):
+ * The page with margins that fit it (after a change of format, or as stored):
  * none below zero, and a pair of opposite margins that leaves too little text shrinks, both in
  * proportion
  */
@@ -113,10 +111,10 @@ export function fitMargins(page: PageSettings): PageSettings {
 }
 
 // Stored settings (optional margins) made complete, and fitted to the page
-export const toPageSettings = ({ format, orientation, margins }: StoredPage): PageSettings =>
+export const toPageSettings = ({ format, margins }: StoredPage): PageSettings =>
   fitMargins({
-    format,
-    orientation,
+    format: format === 'Letter' ? DEFAULT_PAGE_FORMAT : format,
+    orientation: 'portrait',
     margins: {
       top: margins?.top ?? DEFAULT_PAGE_MARGIN,
       right: margins?.right ?? DEFAULT_PAGE_MARGIN,

@@ -106,7 +106,7 @@ test.describe('Compositions', () => {
       data: {
         title: 'Hymne',
         owner: account.user.id,
-        page: { format: 'Letter', orientation: 'landscape' },
+        page: { format: 'A5', orientation: 'portrait' },
       },
       user: account.user,
       overrideAccess: false,

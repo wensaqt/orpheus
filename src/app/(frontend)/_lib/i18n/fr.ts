@@ -247,14 +247,11 @@ export const fr: Messages = {
     pageSetup: {
       open: 'Mise en page',
       format: 'Format',
-      orientation: 'Orientation',
-      portrait: 'Portrait',
-      landscape: 'Paysage',
       margins: 'Marges',
       top: 'Haut',
       bottom: 'Bas',
       unit: 'mm',
-      formats: { A4: 'A4', A5: 'A5', Letter: 'Lettre US' },
+      formats: { A4: 'A4', A5: 'A5' },
     },
     ruler: {
       label: 'Règle',

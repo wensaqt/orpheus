@@ -3,9 +3,11 @@ import { $getNearestNodeFromDOMNode } from 'lexical'
 import { PageBreakNode } from '../nodes/PageBreakNode'
 import { caretPoint, nearestTextOffset } from './pageGeometry'
 import type { PagesOnScreen, Point } from './types'
+import { clamp } from '@/lib/numbers'
+import { LINE_INSET } from './constants'
 
 // The text position under a point, with the API each engine has
-function caretFromPoint({ x, y }: Point): { node: Node; offset: number } | null {
+export function caretFromPoint({ x, y }: Point): { node: Node; offset: number } | null {
   if (document.caretPositionFromPoint) {
     const position = document.caretPositionFromPoint(x, y)
     return position && { node: position.offsetNode, offset: position.offset }
@@ -28,6 +30,44 @@ export function caretTarget(
 ): Point {
   const lineY = flowTop + nearestTextOffset(click.y - flowTop, page, gap, pages)
   return caretPoint(click, editable.getBoundingClientRect(), lineY)
+}
+
+// Columns share a height: locate the clicked page horizontally, then its nearest text
+// rectangle. This also handles a short final page and margins outside the editable root.
+export function bookCaretTarget(
+  editable: HTMLElement,
+  root: HTMLElement,
+  click: Point,
+  { page, gap, pages }: PagesOnScreen,
+): Point | null {
+  const box = root.getBoundingClientRect()
+  const scale = box.width / parseFloat(getComputedStyle(root).width)
+  const pitch = (page.width + gap) * scale
+  const index = clamp(Math.floor((click.x - box.left) / pitch), 0, pages - 1)
+  const left = box.left + index * pitch
+  const range = document.createRange()
+  const walker = document.createTreeWalker(editable, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT)
+  let nearest: Point | null = null
+  let distance = Infinity
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node.nodeType !== Node.TEXT_NODE && !(node instanceof HTMLBRElement)) continue
+    if (node instanceof HTMLBRElement) range.selectNode(node)
+    else range.selectNodeContents(node)
+    for (const rect of range.getClientRects()) {
+      if (!rect.height || rect.left < left || rect.left >= left + pitch) continue
+      const inset = Math.min(LINE_INSET * scale, rect.width / 2)
+      const point = {
+        x: clamp(click.x, rect.left + inset, rect.right - inset),
+        y: rect.top + rect.height / 2,
+      }
+      const nextDistance = Math.abs(click.y - point.y) + Math.abs(click.x - point.x)
+      if (nextDistance < distance) {
+        distance = nextDistance
+        nearest = point
+      }
+    }
+  }
+  return nearest
 }
 
 /*

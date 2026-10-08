@@ -1,7 +1,7 @@
 'use client'
 
 import type { LexicalEditor } from 'lexical'
-import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react'
+import { type KeyboardEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
 import type { Layout } from '@/lib/layout'
@@ -35,6 +35,7 @@ type EditorShellProps = {
   layout: Layout
   entries: BinderEntry[]
   // Remembered in cookies, so the page renders with the side panels as the writer left them
+  bookView: boolean
   rulerHidden: boolean
   binderHidden: boolean
   synonymsHidden: boolean
@@ -56,6 +57,7 @@ export function EditorShell({
   binderHidden,
   synonymsHidden,
   rulerHidden,
+  bookView,
   children,
 }: EditorShellProps) {
   // Set once the header is mounted: the open document puts its title there
@@ -68,7 +70,11 @@ export function EditorShell({
       <BinderProvider compositionId={compositionId} entries={entries}>
         <LayoutProvider initial={layout}>
           <OpenEditorContext value={{ editor: openEditor, setEditor: setOpenEditor }}>
-            <EditorViewProvider rulerHidden={rulerHidden} synonymsHidden={synonymsHidden}>
+            <EditorViewProvider
+              bookView={bookView}
+              rulerHidden={rulerHidden}
+              synonymsHidden={synonymsHidden}
+            >
               <DocumentTitleSlot value={documentTitleSlot}>
                 <HistoryScreen fontClassName={fontClassName}>
                   <EditorHeader title={title} documentTitleRef={setDocumentTitleSlot} />
@@ -96,8 +102,31 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   const desk = useRef<HTMLDivElement>(null)
   const binderCell = useRef<HTMLDivElement>(null)
   const panelProbe = useRef<HTMLDivElement>(null)
+  const column = useRef<HTMLDivElement>(null)
+  const surface = useRef<HTMLDivElement>(null)
   const showSynonyms = useRef<HTMLButtonElement>(null)
-  useSideRoom(desk, binderCell, panelProbe, toGeometry(layout.page).width, view.setRoom)
+  const pageWidth = toGeometry(layout.page).width
+  useSideRoom(desk, binderCell, panelProbe, view.bookView ? pageWidth * 2 : pageWidth, view.setRoom)
+  useEffect(() => {
+    const container = column.current
+    const pages = surface.current
+    if (!container || !pages) return
+    if (!view.bookView) {
+      pages.style.removeProperty('--book-scale')
+      pages.style.removeProperty('--book-gap')
+      return
+    }
+    const resize = () => {
+      const gap = parseFloat(getComputedStyle(pages).columnGap)
+      const width = pageWidth * 2 + gap
+      pages.style.setProperty('--book-gap', `${gap}px`)
+      pages.style.setProperty('--book-scale', String(Math.min(1, container.clientWidth / width)))
+    }
+    resize()
+    const observer = new ResizeObserver(resize)
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [view.bookView, pageWidth])
 
   const foldBinder = (next: boolean) => {
     setBinderFolded(next)
@@ -118,7 +147,7 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   }
 
   return (
-    <div ref={desk} className={styles.desk}>
+    <div ref={desk} className={styles.desk} data-book={view.bookView}>
       <div ref={binderCell} className={styles.binder}>
         {binderFolded ? (
           <IconButton
@@ -131,9 +160,11 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
           <BinderPanel onHide={hideBinder} />
         )}
       </div>
-      <div className={styles.column}>
-        {view.rulerVisible && <Ruler />}
-        {children}
+      <div ref={column} className={styles.column}>
+        <div ref={surface} className={styles.pageSurface}>
+          {view.rulerVisible && <Ruler />}
+          {children}
+        </div>
       </div>
       <div className={styles.aside}>
         {/* As wide as the open panel: whether it fits is measured with it */}

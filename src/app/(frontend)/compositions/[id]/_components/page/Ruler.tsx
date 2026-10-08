@@ -11,7 +11,6 @@ import {
 
 import { pageSize } from '@/lib/pageFormats'
 
-import { MM_TO_PX } from '@front/_components/editor/pagination/constants'
 import { useLocale, useT } from '@front/_components/i18n/I18nProvider'
 import { isMainButton } from '@front/_components/ui/pointer'
 
@@ -100,8 +99,10 @@ function Handle({
   const valueText = t('editor.ruler.value', { value: value.toLocaleString(locale) })
 
   // Where the pointer is on the ruler, in millimetres from the page's left edge
-  const pointerAt = (clientX: number) =>
-    (clientX - (ruler.current?.getBoundingClientRect().left ?? 0)) / MM_TO_PX
+  const pointerAt = (clientX: number) => {
+    const box = ruler.current?.getBoundingClientRect()
+    return box ? ((clientX - box.left) * pageSize(layout.page).width) / box.width : 0
+  }
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     if (!isMainButton(event)) return

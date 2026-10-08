@@ -32,6 +32,7 @@ export function BinderPanel({ onHide }: BinderPanelProps) {
         />
         <IconButton
           label={t('binder.hide')}
+          tooltipAlign="end"
           icon={<ChevronIcon />}
           className={styles.hide}
           onClick={onHide}

@@ -1,4 +1,5 @@
 import type { RequiredDataFromCollectionSlug } from 'payload'
+import type { Page } from '@playwright/test'
 
 import { PAGE_BREAK_ATTRIBUTE, PAGE_BREAK_TYPE } from '@front/_components/editor/constants'
 import { toGeometry } from '@front/_components/editor/pagination/pageGeometry'
@@ -22,6 +23,365 @@ import {
   sheetSelector,
   waitForEditor,
 } from './paginationHelpers'
+
+async function toggleBookView(page: Page) {
+  await page.getByRole('menubar').getByRole('menuitem', { name: 'View' }).click()
+  await page.getByRole('menuitemcheckbox', { name: 'Book view' }).click()
+  await settle(page)
+}
+
+const fourBookPages = () =>
+  documentOf([
+    paragraphNode('Left page'),
+    pageBreakNode(),
+    paragraphNode('Right page'),
+    pageBreakNode(),
+    paragraphNode('Third page'),
+    pageBreakNode(),
+    paragraphNode('Fourth page'),
+  ])
+
+test.describe('Book view', () => {
+  test('consecutive breaks keep a blank page without printing the trailing empty sheet', async ({
+    page,
+    account,
+    browserName,
+  }) => {
+    await openDocument(
+      page,
+      account,
+      documentOf([
+        paragraphNode('Before the blank page'),
+        pageBreakNode(),
+        pageBreakNode(),
+        paragraphNode('After the blank page'),
+      ]),
+    )
+    await toggleBookView(page)
+    await expect(page.locator('[data-pages]')).toHaveAttribute('data-pages', '3')
+    await expect(
+      page.locator(editable).getByText('Before the blank page', { exact: true }),
+    ).toBeInViewport()
+    await expect(
+      page.locator(editable).getByText('After the blank page', { exact: true }),
+    ).not.toBeInViewport()
+    await page.locator(sheetSelector).nth(2).scrollIntoViewIfNeeded()
+    await expect(
+      page.locator('[data-book-spread="1"]').getByText('After the blank page', { exact: true }),
+    ).toBeInViewport()
+    await page.emulateMedia({ media: 'print' })
+    await settle(page)
+    expect((await readLayout(page)).outside).toEqual([])
+    if (browserName === 'chromium') expect(await pdfPageCount(page)).toBe(3)
+  })
+
+  test('typing fills the left page, then the right page, then opens the next spread', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, documentOf([paragraphNode('Start')]))
+    await toggleBookView(page)
+    await page.locator(editable).getByText('Start', { exact: true }).click()
+    await page.keyboard.press(LINE_END)
+    await selectionRead(page)
+    for (let line = 0; line < 30; line++) await page.keyboard.press('Enter')
+    await page.keyboard.insertText('Writing on the right')
+    const right = await boxOf(page.locator(sheetSelector).nth(1))
+    const text = await boxOf(
+      page.locator(editable).getByText('Writing on the right', { exact: true }),
+    )
+    expect(text.x).toBeGreaterThan(right.x)
+    expect(text.x).toBeLessThan(right.x + right.width)
+    for (let line = 0; line < 30; line++) await page.keyboard.press('Enter')
+    await page.keyboard.insertText('Writing on the next spread')
+    await expect(page.locator('[data-pages]')).toHaveAttribute('data-pages', '3')
+    await expect(
+      page.locator(editable).getByText('Writing on the next spread', { exact: true }),
+    ).toBeInViewport()
+  })
+
+  test('fits two A5 pages on a narrow screen and places the caret from the right margin', async ({
+    page,
+    account,
+  }) => {
+    await page.setViewportSize({ width: 700, height: 900 })
+    await openDocument(page, account, fourBookPages(), { format: 'A5' })
+    await toggleBookView(page)
+    const left = await boxOf(page.locator(sheetSelector).nth(0))
+    const right = await boxOf(page.locator(sheetSelector).nth(1))
+    const ruler = await boxOf(page.getByRole('group', { name: 'Ruler' }))
+    expect(ruler.x).toBeCloseTo(left.x, 0)
+    expect(ruler.width).toBeCloseTo(left.width, 0)
+    expect(right.x + right.width).toBeLessThanOrEqual(700)
+    expect(right.height).toBeGreaterThan(right.width)
+    const text = await boxOf(page.locator(editable).getByText('Right page', { exact: true }))
+    await page.mouse.click(right.x + 5, text.y + text.height / 2)
+    await selectionRead(page)
+    await page.keyboard.insertText('!')
+    await expect(page.locator(editable)).toContainText('!Right page')
+    await expect(page.locator(editable)).toContainText('Left page')
+    await page.getByRole('slider', { name: 'Left margin' }).focus()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByRole('slider', { name: 'Left margin' })).toHaveAttribute(
+      'aria-valuenow',
+      '26',
+    )
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true)
+  })
+
+  test('stacks spreads for continuous scrolling and remembers the view', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, fourBookPages())
+    await toggleBookView(page)
+    const sheets = page.locator(sheetSelector)
+    const left = await boxOf(sheets.nth(0))
+    const right = await boxOf(sheets.nth(1))
+    const third = await boxOf(sheets.nth(2))
+    const fourth = await boxOf(sheets.nth(3))
+    expect(right.x).toBeGreaterThan(left.x + left.width)
+    expect(right.y).toBeCloseTo(left.y, 0)
+    expect(third.x).toBeCloseTo(left.x, 0)
+    expect(fourth.x).toBeCloseTo(right.x, 0)
+    expect(third.y).toBeGreaterThan(left.y + left.height)
+    expect(fourth.y).toBeCloseTo(third.y, 0)
+    await expect(page.locator(editable).getByText('Left page', { exact: true })).toBeInViewport()
+    await expect(page.locator(editable).getByText('Right page', { exact: true })).toBeInViewport()
+    const before = await page.evaluate(() => window.scrollY)
+    await page.mouse.move(right.x + right.width / 2, right.y + 200)
+    await page.mouse.wheel(0, 200)
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before)
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true)
+    await sheets.nth(2).scrollIntoViewIfNeeded()
+    const copy = page.locator('[data-book-spread="1"]')
+    await expect(copy.getByText('Third page', { exact: true })).toBeInViewport()
+    await copy.getByText('Third page', { exact: true }).click()
+    await selectionRead(page)
+    await page.keyboard.press(LINE_END)
+    await selectionRead(page)
+    await page.keyboard.insertText(' edited')
+    await expect(
+      page.locator(editable).getByText('Third page edited', { exact: true }),
+    ).toBeInViewport()
+    await page.keyboard.press('ControlOrMeta+z')
+    await expect(page.locator(editable)).not.toContainText(' edited')
+    await page.reload()
+    await waitForEditor(page)
+    await expect(page.locator('[data-book-viewport]')).toHaveCount(1)
+    await expect(page.locator(editable)).toHaveCount(1)
+    await toggleBookView(page)
+    await expect(page.locator('[data-book-viewport]')).toHaveCount(0)
+    expect((await readLayout(page)).outside).toEqual([])
+  })
+
+  test('reveals the current caret when book view is enabled', async ({ page, account }) => {
+    await openDocument(page, account, fourBookPages())
+    await page.getByText('Third page', { exact: true }).click()
+    await selectionRead(page)
+    await toggleBookView(page)
+    await expect(page.locator('[data-book-viewport]')).toHaveCSS('--row', '1')
+    await expect(page.locator(editable).getByText('Third page', { exact: true })).toBeInViewport()
+  })
+
+  test('updates a nearby spread without rebuilding its text on each keystroke', async ({
+    page,
+    account,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 1600 })
+    await openDocument(page, account, fourBookPages(), { format: 'A5' })
+    await toggleBookView(page)
+    const copy = page.locator('[data-book-spread="1"] [data-book-copy-editor]')
+    await expect(copy).toBeVisible()
+    await copy.evaluate((element) => element.setAttribute('data-existing-copy', ''))
+    await page.locator(editable).getByText('Left page', { exact: true }).click()
+    await page.keyboard.press(LINE_END)
+    await selectionRead(page)
+    await page.keyboard.insertText(' changed')
+    await expect(page.locator(editable)).toContainText('Left page changed')
+    await expect(copy).toHaveAttribute('data-existing-copy', '')
+    await expect(copy).toContainText('Left page changed')
+    await page.keyboard.press('Enter')
+    await page.keyboard.insertText('Extra paragraph')
+    await expect(copy).toContainText('Extra paragraph')
+    await expect(copy).toHaveAttribute('data-existing-copy', '')
+    await expect(copy).toContainText('Third page')
+  })
+
+  test('writes on the right page, saves, and keeps undo/redo across view changes', async ({
+    page,
+    account,
+  }) => {
+    const { document: savedDocument } = await openDocument(page, account, fourBookPages())
+    await toggleBookView(page)
+    await page.locator(editable).getByText('Right page', { exact: true }).click()
+    await page.keyboard.press(LINE_END)
+    await page.keyboard.insertText(' edited')
+    await expect(page.locator(editable)).toContainText('Right page edited')
+    await expect
+      .poll(
+        async () =>
+          JSON.stringify(
+            (
+              await account.payload.findByID({
+                collection: 'binder-items',
+                id: savedDocument.id,
+              })
+            ).content,
+          ),
+        { timeout: 15_000 },
+      )
+      .toContain('Right page edited')
+
+    await toggleBookView(page)
+    await page.keyboard.press('ControlOrMeta+z')
+    await expect(page.locator(editable)).not.toContainText(' edited')
+    await toggleBookView(page)
+    await page.keyboard.press('ControlOrMeta+Shift+z')
+    await expect(page.locator(editable)).toContainText('Right page edited')
+    await expect
+      .poll(
+        async () =>
+          JSON.stringify(
+            (
+              await account.payload.findByID({
+                collection: 'binder-items',
+                id: savedDocument.id,
+              })
+            ).content,
+          ),
+        { timeout: 15_000 },
+      )
+      .toContain('Right page edited')
+    await page.reload()
+    await waitForEditor(page)
+    await expect(
+      page.locator(editable).getByText('Right page edited', { exact: true }),
+    ).toBeInViewport()
+  })
+
+  test('flows text into right columns and follows the caret into the next spread', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, prose(30))
+    await toggleBookView(page)
+    const data = await page.locator(editable).evaluate((editor) => {
+      const range = document.createRange()
+      range.selectNodeContents(editor)
+      return [...range.getClientRects()]
+        .filter((rect) => rect.width && rect.height)
+        .map((rect) => ({ x: rect.x, y: rect.y }))
+    })
+    const right = await boxOf(page.locator(sheetSelector).nth(1))
+    expect(data.some((rect) => rect.x > right.x && rect.x < right.x + right.width)).toBe(true)
+    await page.locator(editable).getByText('Chant 1', { exact: true }).click()
+    await selectionRead(page)
+    await page.keyboard.press(END_OF_TEXT)
+    await selectionRead(page)
+    await page.keyboard.insertText(' End of the book.')
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+    await expect(page.locator(`${editable} p`).last()).toBeInViewport()
+  })
+
+  test('native selection crosses the left and right pages', async ({ page, account }) => {
+    await openDocument(page, account, fourBookPages())
+    await toggleBookView(page)
+    await page.locator(editable).evaluate((editor) => {
+      const paragraphs = editor.querySelectorAll('p')
+      ;(editor as HTMLElement).focus()
+      const first = document.createTreeWalker(paragraphs[0], NodeFilter.SHOW_TEXT).nextNode()!
+      const second = document.createTreeWalker(paragraphs[1], NodeFilter.SHOW_TEXT).nextNode()!
+      window.getSelection()?.setBaseAndExtent(first, 0, second, second.textContent!.length)
+    })
+    await selectionRead(page)
+    expect(await page.evaluate(() => window.getSelection()?.toString())).toContain('Right page')
+    await page.keyboard.insertText('Replaced both pages')
+    await expect(page.locator(editable)).toContainText('Replaced both pages')
+    await expect(page.locator(editable)).not.toContainText('Left page')
+    await expect(page.locator(editable)).not.toContainText('Right page')
+    await page.keyboard.press('ControlOrMeta+z')
+    await expect(page.locator(editable)).toContainText('Left page')
+    await expect(page.locator(editable)).toContainText('Right page')
+  })
+
+  test('a mouse selection crosses stacked spreads and can be replaced and undone', async ({
+    page,
+    account,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 1600 })
+    await openDocument(page, account, fourBookPages(), { format: 'A5' })
+    await toggleBookView(page)
+    const first = await boxOf(page.locator(editable).getByText('Left page', { exact: true }))
+    const third = await boxOf(
+      page.locator('[data-book-spread="1"]').getByText('Third page', { exact: true }),
+    )
+    await page.mouse.move(first.x + 1, first.y + first.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(third.x + third.width - 1, third.y + third.height / 2, { steps: 20 })
+    await page.mouse.up()
+    await selectionRead(page)
+    await expect
+      .poll(() => page.evaluate(() => window.getSelection()?.toString()))
+      .toContain('Left page')
+    expect(await page.evaluate(() => window.getSelection()?.toString())).toContain('Third page')
+    await expect
+      .poll(() => page.evaluate(() => CSS.highlights.get('orpheus-book-selection')?.size ?? 0))
+      .toBeGreaterThan(0)
+    await page.keyboard.insertText('Replaced across spreads')
+    await expect(page.locator(editable)).toContainText('Replaced across spreads')
+    await expect(page.locator(editable)).not.toContainText('Third page')
+    await page.keyboard.press('ControlOrMeta+z')
+    await expect(page.locator(editable)).toContainText('Left page')
+    await expect(page.locator(editable)).toContainText('Third page')
+  })
+
+  test('a mouse selection scrolls into the next spread at the window edge', async ({
+    page,
+    account,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 720 })
+    await openDocument(page, account, fourBookPages(), { format: 'A5' })
+    await toggleBookView(page)
+    const first = await boxOf(page.locator(editable).getByText('Left page', { exact: true }))
+    await page.mouse.move(first.x + 1, first.y + first.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(first.x + 30, 715, { steps: 8 })
+    await expect
+      .poll(() => page.evaluate(() => window.getSelection()?.toString()), { timeout: 10_000 })
+      .toContain('Third page')
+    await page.mouse.up()
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+  })
+
+  test('prints portrait pages and restores the book layout afterwards', async ({
+    page,
+    account,
+  }) => {
+    await openDocument(page, account, fourBookPages())
+    await toggleBookView(page)
+    await page.locator(sheetSelector).nth(2).scrollIntoViewIfNeeded()
+    await page.emulateMedia({ media: 'print' })
+    await settle(page)
+    const print = await readLayout(page)
+    expect(print.pages).toBe(4)
+    expect(print.outside).toEqual([])
+    const first = await boxOf(page.locator(sheetSelector).nth(0))
+    const second = await boxOf(page.locator(sheetSelector).nth(1))
+    expect(first.width).toBeCloseTo(A4.width, 0)
+    expect(second.y).toBeGreaterThan(first.y)
+    await page.emulateMedia({ media: 'screen' })
+    await settle(page)
+    await expect(page.locator('[data-book-viewport]')).toHaveCount(1)
+    const left = await boxOf(page.locator(sheetSelector).nth(0))
+    const right = await boxOf(page.locator(sheetSelector).nth(1))
+    expect(left.y).toBeCloseTo(right.y, 0)
+  })
+})
 
 test.describe('Pagination', () => {
   test('an empty document is one page of its format', async ({ page, account }) => {
@@ -337,16 +697,6 @@ test.describe('Pagination', () => {
     expect(after.linesPerPage[0]).toBe(1)
     expect(after.pages).toBeGreaterThanOrEqual(before.pages)
     expect(after.outside).toEqual([])
-  })
-
-  test('landscape pages are the format turned', async ({ page, account }) => {
-    await openDocument(page, account, prose(30), { orientation: 'landscape' })
-    const sheet = await boxOf(page.locator(sheetSelector).first())
-    expect(sheet.width).toBeCloseTo(A4.height, 0)
-    expect(sheet.height).toBeCloseTo(A4.width, 0)
-    const layout = await readLayout(page)
-    expect(layout.pages).toBeGreaterThan(5)
-    expect(layout.outside).toEqual([])
   })
 })
 
