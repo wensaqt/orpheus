@@ -5,6 +5,7 @@ import {
   bandHeight,
   caretPoint,
   contentHeight,
+  columnBreakFill,
   nearestTextOffset,
   pageBreakFill,
   pagesFor,
@@ -62,6 +63,23 @@ describe('pageBreakFill', () => {
     expect(pageBreakFill({ start: 800, textEnd: 800 }, page, gap)).toBe(1020)
     // Rounded a little short of that end, it is still the next page's
     expect(pageBreakFill({ start: 799.6, textEnd: 799.6 }, page, gap)).toBeCloseTo(1020.4)
+  })
+})
+
+describe('columnBreakFill', () => {
+  it('fills the rest of a column with room for subpixel rounding', () => {
+    expect(columnBreakFill({ start: 300, textEnd: 280 }, page)).toBe(499.5)
+    expect(columnBreakFill({ start: 1100, textEnd: 1080 }, page)).toBe(499.5)
+  })
+
+  it('preserves whole blank columns for consecutive breaks', () => {
+    expect(columnBreakFill({ start: 799.5, textEnd: 799.5 }, page)).toBe(799.5)
+    expect(columnBreakFill({ start: 800, textEnd: 800 }, page)).toBe(799.5)
+  })
+
+  it('never makes a filler taller than one column or negative', () => {
+    expect(columnBreakFill({ start: 0, textEnd: 800 }, page)).toBe(799.5)
+    expect(columnBreakFill({ start: 805, textEnd: 795 }, page)).toBe(0)
   })
 })
 

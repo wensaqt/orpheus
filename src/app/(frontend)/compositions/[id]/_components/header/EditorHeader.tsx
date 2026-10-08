@@ -43,7 +43,7 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
   const toolbarState = useToolbarState(useOpenEditor())
 
   return (
-    <header className={styles.header}>
+    <header className={styles.header} data-editor-header="">
       <div className={styles.titles}>
         <TitleInput
           size="md"

@@ -139,17 +139,15 @@ test.describe('Page setup', () => {
     expect((await readLayout(page)).outside).toEqual([])
   })
 
-  test('landscape turns the pages', async ({ page, account }) => {
-    const { composition } = await openDocument(page, account, prose(30))
+  test('offers only A4 and A5 in portrait', async ({ page, account }) => {
+    await openDocument(page, account, prose(5))
     await openPageSetup(page)
-    await choose(page, 'Landscape')
-    await expect(page.getByRole('radio', { name: 'Landscape' })).toBeChecked()
-    await expect.poll(async () => (await firstSheet(page)).width).toBeCloseTo(A4.height, 0)
-    await settle(page)
-    expect((await readLayout(page)).outside).toEqual([])
-    await expect
-      .poll(async () => (await savedPage(account, composition.id)).orientation, SAVED)
-      .toBe('landscape')
+    const dialog = page.getByRole('dialog', { name: 'Page setup' })
+    await expect(dialog.getByRole('radio')).toHaveCount(2)
+    await expect(dialog.getByRole('radio', { name: 'A4' })).toBeChecked()
+    await expect(dialog.getByRole('radio', { name: 'A5' })).toBeVisible()
+    const sheet = await firstSheet(page)
+    expect(sheet.height).toBeGreaterThan(sheet.width)
   })
 
   test('the top margin moves the first line down', async ({ page, account }) => {
@@ -300,7 +298,7 @@ test.describe('Ruler', () => {
     { width: 1280, binder: 'shown', orientation: 'portrait' },
     { width: 1280, binder: 'hidden', orientation: 'portrait' },
     { width: 1600, binder: 'shown', orientation: 'portrait' },
-    { width: 1600, binder: 'hidden', orientation: 'landscape' },
+    { width: 1600, binder: 'hidden', orientation: 'portrait' },
     { width: 700, binder: 'shown', orientation: 'portrait' },
   ] as const) {
     test(`lines up with the sheet: ${width}px, binder ${binder}, ${orientation}`, async ({

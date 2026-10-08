@@ -179,8 +179,8 @@ export interface Composition {
   title: string;
   owner: string | User;
   page: {
-    format: 'A4' | 'A5' | 'Letter';
-    orientation: 'portrait' | 'landscape';
+    format: 'A4' | 'A5';
+    orientation: 'portrait';
     /**
      * In millimetres
      */

@@ -2,12 +2,104 @@
  * Sizes come from the composition's page settings (set inline in px); the gap between sheets
  * is the only free value, and print sets it to 0 so the pages follow each other on paper
  */
+.reader {
+  --page-gap: var(--book-gap, var(--space-4));
+}
+
+.reader,
+.stack,
+.viewport {
+  display: contents;
+}
+
+.copy {
+  position: absolute;
+  left: 0;
+  top: calc(var(--row) * (var(--page-h) + var(--page-gap)));
+  width: 100%;
+  height: var(--page-h);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.copy[data-active='true'] {
+  visibility: hidden;
+}
+
+.copy > .paged {
+  transform: translateX(calc(-2 * var(--row) * (var(--page-w) + var(--page-gap))));
+}
+
+::highlight(orpheus-book-selection) {
+  background-color: Highlight;
+  color: HighlightText;
+}
+
 .paged {
-  --page-gap: var(--space-4);
   position: relative;
   flex-shrink: 0;
   width: var(--page-w);
   height: calc(var(--pages) * var(--page-h) + (var(--pages) - 1) * var(--page-gap));
+}
+
+@media screen {
+  .reader[data-book='true'] {
+    display: block;
+    width: calc(2 * var(--page-w) + var(--page-gap));
+  }
+
+  .reader[data-book='true'] .viewport {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: calc(var(--row, 0) * (var(--page-h) + var(--page-gap)));
+    width: 100%;
+    height: var(--page-h);
+    overflow: hidden;
+    z-index: 2;
+  }
+
+  .reader[data-book='true'] .stack {
+    display: block;
+    position: relative;
+    isolation: isolate;
+    height: calc(var(--spreads) * var(--page-h) + (var(--spreads) - 1) * var(--page-gap));
+  }
+
+  .reader[data-book='true'] .paged {
+    width: calc(var(--book-pages) * (var(--page-w) + var(--page-gap)) - var(--page-gap));
+    height: var(--page-h);
+  }
+
+  .reader[data-book='true'] .sheet {
+    inset-inline: auto;
+    left: calc(var(--column) * (var(--page-w) + var(--page-gap)));
+    top: calc(var(--row) * (var(--page-h) + var(--page-gap)));
+    width: var(--page-w);
+  }
+
+  .reader[data-book='true'] .flow {
+    width: var(--page-w);
+  }
+
+  .reader[data-book='true'] .bands {
+    display: none;
+  }
+
+  .reader[data-book='true'] .text > * {
+    width: var(--page-content-w);
+    height: var(--page-content-h);
+    column-width: var(--page-content-w);
+    column-gap: calc(var(--page-side-margins) + var(--page-gap));
+    column-fill: auto;
+    orphans: 1;
+    widows: 1;
+  }
+
+  .reader[data-book='true'] .text [data-page-break] {
+    border: none;
+    break-inside: avoid;
+  }
 }
 
 .sheets {
@@ -77,7 +169,18 @@
 }
 
 @media print {
-  .paged {
+  .reader {
     --page-gap: 0px;
+  }
+
+  .copy,
+  .blank {
+    display: none;
+  }
+
+  .reader[data-book='true'] .stack {
+    display: block;
+    position: relative;
+    width: var(--page-w);
   }
 }

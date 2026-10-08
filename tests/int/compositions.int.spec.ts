@@ -1,10 +1,18 @@
-import { type Payload, ValidationError } from 'payload'
+import {
+  createLocalReq,
+  initTransaction,
+  killTransaction,
+  type Payload,
+  ValidationError,
+} from 'payload'
+import { type MigrateUpArgs, sql } from '@payloadcms/db-postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { Composition, User } from '@/payload-types'
 import type { Id } from '@/lib/ids'
 
 import { cleanupTestUsers, createTestUser, getTestPayload } from '../helpers/testUsers'
+import { up as migratePortraitPages } from '@/migrations/20261007_120000_portrait_pages'
 
 let payload: Payload
 let alice: User
@@ -113,6 +121,80 @@ describe('compositions collection', () => {
         payload.findByID({ collection: 'compositions', id: composition.id, ...as(alice) }),
       ).rejects.toThrow()
     })
+  })
+
+  it('migrates retired formats and fits the layout without changing document content', async () => {
+    const letter = await createFor(alice)
+    const a5 = await createFor(alice, { page: { format: 'A5', orientation: 'portrait' } })
+    const req = await createLocalReq({}, payload)
+    await initTransaction(req)
+    const transactionID = await req.transactionID
+    if (!transactionID || !payload.db.sessions) throw new Error('The migration test requires a transaction')
+    const db = payload.db.sessions[transactionID].db as MigrateUpArgs['db']
+
+    try {
+      // Reproduce the previous enum schema inside a transaction; the final rollback also
+      // restores the schema, so the test cannot convert existing non-test compositions.
+      await db.execute(sql`
+        ALTER TABLE "compositions" ALTER COLUMN "page_format" DROP DEFAULT;
+        ALTER TABLE "compositions" ALTER COLUMN "page_orientation" DROP DEFAULT;
+        ALTER TABLE "compositions" ALTER COLUMN "page_format" TYPE text;
+        ALTER TABLE "compositions" ALTER COLUMN "page_orientation" TYPE text;
+        DROP TYPE "enum_compositions_page_format";
+        DROP TYPE "enum_compositions_page_orientation";
+        CREATE TYPE "enum_compositions_page_format" AS ENUM ('A4', 'A5', 'Letter');
+        CREATE TYPE "enum_compositions_page_orientation" AS ENUM ('portrait', 'landscape');
+        ALTER TABLE "compositions" ALTER COLUMN "page_format"
+          TYPE "enum_compositions_page_format" USING "page_format"::"enum_compositions_page_format";
+        ALTER TABLE "compositions" ALTER COLUMN "page_orientation"
+          TYPE "enum_compositions_page_orientation" USING "page_orientation"::"enum_compositions_page_orientation";
+      `)
+      await db.execute(sql`
+        UPDATE "compositions" SET "page_format" = 'Letter', "page_orientation" = 'landscape'
+          WHERE "id" = ${letter.id};
+      `)
+      await db.execute(sql`
+        UPDATE "compositions" SET "page_orientation" = 'landscape',
+          "page_margins_left" = 70, "page_margins_right" = 70, "typography_first_line_indent" = 50
+          WHERE "id" = ${a5.id};
+      `)
+      const binderBefore = await payload.find({
+        collection: 'binder-items',
+        where: { composition: { in: [letter.id, a5.id] } },
+        depth: 0,
+        req,
+      })
+      await migratePortraitPages({ db, payload, req })
+
+      const convertedLetter = await payload.findByID({
+        collection: 'compositions',
+        id: letter.id,
+        req,
+      })
+      const convertedA5 = await payload.findByID({ collection: 'compositions', id: a5.id, req })
+      expect(convertedLetter.page).toEqual(letter.page)
+      expect(convertedA5.page).toEqual({
+        format: 'A5',
+        orientation: 'portrait',
+        margins: { top: 25, bottom: 25, left: 54, right: 54 },
+      })
+      expect(convertedA5.typography?.firstLineIndent).toBe(20)
+      expect(
+        (
+          await payload.find({
+            collection: 'binder-items',
+            where: { composition: { in: [letter.id, a5.id] } },
+            depth: 0,
+            req,
+          })
+        ).docs,
+      ).toEqual(binderBefore.docs)
+
+      // A database already restricted to portrait also accepts the migration.
+      await migratePortraitPages({ db, payload, req })
+    } finally {
+      await killTransaction(req)
+    }
   })
 
   describe('validation', () => {

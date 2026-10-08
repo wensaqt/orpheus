@@ -85,7 +85,12 @@ const viewMenu = ({ t, view }: MenuContext): MenuDefinition => ({
       checked: view.rulerVisible,
       onSelect: view.toggleRuler,
     },
-    soon(t, 'editor.actions.bookView'),
+    {
+      label: t('editor.actions.bookView'),
+      kind: 'checkbox',
+      checked: view.bookView,
+      onSelect: view.toggleBookView,
+    },
   ],
 })
 

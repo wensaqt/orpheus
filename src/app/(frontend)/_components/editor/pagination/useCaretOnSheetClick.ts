@@ -6,7 +6,7 @@ import type { MouseEvent } from 'react'
 import { isMainButton } from '@front/_components/ui/pointer'
 
 import { PAGE_BREAK_ATTRIBUTE } from '../constants'
-import { $selectTextBefore, caretTarget, placeCaretAt } from './caretPlacement'
+import { $selectTextBefore, bookCaretTarget, caretTarget, placeCaretAt } from './caretPlacement'
 import type { PagesOnScreen } from './types'
 
 /*
@@ -14,7 +14,10 @@ import type { PagesOnScreen } from './types'
  * margins and the gaps are outside the editable element, so no Lexical command sees them: the
  * pages listen. Returns their mousedown handler; `measure` gives the pages as laid out now.
  */
-export function useCaretOnSheetClick(measure: (pagesRoot: HTMLElement) => PagesOnScreen) {
+export function useCaretOnSheetClick(
+  measure: (pagesRoot: HTMLElement) => PagesOnScreen,
+  bookView: boolean,
+) {
   const [editor] = useLexicalComposerContext()
 
   return function handleMouseDown(event: MouseEvent<HTMLElement>) {
@@ -32,6 +35,10 @@ export function useCaretOnSheetClick(measure: (pagesRoot: HTMLElement) => PagesO
       return
     }
     const click = { x: event.clientX, y: event.clientY }
-    placeCaretAt(editable, caretTarget(editable, click, measure(event.currentTarget)))
+    const pages = measure(event.currentTarget)
+    const point = bookView
+      ? bookCaretTarget(editable, event.currentTarget, click, pages)
+      : caretTarget(editable, click, pages)
+    if (point) placeCaretAt(editable, point)
   }
 }

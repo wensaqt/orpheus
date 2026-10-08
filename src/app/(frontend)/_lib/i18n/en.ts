@@ -244,14 +244,11 @@ export const en = {
     pageSetup: {
       open: 'Page setup',
       format: 'Format',
-      orientation: 'Orientation',
-      portrait: 'Portrait',
-      landscape: 'Landscape',
       margins: 'Margins',
       top: 'Top',
       bottom: 'Bottom',
       unit: 'mm',
-      formats: { A4: 'A4', A5: 'A5', Letter: 'US Letter' },
+      formats: { A4: 'A4', A5: 'A5' },
     },
     ruler: {
       label: 'Ruler',

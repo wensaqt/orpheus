@@ -3,49 +3,10 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import type { LexicalEditor } from 'lexical'
 import { type RefObject, useEffect, useEffectEvent, useState } from 'react'
+import { flushSync } from 'react-dom'
 
-import { PAGE_BREAK_ATTRIBUTE } from '../constants'
-import { pageBreakFill, pagesFor } from './pageGeometry'
-import type { PageBreakPlace, PageGeometry } from './types'
-
-// A break's height is written to the hundredth of a pixel: finer would only add rewrites
-const HEIGHT_DECIMALS = 2
-
-/*
- * Where the text flow starts on screen: the first sheet's top plus its top margin. Read anew
- * at each measure: a break that grows can make the browser scroll (to keep what the writer
- * sees in place), which moves everything on screen.
- */
-export const flowTopOnScreen = (root: Element, page: PageGeometry) =>
-  root.getBoundingClientRect().top + page.top
-
-// An offset in the text flow, from a height on screen
-type ToFlowOffset = (y: number) => number
-
-// Where a page break starts in the flow, and where the text before it ends
-function pageBreakPlace(pageBreak: HTMLElement, offsetOf: ToFlowOffset): PageBreakPlace {
-  const start = offsetOf(pageBreak.getBoundingClientRect().top)
-  const before = pageBreak.previousElementSibling
-  return { start, textEnd: before ? offsetOf(before.getBoundingClientRect().bottom) : start }
-}
-
-// Unchanged heights are left alone: each write would cost the next read a full layout
-function setHeight(element: HTMLElement, height: string) {
-  if (element.style.height !== height) element.style.height = height
-}
-
-/*
- * Stretches every page break down to its page's end. Top to bottom, measuring each break after
- * writing the ones before it: a break's place depends on them, and text moved across a page's
- * end does not move by their sum.
- */
-function fitPageBreaks(text: HTMLElement, offsetOf: ToFlowOffset, page: PageGeometry, gap: number) {
-  for (const pageBreak of text.querySelectorAll(`[${PAGE_BREAK_ATTRIBUTE}]`)) {
-    if (!(pageBreak instanceof HTMLElement)) continue
-    const fill = pageBreakFill(pageBreakPlace(pageBreak, offsetOf), page, gap)
-    setHeight(pageBreak, `${fill.toFixed(HEIGHT_DECIMALS)}px`)
-  }
-}
+import type { PageGeometry } from './types'
+import { layoutPages } from './pageLayout'
 
 // Runs the callback in the next frame, once however many times it was asked for before
 function frameScheduler(callback: () => void) {
@@ -84,8 +45,7 @@ function onTextMoves(editor: LexicalEditor, text: HTMLElement, callback: () => v
  * break must be to end its page. Reads the DOM after layout changes (text, fonts, settings)
  * and writes only DOM styles and its own page count: the editor state is never touched.
  *
- * Print needs no second pass: without the gap, every band and every offset before a break
- * shrinks by the same amount, so the breaks and the page count stay the same.
+ * Screen columns and the vertical print flow both use the same editable content.
  */
 export function usePageLayout(
   // The pages' root: its top is the first sheet's
@@ -93,6 +53,7 @@ export function usePageLayout(
   // The gap between sheets, in pixels, as drawn right now
   measureGap: () => number,
   page: PageGeometry,
+  bookView: boolean,
 ) {
   const [editor] = useLexicalComposerContext()
   const [pages, setPages] = useState(1)
@@ -100,10 +61,9 @@ export function usePageLayout(
   const layout = useEffectEvent((text: HTMLElement) => {
     const root = pagesRef.current
     if (!root) return
-    const gap = measureGap()
-    const offsetOf: ToFlowOffset = (y) => y - flowTopOnScreen(root, page)
-    fitPageBreaks(text, offsetOf, page, gap)
-    setPages(pagesFor(offsetOf(text.getBoundingClientRect().bottom), page, gap))
+    setPages(
+      layoutPages(root, text, page, measureGap(), bookView && !window.matchMedia('print').matches),
+    )
   })
 
   // New page settings re-run this effect, and observing anew lays the new pages out
@@ -116,12 +76,27 @@ export function usePageLayout(
           if (!editor.isComposing()) layout(text)
         })
         const stopWatching = onTextMoves(editor, text, frame.schedule)
+        // Print returns to the vertical flow. Fit breaks and refresh the bands before the
+        // browser captures it; a second pass uses the resulting number of bands.
+        const beforePrint = () => {
+          flushSync(() => layout(text))
+          flushSync(() => layout(text))
+        }
+        const media = window.matchMedia('print')
+        media.addEventListener('change', frame.schedule)
+        window.addEventListener('beforeprint', beforePrint)
+        window.addEventListener('afterprint', frame.schedule)
+        window.addEventListener('resize', frame.schedule)
         return () => {
           frame.cancel()
           stopWatching()
+          media.removeEventListener('change', frame.schedule)
+          window.removeEventListener('beforeprint', beforePrint)
+          window.removeEventListener('afterprint', frame.schedule)
+          window.removeEventListener('resize', frame.schedule)
         }
       }),
-    [editor, page.width, page.height, page.top, page.right, page.bottom, page.left],
+    [editor, page.width, page.height, page.top, page.right, page.bottom, page.left, bookView],
   )
 
   return pages

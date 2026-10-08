@@ -29,6 +29,7 @@ type ToolButtonProps = {
   // Pressed; from the keyboard, with the control, which keeps the focus
   onPress?: (control?: HTMLElement) => void
   className?: string
+  tooltipAlign?: 'center' | 'end'
 }
 
 /*
@@ -44,6 +45,7 @@ export function ToolButton({
   pressed,
   onPress,
   className,
+  tooltipAlign,
 }: ToolButtonProps) {
   const t = useT()
   const apple = useIsApple()
@@ -60,6 +62,7 @@ export function ToolButton({
       className={className}
       label={label}
       tooltip={detail ? t('editor.labelWithHint', { label, hint: detail }) : label}
+      tooltipAlign={tooltipAlign}
       icon={<ToolbarIcon name={icon} />}
       aria-pressed={pressed}
       aria-description={hint}

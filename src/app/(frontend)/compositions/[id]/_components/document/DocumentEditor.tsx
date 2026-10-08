@@ -21,6 +21,7 @@ import { useDocumentTitleSlot } from '../header/documentTitleSlot'
 import { useRegisterOpenEditor } from '../editorFocus'
 import { CompositionHistoryPlugin } from '../history/CompositionHistoryPlugin'
 import { useHistoryState } from '../history/HistoryProvider'
+import { useEditorView } from '../editorView'
 import { useLayout } from '../page/LayoutProvider'
 import styles from './DocumentEditor.module.css'
 import { DocumentTitle } from './DocumentTitle'
@@ -55,6 +56,7 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
   const [editor] = useLexicalComposerContext()
   const { commands } = useBinder()
   const { layout } = useLayout()
+  const { bookView } = useEditorView()
   const titleSlot = useDocumentTitleSlot()
   useRegisterOpenEditor(editor)
   const autosave = useDocumentText(id, text)
@@ -81,7 +83,7 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
           {t('editor.saveError')}
         </p>
       ) : null}
-      <PagedSheet settings={layout.page} typography={layout.typography}>
+      <PagedSheet bookView={bookView} settings={layout.page} typography={layout.typography}>
         <EditorContent
           historyPlugin={<CompositionHistoryPlugin id={id} />}
           label={t('editor.textLabel')}

@@ -63,6 +63,14 @@ export function pageBreakFill(
   return Math.max(0, areaEnd(breakPage) - start)
 }
 
+// Columns have no vertical band. Leave subpixel room so an unbreakable filler fits in
+// the intended column despite engine rounding; it still leaves no room for another line.
+export function columnBreakFill({ start, textEnd }: PageBreakPlace, page: PageGeometry): number {
+  const height = contentHeight(page)
+  const end = (Math.floor((textEnd + SUBPIXEL_TOLERANCE) / height) + 1) * height
+  return Math.min(height - SUBPIXEL_TOLERANCE, Math.max(0, end - start - SUBPIXEL_TOLERANCE))
+}
+
 /*
  * Where a click outside the text (a margin, the gap between two sheets) should land: the same
  * height when it is level with a page's text area, else the nearest edge of the nearest text

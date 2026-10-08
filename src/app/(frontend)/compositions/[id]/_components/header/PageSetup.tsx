@@ -15,7 +15,6 @@ import {
   MARGIN_STEP,
   maxMargin,
   PAGE_FORMAT_NAMES,
-  PAGE_ORIENTATIONS,
   type PageMargin,
   type PageSettings,
   withMargin,
@@ -41,7 +40,7 @@ type PageSetupProps = {
 }
 
 /*
- * The page setup of the composition, from the File menu: format, orientation, and the top and
+ * The page setup of the composition, from the File menu: format and the top and
  * bottom margins. Every change applies to the pages at once and saves on its own.
  */
 export function PageSetup({ ref, anchor, onClose }: PageSetupProps) {
@@ -68,22 +67,6 @@ export function PageSetup({ ref, anchor, onClose }: PageSetupProps) {
                   onChange={() => changePage((current) => ({ ...current, format }))}
                 />
                 {t(`editor.pageSetup.formats.${format}`)}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <fieldset className={styles.group}>
-          <legend className={styles.legend}>{t('editor.pageSetup.orientation')}</legend>
-          <div className={styles.choices}>
-            {PAGE_ORIENTATIONS.map((orientation) => (
-              <label key={orientation} className={styles.choice}>
-                <input
-                  type="radio"
-                  name={`${id}-orientation`}
-                  checked={page.orientation === orientation}
-                  onChange={() => changePage((current) => ({ ...current, orientation }))}
-                />
-                {t(`editor.pageSetup.${orientation}`)}
               </label>
             ))}
           </div>

@@ -23,15 +23,22 @@ describe('pageSize', () => {
     expect(pageSize({ format: 'A4', orientation: 'portrait' })).toEqual({ width: 210, height: 297 })
   })
 
-  it('swaps dimensions in landscape', () => {
-    expect(pageSize({ format: 'A5', orientation: 'landscape' })).toEqual({
-      width: 210,
-      height: 148,
+  it('returns A5 dimensions in portrait', () => {
+    expect(pageSize({ format: 'A5', orientation: 'portrait' })).toEqual({
+      width: 148,
+      height: 210,
     })
   })
 })
 
 describe('toPageSettings', () => {
+  it('normalizes retired formats and orientations while preserving margins', () => {
+    expect(
+      toPageSettings({ format: 'Letter', orientation: 'landscape', margins: { top: 10 } }),
+    ).toEqual({ ...a4, margins: { ...a4.margins, top: 10 } })
+    expect(toPageSettings({ format: 'A5', orientation: 'landscape' }).orientation).toBe('portrait')
+  })
+
   it('fills missing margins with the default value', () => {
     const settings = toPageSettings({ format: 'A4', orientation: 'portrait', margins: { top: 10 } })
     expect(settings.margins).toEqual({
@@ -71,7 +78,7 @@ describe('margins', () => {
     expect(withMargin(a4, 'right', 500).margins.right).toBe(210 - MIN_TEXT_AREA - 25)
   })
 
-  it('shrink in proportion when they no longer fit a smaller or turned page', () => {
+  it('shrink in proportion when they no longer fit a smaller page', () => {
     const wide = { ...a4, margins: { top: 25, right: 60, bottom: 25, left: 60 } }
     // A5: 148 mm across, so 108 mm of margins at most
     expect(fitMargins({ ...wide, format: 'A5' }).margins).toEqual({
@@ -91,6 +98,8 @@ describe('parsePageSettings', () => {
 
   it('refuses unknown formats, orientations and malformed margins', () => {
     expect(parsePageSettings({ ...a4, format: 'B5' })).toBeNull()
+    expect(parsePageSettings({ ...a4, format: 'Letter' })).toBeNull()
+    expect(parsePageSettings({ ...a4, orientation: 'landscape' })).toBeNull()
     expect(parsePageSettings({ ...a4, orientation: 'sideways' })).toBeNull()
     expect(parsePageSettings({ ...a4, margins: { ...a4.margins, top: Number.NaN } })).toBeNull()
     expect(parsePageSettings({ ...a4, margins: { ...a4.margins, left: -1 } })).toBeNull()

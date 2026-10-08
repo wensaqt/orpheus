@@ -34,6 +34,20 @@
   max-width: 100%;
 }
 
+.pageSurface {
+  display: flex;
+  flex-direction: column;
+  column-gap: var(--space-4);
+}
+
+.desk[data-book='true'] {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.desk[data-book='true'] .pageSurface {
+  zoom: var(--book-scale, 1);
+}
+
 .aside {
   grid-column: 3;
   align-self: stretch;
@@ -74,6 +88,9 @@
 
 /* Printing a document prints its pages, and nothing around them */
 @media print {
+  .pageSurface {
+    zoom: 1 !important;
+  }
   .screen {
     background: none;
   }
@@ -94,7 +111,8 @@
  * only: a printed page is about as narrow, and Firefox prints a scrolling box's first page only
  */
 @media screen and (max-width: 78rem) {
-  .desk {
+  .desk,
+  .desk[data-book='true'] {
     /* The fixed-width sheet may overflow the viewport, but must not widen the page itself */
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
@@ -120,6 +138,10 @@
 
   .binder {
     justify-self: stretch;
+  }
+
+  .desk[data-book='true'] .column {
+    width: 100%;
   }
 
   /*

@@ -2,6 +2,7 @@
 
 import { createContext, type ReactNode, use, useState } from 'react'
 import {
+  BOOK_VIEW_COOKIE,
   RULER_HIDDEN_COOKIE,
   SYNONYMS_HIDDEN_COOKIE,
   setPreferenceCookie,
@@ -9,6 +10,8 @@ import {
 import { useOpenEditor } from './editorFocus'
 
 type EditorView = {
+  bookView: boolean
+  toggleBookView: () => void
   rulerVisible: boolean
   toggleRuler: () => void
   synonymsVisible: boolean
@@ -24,13 +27,16 @@ const ViewContext = createContext<EditorView | null>(null)
 export function EditorViewProvider({
   rulerHidden,
   synonymsHidden,
+  bookView: initialBookView,
   children,
 }: {
   rulerHidden: boolean
   synonymsHidden: boolean
+  bookView: boolean
   children: ReactNode
 }) {
   const editor = useOpenEditor()
+  const [bookView, setBookView] = useState(initialBookView)
   const [rulerVisible, setRulerVisible] = useState(!rulerHidden)
   const [folded, setFolded] = useState(synonymsHidden)
   const [over, setOver] = useState(false)
@@ -57,6 +63,11 @@ export function EditorViewProvider({
   return (
     <ViewContext
       value={{
+        bookView,
+        toggleBookView: () => {
+          setBookView(!bookView)
+          setPreferenceCookie(BOOK_VIEW_COOKIE, !bookView)
+        },
         rulerVisible,
         toggleRuler,
         synonymsVisible,
