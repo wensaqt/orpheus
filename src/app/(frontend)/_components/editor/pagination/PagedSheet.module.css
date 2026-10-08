@@ -30,11 +30,6 @@
   transform: translateX(calc(-2 * var(--row) * (var(--page-w) + var(--page-gap))));
 }
 
-::highlight(orpheus-book-selection) {
-  background-color: Highlight;
-  color: HighlightText;
-}
-
 .paged {
   position: relative;
   flex-shrink: 0;

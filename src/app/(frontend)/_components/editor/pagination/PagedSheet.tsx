@@ -17,6 +17,9 @@ import { usePageLayout } from './usePageLayout'
 import { flowTopOnScreen } from './pageLayout'
 import { useBookFlow } from './useBookFlow'
 
+const BOOK_SELECTION_STYLE =
+  '::highlight(orpheus-book-selection) { background-color: Highlight; color: HighlightText; }'
+
 type PagedSheetProps = {
   settings: PageSettings
   // How the text is set on the pages (the first-line indent)
@@ -86,6 +89,7 @@ export function PagedSheet({ settings, typography, bookView, children }: PagedSh
             onMouseDown={handleMouseDown}
           >
             <PrintedPageSize settings={settings} />
+            {bookView && <style>{BOOK_SELECTION_STYLE}</style>}
             <div ref={gapProbe} className={styles.gapProbe} aria-hidden="true" />
             {!bookView && <Sheets pages={pages} bookView={false} />}
             <div className={styles.flow}>
