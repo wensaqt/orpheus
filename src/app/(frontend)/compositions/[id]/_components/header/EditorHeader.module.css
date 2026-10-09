@@ -16,6 +16,10 @@
   background-color: var(--color-surface-raised);
 }
 
+.header[data-score='true'] {
+  height: auto;
+}
+
 .titles {
   display: flex;
   align-items: baseline;

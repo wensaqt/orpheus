@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 
 import { RETURN_TO_PARAM } from '@front/_lib/routes'
+import { Button } from '@front/_components/ui/Button/Button'
+import { Heading } from '@front/_components/ui/Heading/Heading'
 
 import styles from './AuthSheet.module.css'
 
@@ -37,7 +39,9 @@ export function AuthSheet({
   return (
     <form action={action} className={styles.sheet}>
       <header>
-        <h1 className={styles.heading}>{heading}</h1>
+        <Heading level={1} variant="page">
+          {heading}
+        </Heading>
         <p className={styles.subtitle}>{subtitle}</p>
       </header>
 
@@ -50,9 +54,9 @@ export function AuthSheet({
         <p id={errorId} role="alert" className={styles.error}>
           {error}
         </p>
-        <button type="submit" className={styles.submit} disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? pendingLabel : submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   )

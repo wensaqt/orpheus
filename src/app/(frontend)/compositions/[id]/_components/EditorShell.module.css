@@ -48,6 +48,14 @@
   zoom: var(--book-scale, 1);
 }
 
+.desk[data-score='true'] {
+  grid-template-columns: 1fr minmax(0, min(100%, 60rem)) 1fr;
+}
+
+.desk[data-score='true'] .column {
+  width: 100%;
+}
+
 .aside {
   grid-column: 3;
   align-self: stretch;

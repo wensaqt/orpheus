@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
+import { Heading } from '@front/_components/ui/Heading/Heading'
 
 import styles from './Dialog.module.css'
 
@@ -47,9 +48,9 @@ export function Dialog({ open, onClose, labelledBy, children }: DialogProps) {
 // The dialog's heading, labelling it through the id given to <Dialog labelledBy>
 export function DialogTitle({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <h2 id={id} className={styles.title}>
+    <Heading id={id} level={2} variant="dialog">
       {children}
-    </h2>
+    </Heading>
   )
 }
 

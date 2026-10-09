@@ -9,7 +9,7 @@ import type { MenuHandle } from '@front/_components/ui/Menu/types'
 import { prefetchDocument } from '@front/_features/binder/documentStore'
 
 import { useRowDragAndDrop } from '../dnd/useRowDragAndDrop'
-import { ChevronIcon, DocumentIcon, FolderIcon } from '../../icons'
+import { ChevronIcon, DocumentIcon, FolderIcon, ScoreIcon } from '../../icons'
 import type { BinderRow as Row } from '../types'
 import { useBinder } from '../state/BinderProvider'
 import styles from './BinderRow.module.css'
@@ -73,7 +73,9 @@ export function BinderRow({ row, tabbable, register, onFocus, onMoveTo }: Binder
   const toggleFolder = () => setFolderOpen(entry.id, !expanded)
   const activate = () => (isFolder ? toggleFolder() : void commands.open(entry.id))
   // Likely opened next: its text is loaded ahead, so opening it is instant
-  const prefetch = () => prefetchDocument(compositionId, entry.id)
+  const prefetch = () => {
+    if (entry.documentType === 'text') prefetchDocument(compositionId, entry.id)
+  }
 
   function handleFocus(event: React.FocusEvent<HTMLLIElement>) {
     if (event.target !== event.currentTarget) return
@@ -105,8 +107,9 @@ export function BinderRow({ row, tabbable, register, onFocus, onMoveTo }: Binder
       aria-setsize={row.setSize}
       aria-posinset={row.posInSet}
       aria-expanded={isFolder ? expanded : undefined}
-      // The document on the sheet; selection itself is not a feature of this tree
+      // The document currently shown on the sheet
       aria-current={entry.id === activeDocumentId ? 'page' : undefined}
+      aria-selected={entry.id === activeDocumentId}
       aria-label={entry.title}
       tabIndex={tabbable ? 0 : -1}
       className={styles.row}
@@ -133,7 +136,13 @@ export function BinderRow({ row, tabbable, register, onFocus, onMoveTo }: Binder
         <span className={styles.chevron} aria-hidden="true" />
       )}
       <span className={styles.icon}>
-        {isFolder ? <FolderIcon open={expanded} /> : <DocumentIcon />}
+        {isFolder ? (
+          <FolderIcon open={expanded} />
+        ) : entry.documentType === 'score' ? (
+          <ScoreIcon />
+        ) : (
+          <DocumentIcon />
+        )}
       </span>
       {renaming ? (
         <RenameField title={entry.title} onDone={handleRenamed} />

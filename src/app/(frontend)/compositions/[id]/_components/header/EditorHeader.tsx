@@ -18,6 +18,7 @@ import styles from './EditorHeader.module.css'
 import { MenuBar } from './MenuBar'
 import { StyleToolbar } from './StyleToolbar'
 import { useToolbarState } from './useToolbarState'
+import { ScoreMenuBar } from '../score/ScoreMenuBar'
 
 type EditorHeaderProps = {
   title: string
@@ -32,7 +33,10 @@ type EditorHeaderProps = {
  */
 export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
   const t = useT()
-  const { compositionId } = useBinder()
+  const { compositionId, entries, activeDocumentId } = useBinder()
+  const scoreOpen = entries.some(
+    (entry) => entry.id === activeDocumentId && entry.documentType === 'score',
+  )
   const { status: layoutStatus } = useLayout()
   const field = useTitleField({
     title,
@@ -43,7 +47,7 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
   const toolbarState = useToolbarState(useOpenEditor())
 
   return (
-    <header className={styles.header} data-editor-header="">
+    <header className={styles.header} data-editor-header="" data-score={scoreOpen}>
       <div className={styles.titles}>
         <TitleInput
           size="md"
@@ -62,8 +66,8 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
           </p>
         ) : null}
       </div>
-      <MenuBar state={toolbarState} />
-      <StyleToolbar state={toolbarState} />
+      {scoreOpen ? <ScoreMenuBar /> : <MenuBar state={toolbarState} />}
+      {!scoreOpen && <StyleToolbar state={toolbarState} />}
     </header>
   )
 }

@@ -14,7 +14,14 @@ import { uuid } from '../../helpers/ids'
 
 const composition = uuid(10)
 const id = uuid(1)
-const serverDocument = (updatedAt: string) => ({ id, title: 'Chant', content: null, updatedAt })
+const serverDocument = (updatedAt: string) => ({
+  id,
+  title: 'Chant',
+  content: null,
+  documentType: 'text',
+  scoreXml: null,
+  updatedAt,
+})
 
 const respond = (status: number, body: unknown = null) =>
   Promise.resolve(new Response(JSON.stringify(body), { status }))

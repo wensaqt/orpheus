@@ -42,7 +42,14 @@ export const addFirstDocument: CollectionAfterChangeHook = async ({
   await req.payload.create({
     collection: 'binder-items',
     // Owner and position are set by the binder's own hook; given here for the types
-    data: { composition: doc.id, owner: doc.owner, kind: 'document', title, position: 0 },
+    data: {
+      composition: doc.id,
+      owner: doc.owner,
+      kind: 'document',
+      documentType: 'text',
+      title,
+      position: 0,
+    },
     req,
   })
   return doc

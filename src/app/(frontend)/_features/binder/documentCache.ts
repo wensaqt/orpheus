@@ -58,7 +58,9 @@ export function withSlot(
 
 // The documents just before and after this one in reading order, to load ahead
 export function neighbourDocuments(entries: BinderEntry[], id: Id): Id[] {
-  const documents = inReadingOrder(entries).filter((entry) => entry.kind === 'document')
+  const documents = inReadingOrder(entries).filter(
+    (entry) => entry.kind === 'document' && entry.documentType !== 'score',
+  )
   const index = documents.findIndex((entry) => entry.id === id)
   if (index === -1) return []
   return [documents[index - 1], documents[index + 1]].flatMap((entry) => (entry ? [entry.id] : []))

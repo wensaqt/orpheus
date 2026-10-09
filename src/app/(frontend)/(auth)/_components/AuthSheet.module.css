@@ -11,24 +11,6 @@
   box-shadow: var(--shadow-sheet);
 }
 
-/* Same title as "All compositions", underlined with a short rule */
-.heading {
-  font-size: var(--text-2xl);
-  font-weight: 300;
-  line-height: 1.1;
-  letter-spacing: 0.03em;
-  color: var(--color-primary);
-}
-
-.heading::after {
-  content: '';
-  display: block;
-  width: var(--rule-length);
-  height: var(--rule-thickness);
-  margin-block-start: var(--space-3);
-  background-color: var(--color-divider);
-}
-
 .subtitle {
   margin-block-start: var(--space-3);
   font-style: italic;
@@ -50,36 +32,14 @@
   gap: var(--space-3);
 }
 
+.footer > button {
+  justify-content: center;
+}
+
 .error {
   min-height: 1.5em;
   font-size: var(--text-sm);
   color: var(--color-accent);
-}
-
-.submit {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-primary);
-  font: inherit;
-  letter-spacing: 0.02em;
-  color: var(--color-on-primary);
-  cursor: pointer;
-  transition: background-color var(--duration);
-}
-
-.submit:hover {
-  background-color: var(--color-primary-hover);
-}
-
-.submit:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.submit:disabled {
-  cursor: progress;
-  opacity: 0.8;
 }
 
 /* Small screens: the sheet takes the height of its content rather than a page shape */

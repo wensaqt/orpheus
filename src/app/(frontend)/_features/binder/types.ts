@@ -9,10 +9,15 @@ export type LexicalContent = NonNullable<BinderItem['content']>
 // The document open in the editor; updatedAt tells a newer server version from a cached one
 export type EditorDocument = Pick<BinderItem, 'id' | 'title' | 'updatedAt'> & {
   content: LexicalContent | null
+  documentType: BinderItem['documentType']
+  scoreXml: string | null
 }
 
 // One line of the binder column: its place in the tree and its title, never its content
-export type BinderEntry = BinderNodeData & Pick<BinderItem, 'title'>
+export type BinderEntry = BinderNodeData &
+  Pick<BinderItem, 'title'> & {
+    documentType?: BinderItem['documentType']
+  }
 
 // The text of a document as some version of the server had it
 export type DocumentText = Pick<EditorDocument, 'content' | 'updatedAt'>

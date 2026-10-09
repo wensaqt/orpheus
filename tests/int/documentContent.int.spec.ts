@@ -66,6 +66,8 @@ describe('document content route', () => {
       id: document.id,
       title: document.title,
       content: null,
+      documentType: 'text',
+      scoreXml: null,
       updatedAt: document.updatedAt,
     })
   })

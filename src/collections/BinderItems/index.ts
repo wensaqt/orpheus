@@ -10,7 +10,7 @@ import { LEXICAL_STATE_JSON_SCHEMA } from '@/lib/lexical'
 import { validateTitle } from '../validators'
 import { ownedByUser } from '@/access/ownedByUser'
 import { canAddToComposition } from './access'
-import { deleteContents, keepBinderTree } from './hooks'
+import { deleteContents, keepBinderTree, validateDocumentBody } from './hooks'
 
 // Set once, at creation: an item never changes composition, owner or kind
 const fixed = { update: () => false }
@@ -32,7 +32,7 @@ export const BinderItems: CollectionConfig = {
     delete: ownedByUser,
   },
   hooks: {
-    beforeValidate: [keepBinderTree],
+    beforeValidate: [keepBinderTree, validateDocumentBody],
     beforeDelete: [deleteContents],
   },
   fields: [
@@ -50,6 +50,14 @@ export const BinderItems: CollectionConfig = {
       options: [...BINDER_ITEM_KINDS],
       required: true,
       defaultValue: 'document',
+      access: fixed,
+    },
+    {
+      name: 'documentType',
+      type: 'select',
+      options: ['text', 'score'],
+      required: true,
+      defaultValue: 'text',
       access: fixed,
     },
     {
@@ -76,6 +84,8 @@ export const BinderItems: CollectionConfig = {
     { name: 'position', type: 'number', required: true, admin: { step: 1 } },
     // Documents only: serialized Lexical state, validated by its JSON schema
     { name: 'content', type: 'json', jsonSchema: LEXICAL_STATE_JSON_SCHEMA },
+    // Partition documents only. The prototype stores MusicXML directly until a score model is chosen.
+    { name: 'scoreXml', type: 'textarea' },
   ],
   timestamps: true,
 }

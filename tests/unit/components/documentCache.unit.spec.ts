@@ -81,6 +81,13 @@ describe('neighbourDocuments', () => {
     expect(neighbourDocuments(entries, uuid(1))).toEqual([uuid(3)])
     expect(neighbourDocuments(entries, uuid(9))).toEqual([])
   })
+
+  it('does not prefetch score documents into the Lexical text cache', () => {
+    const withScore = entries.map((entry) =>
+      entry.id === uuid(4) ? { ...entry, documentType: 'score' as const } : entry,
+    )
+    expect(neighbourDocuments(withScore, uuid(3))).toEqual([uuid(1), uuid(5)])
+  })
 })
 
 describe('editor paths', () => {

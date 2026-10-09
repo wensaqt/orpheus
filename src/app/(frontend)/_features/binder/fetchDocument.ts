@@ -27,9 +27,18 @@ export async function fetchDocument(compositionId: Id, id: Id): Promise<EditorDo
     document.id !== id ||
     typeof document.title !== 'string' ||
     typeof document.updatedAt !== 'string' ||
+    (document.documentType !== 'text' && document.documentType !== 'score') ||
+    (document.scoreXml !== null && typeof document.scoreXml !== 'string') ||
     (document.content !== null && !isLexicalContent(document.content))
   ) {
     throw new Error(`Document ${id}: invalid response`)
   }
-  return { id, title: document.title, content: document.content, updatedAt: document.updatedAt }
+  return {
+    id,
+    title: document.title,
+    content: document.content,
+    documentType: document.documentType,
+    scoreXml: document.scoreXml,
+    updatedAt: document.updatedAt,
+  }
 }
