@@ -42,6 +42,79 @@ function fitPageBreaks(text: HTMLElement, offsetOf: ToFlowOffset, page: PageGeom
   }
 }
 
+type ColumnCoordinates = {
+  columnOf: (rect: DOMRect) => number
+  offsetOf: (rect: DOMRect, edge: 'top' | 'bottom') => number
+}
+
+function columnCoordinates(root: HTMLElement, page: PageGeometry, gap: number): ColumnCoordinates {
+  const box = root.getBoundingClientRect()
+  const scale = box.width / parseFloat(getComputedStyle(root).width)
+  const columnOf = (rect: DOMRect) =>
+    Math.floor(
+      ((rect.left - box.left) / scale - page.left + SUBPIXEL_TOLERANCE) / (page.width + gap),
+    )
+  const offsetOf = (rect: DOMRect, edge: 'top' | 'bottom') =>
+    columnOf(rect) * contentHeight(page) + (rect[edge] - box.top) / scale - page.top
+  return { columnOf, offsetOf }
+}
+
+function lastFragment(element: Element | null): DOMRect | undefined {
+  const rects = element?.getClientRects()
+  return rects?.[rects.length - 1]
+}
+
+function bookBreakHeight(
+  pageBreak: HTMLElement,
+  coordinates: ColumnCoordinates,
+  page: PageGeometry,
+): number | null {
+  const startRect = pageBreak.getClientRects()[0]
+  if (!startRect) return null
+  const previous = pageBreak.previousElementSibling
+  const before = lastFragment(previous)
+  const start = coordinates.offsetOf(startRect, 'top')
+  const textEnd = before ? coordinates.offsetOf(before, 'bottom') : start
+  return previous?.hasAttribute(PAGE_BREAK_ATTRIBUTE)
+    ? contentHeight(page) - SUBPIXEL_TOLERANCE
+    : columnBreakFill({ start, textEnd }, page)
+}
+
+function fitBookPageBreaks(
+  text: HTMLElement,
+  coordinates: ColumnCoordinates,
+  page: PageGeometry,
+): void {
+  const breaks = text.querySelectorAll<HTMLElement>(`[${PAGE_BREAK_ATTRIBUTE}]`)
+  // Reset the previous vertical layout before measuring fragmented columns.
+  for (const pageBreak of breaks) setHeight(pageBreak, '0px')
+  for (const pageBreak of breaks) {
+    const fill = bookBreakHeight(pageBreak, coordinates, page)
+    if (fill !== null) setHeight(pageBreak, `${fill.toFixed(HEIGHT_DECIMALS)}px`)
+  }
+}
+
+function occupiedColumns(text: HTMLElement, coordinates: ColumnCoordinates): number {
+  const range = document.createRange()
+  range.selectNodeContents(text)
+  // Fragment rectangles are reliable where engines disagree about editable scrollWidth.
+  const columns = Array.from(range.getClientRects())
+    .filter((rect) => rect.height)
+    .map(coordinates.columnOf)
+  return columns.reduce((last, column) => Math.max(last, column), 0) + 1
+}
+
+function layoutBookPages(
+  root: HTMLElement,
+  text: HTMLElement,
+  page: PageGeometry,
+  gap: number,
+): number {
+  const coordinates = columnCoordinates(root, page, gap)
+  fitBookPageBreaks(text, coordinates, page)
+  return occupiedColumns(text, coordinates)
+}
+
 // Measures the text and fits its manual breaks without changing the editor state.
 export function layoutPages(
   root: HTMLElement,
@@ -50,47 +123,7 @@ export function layoutPages(
   gap: number,
   bookView: boolean,
 ): number {
-  if (bookView) {
-    const box = root.getBoundingClientRect()
-    const scale = box.width / parseFloat(getComputedStyle(root).width)
-    const height = contentHeight(page)
-    const columnOf = (rect: DOMRect) => {
-      const x = (rect.left - box.left) / scale - page.left
-      return Math.floor((x + SUBPIXEL_TOLERANCE) / (page.width + gap))
-    }
-    const columnOffset = (rect: DOMRect, edge: 'top' | 'bottom') =>
-      columnOf(rect) * height + (rect[edge] - box.top) / scale - page.top
-    // Fill the remainder of the column rather than using break-after: column, which
-    // Firefox does not implement. Keep consecutive breaks as whole blank pages.
-    const breaks = text.querySelectorAll<HTMLElement>(`[${PAGE_BREAK_ATTRIBUTE}]`)
-    // A previous vertical layout's taller break can move itself into another column.
-    for (const pageBreak of breaks) setHeight(pageBreak, '0px')
-    for (const pageBreak of breaks) {
-      const startRect = pageBreak.getClientRects()[0]
-      if (!startRect) continue
-      const previous = pageBreak.previousElementSibling
-      const rects = previous?.getClientRects()
-      const before = rects?.[rects.length - 1]
-      const start = columnOffset(startRect, 'top')
-      const textEnd = before ? columnOffset(before, 'bottom') : start
-      // A consecutive break always leaves a whole blank column. Rounded rectangles
-      // near the previous column's bottom cannot reliably identify that boundary.
-      const fill = previous?.hasAttribute(PAGE_BREAK_ATTRIBUTE)
-        ? height - SUBPIXEL_TOLERANCE
-        : columnBreakFill({ start, textEnd }, page)
-      setHeight(pageBreak, `${fill.toFixed(HEIGHT_DECIMALS)}px`)
-    }
-    // Engines disagree about scrollWidth for overflowing editable columns. Fragment
-    // rectangles describe the actual occupied columns, including empty paragraphs.
-    const range = document.createRange()
-    range.selectNodeContents(text)
-    let lastColumn = 0
-    for (const rect of range.getClientRects()) {
-      if (!rect.height) continue
-      lastColumn = Math.max(lastColumn, columnOf(rect))
-    }
-    return lastColumn + 1
-  }
+  if (bookView) return layoutBookPages(root, text, page, gap)
   const offsetOf: ToFlowOffset = (y) => y - flowTopOnScreen(root, page)
   fitPageBreaks(text, offsetOf, page, gap)
   return pagesFor(offsetOf(text.getBoundingClientRect().bottom), page, gap)

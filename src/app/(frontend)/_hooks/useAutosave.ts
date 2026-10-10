@@ -9,6 +9,41 @@ const AUTOSAVE_DELAY_MS = 800
 // After a failure, tries again on its own, less and less often (the last delay repeats)
 const RETRY_DELAYS = [2_000, 5_000, 15_000, 30_000]
 
+type SaveState = {
+  dirty: boolean
+  sending: boolean
+  failures: number
+  generation: number
+}
+
+function statusOf(state: SaveState): SaveStatus {
+  if (state.sending) return SaveStatus.Saving
+  if (state.failures > 0) return SaveStatus.Error
+  return state.dirty ? SaveStatus.Pending : SaveStatus.Saved
+}
+
+function beginSave(state: SaveState): void {
+  state.dirty = false
+  state.sending = true
+}
+
+function completeSave(state: SaveState, saved: boolean): number | undefined {
+  state.sending = false
+  if (saved) {
+    state.failures = 0
+    return undefined
+  }
+  state.dirty = true
+  return RETRY_DELAYS[Math.min(state.failures++, RETRY_DELAYS.length - 1)]
+}
+
+function dropChanges(state: SaveState): void {
+  state.generation++
+  state.dirty = false
+  state.sending = false
+  state.failures = 0
+}
+
 /*
  * Saves after a pause in the changes. queue() records that something changed; save() reads the
  * latest state itself when it runs. flush() saves now and tells whether it worked. Saves are
@@ -16,62 +51,91 @@ const RETRY_DELAYS = [2_000, 5_000, 15_000, 30_000]
  */
 export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
   const [status, setStatus] = useState(SaveStatus.Saved)
-  // Changes not sent yet, and a save on its way
-  const dirty = useRef(false)
-  const sending = useRef(false)
+  // Sending and dirty can coexist: edits made during a request need a later save.
+  const state = useRef<SaveState>({ dirty: false, sending: false, failures: 0, generation: 0 })
   const timer = useRef<number | undefined>(undefined)
   const chain = useRef(Promise.resolve(true))
-  const failures = useRef(0)
   // A retry must not outlive the component (e.g. a deleted document's editor)
   const mounted = useRef(true)
-  // The latest save: the controls below keep their identity from one render to the next
+  // flush is also called by UI events and the save registry, outside effects.
+  // Keep its identity stable while reading the latest committed save callback.
   const latestSave = useRef(save)
   useLayoutEffect(() => {
     latestSave.current = save
   })
 
-  const flush = useCallback(function flush(): Promise<boolean> {
-    window.clearTimeout(timer.current)
-    chain.current = chain.current.then(async () => {
-      if (!dirty.current) return true
-      dirty.current = false
-      sending.current = true
-      setStatus(SaveStatus.Saving)
-      const saved = await succeeded(latestSave.current())
-      sending.current = false
-      if (saved) {
-        failures.current = 0
-        setStatus(dirty.current ? SaveStatus.Pending : SaveStatus.Saved)
-        return true
-      }
-      dirty.current = true
-      setStatus(SaveStatus.Error)
-      const delay = RETRY_DELAYS[Math.min(failures.current++, RETRY_DELAYS.length - 1)]
-      if (mounted.current) timer.current = window.setTimeout(() => void flush(), delay)
-      return false
-    })
-    return chain.current
+  const publish = useCallback(() => {
+    if (mounted.current) setStatus(statusOf(state.current))
   }, [])
 
-  const queue = useCallback(() => {
-    dirty.current = true
-    setStatus((current) => (current === SaveStatus.Error ? current : SaveStatus.Pending))
+  const clearTimer = useCallback(() => {
     window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => void flush(), AUTOSAVE_DELAY_MS)
-  }, [flush])
+    timer.current = undefined
+  }, [])
+
+  const scheduleSave = useCallback(
+    (delay: number, run: () => void) => {
+      clearTimer()
+      timer.current = window.setTimeout(() => {
+        timer.current = undefined
+        run()
+      }, delay)
+    },
+    [clearTimer],
+  )
+
+  const scheduleRetry = useCallback(
+    (delay: number, retry: () => void) => {
+      // New edits may already have scheduled a sooner attempt; keep that debounce.
+      if (mounted.current && timer.current === undefined) scheduleSave(delay, retry)
+    },
+    [scheduleSave],
+  )
+
+  const attemptSave = useCallback(
+    async (generation: number, retry: () => void): Promise<boolean> => {
+      if (generation !== state.current.generation || !state.current.dirty) return true
+      beginSave(state.current)
+      publish()
+      // Includes throws that happen before save returns its promise.
+      const saved = await succeeded(Promise.resolve().then(() => latestSave.current()))
+      if (generation !== state.current.generation) return true
+      const delay = completeSave(state.current, saved)
+      publish()
+      if (delay !== undefined) scheduleRetry(delay, retry)
+      return saved
+    },
+    [publish, scheduleRetry],
+  )
+
+  const flush = useCallback(
+    function flush(): Promise<boolean> {
+      clearTimer()
+      const generation = state.current.generation
+      chain.current = chain.current.then(() => attemptSave(generation, () => void flush()))
+      return chain.current
+    },
+    [attemptSave, clearTimer],
+  )
+
+  const queue = useCallback(() => {
+    state.current.dirty = true
+    publish()
+    scheduleSave(AUTOSAVE_DELAY_MS, () => void flush())
+  }, [flush, publish, scheduleSave])
 
   // Drops the changes not sent yet, e.g. for a document that was just deleted
   const cancel = useCallback(() => {
-    window.clearTimeout(timer.current)
-    dirty.current = false
-    setStatus(SaveStatus.Saved)
-  }, [])
+    clearTimer()
+    dropChanges(state.current)
+    publish()
+  }, [clearTimer, publish])
 
   const flushOnLeave = useEffectEvent(() => void flush())
   useEffect(() => {
     // Tab reload or close: the browser warns while changes are not saved yet
     const warn = (e: BeforeUnloadEvent) => {
-      if (dirty.current || sending.current) e.preventDefault()
+      if (state.current.dirty || state.current.sending) e.preventDefault()
     }
     mounted.current = true
     window.addEventListener('beforeunload', warn)

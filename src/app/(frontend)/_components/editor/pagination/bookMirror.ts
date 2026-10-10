@@ -1,5 +1,7 @@
 import { PAGES_ATTRIBUTE } from './constants'
 
+const MIRROR_ONLY_ATTRIBUTES = new Set([PAGES_ATTRIBUTE, 'id', 'tabindex', 'contenteditable'])
+
 // The inactive spread shows the same DOM flow as the editor. Keep a node map so a
 // keystroke updates the corresponding text node instead of copying the whole book.
 export class BookMirror {
@@ -11,12 +13,18 @@ export class BookMirror {
     this.mapNodes(source, this.element)
     this.element.removeAttribute(PAGES_ATTRIBUTE)
     this.element.querySelector('style')?.remove()
-    const editor = this.element.querySelector<HTMLElement>('[contenteditable="true"]')
+    this.prepareElement(this.element)
+  }
+
+  private prepareElement(root: HTMLElement) {
+    const editor = root.matches('[contenteditable="true"]')
+      ? root
+      : root.querySelector<HTMLElement>('[contenteditable="true"]')
     if (editor) {
       editor.contentEditable = 'false'
       editor.dataset.bookCopyEditor = ''
     }
-    this.disableFocusable(this.element)
+    this.disableFocusable(root)
   }
 
   private mapNodes(source: Node, copy: Node) {
@@ -35,53 +43,56 @@ export class BookMirror {
     }
   }
 
-  apply(records: MutationRecord[]) {
-    for (const record of records) {
-      const copy = this.nodes.get(record.target)
-      if (!copy) continue
-      if (record.type === 'characterData') {
-        copy.nodeValue = record.target.nodeValue
-      } else if (
-        record.type === 'attributes' &&
-        copy instanceof Element &&
-        record.target instanceof Element
-      ) {
-        const name = record.attributeName
-        if (
-          !name ||
-          name === PAGES_ATTRIBUTE ||
-          name === 'id' ||
-          name === 'tabindex' ||
-          name === 'contenteditable'
-        )
-          continue
-        const value = record.target.getAttribute(name)
-        if (value === null) copy.removeAttribute(name)
-        else copy.setAttribute(name, value)
-      } else if (record.type === 'childList') {
-        for (const removed of record.removedNodes) {
-          const child = this.nodes.get(removed)
-          child?.parentNode?.removeChild(child)
-        }
-        const next = record.nextSibling ? this.nodes.get(record.nextSibling) : null
-        const before = next?.parentNode === copy ? next : null
-        for (const added of record.addedNodes) {
-          if (added instanceof HTMLStyleElement) continue
-          const child = added.cloneNode(true)
-          this.mapNodes(added, child)
-          if (child instanceof HTMLElement) {
-            const editor = child.matches('[contenteditable="true"]')
-              ? child
-              : child.querySelector<HTMLElement>('[contenteditable="true"]')
-            if (editor) {
-              editor.contentEditable = 'false'
-              editor.dataset.bookCopyEditor = ''
-            }
-            this.disableFocusable(child)
-          }
-          copy.insertBefore(child, before)
-        }
-      }
+  private copyAttribute(record: MutationRecord, copy: Node) {
+    const name = record.attributeName
+    if (
+      !(copy instanceof Element) ||
+      !(record.target instanceof Element) ||
+      !name ||
+      MIRROR_ONLY_ATTRIBUTES.has(name)
+    )
+      return
+    const value = record.target.getAttribute(name)
+    if (value === null) copy.removeAttribute(name)
+    else copy.setAttribute(name, value)
+  }
+
+  private removeNodes(nodes: NodeList) {
+    for (const node of nodes) {
+      const copy = this.nodes.get(node)
+      copy?.parentNode?.removeChild(copy)
     }
+  }
+
+  private cloneAddedNode(source: Node): Node {
+    const copy = source.cloneNode(true)
+    this.mapNodes(source, copy)
+    if (copy instanceof HTMLElement) this.prepareElement(copy)
+    return copy
+  }
+
+  private insertAddedNodes(record: MutationRecord, copy: Node) {
+    const next = record.nextSibling ? this.nodes.get(record.nextSibling) : null
+    const before = next?.parentNode === copy ? next : null
+    for (const node of record.addedNodes) {
+      if (!(node instanceof HTMLStyleElement)) copy.insertBefore(this.cloneAddedNode(node), before)
+    }
+  }
+
+  private copyChildChanges(record: MutationRecord, copy: Node) {
+    this.removeNodes(record.removedNodes)
+    this.insertAddedNodes(record, copy)
+  }
+
+  private applyRecord(record: MutationRecord) {
+    const copy = this.nodes.get(record.target)
+    if (!copy) return
+    if (record.type === 'characterData') copy.nodeValue = record.target.nodeValue
+    else if (record.type === 'attributes') this.copyAttribute(record, copy)
+    else if (record.type === 'childList') this.copyChildChanges(record, copy)
+  }
+
+  apply(records: MutationRecord[]) {
+    for (const record of records) this.applyRecord(record)
   }
 }
