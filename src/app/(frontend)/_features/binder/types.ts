@@ -23,7 +23,11 @@ export type BinderEntry = BinderNodeData &
 export type DocumentText = Pick<EditorDocument, 'content' | 'updatedAt'>
 
 // checkedAt: when the server last confirmed this version (ms since the epoch)
-export type CachedDocument = DocumentText & { checkedAt: number }
+export type DocumentSnapshot =
+  | (DocumentText & { documentType: 'text' })
+  | (Pick<EditorDocument, 'scoreXml' | 'updatedAt'> & { documentType: 'score'; content: null })
+
+export type CachedDocument = DocumentSnapshot & { checkedAt: number }
 
 // A document in the client cache, or where its loading stands
 export type DocumentSlot =

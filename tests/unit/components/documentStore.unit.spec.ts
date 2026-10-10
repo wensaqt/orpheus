@@ -6,6 +6,7 @@ import {
   forgetDocuments,
   loadDocument,
   rememberDocument,
+  rememberScore,
   seedDocument,
   useDocumentSlot,
 } from '@front/_features/binder/documentStore'
@@ -116,7 +117,12 @@ describe('documentStore', () => {
     const { result } = renderHook(() => useDocumentSlot(id))
     // Rendered long ago (or restored from the router's cache): checked again
     act(() =>
-      seedDocument(id, { content: null, updatedAt: '2026-10-02T10:00:00.000Z', checkedAt: 0 }),
+      seedDocument(id, {
+        documentType: 'text',
+        content: null,
+        updatedAt: '2026-10-02T10:00:00.000Z',
+        checkedAt: 0,
+      }),
     )
     expect(result.current?.status).toBe('ready')
     await act(() => loadDocument(composition, id))
@@ -127,6 +133,7 @@ describe('documentStore', () => {
   it('never lets an old page copy replace what is cached, nor refresh its check', async () => {
     rememberDocument(id, { content: null, updatedAt: '2026-10-02T10:00:05.000Z' })
     seedDocument(id, {
+      documentType: 'text',
       content: null,
       updatedAt: '2026-10-02T10:00:00.000Z',
       checkedAt: Date.now(),
@@ -135,13 +142,13 @@ describe('documentStore', () => {
     expect(result.current).toMatchObject({ document: { updatedAt: '2026-10-02T10:00:05.000Z' } })
   })
 
-  it('keeps only the text and its version, not the rest of the server document', async () => {
+  it('keeps only the document body and its version, not its title or ID', async () => {
     fetchMock.mockReturnValue(respond(200, serverDocument('2026-10-02T10:00:00.000Z')))
     const { result } = renderHook(() => useDocumentSlot(id))
     await act(() => loadDocument(composition, id))
     expect(
       result.current?.status === 'ready' && Object.keys(result.current.document).sort(),
-    ).toEqual(['checkedAt', 'content', 'updatedAt'])
+    ).toEqual(['checkedAt', 'content', 'documentType', 'updatedAt'])
   })
 
   it('drops the answer of a load that was on its way when the store was cleared', async () => {
@@ -167,11 +174,47 @@ describe('documentStore', () => {
 
   it('trusts a copy the server has just rendered, without asking again', async () => {
     seedDocument(id, {
+      documentType: 'text',
       content: null,
       updatedAt: '2026-10-02T10:00:00.000Z',
       checkedAt: Date.now(),
     })
     await loadDocument(composition, id)
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('keeps a saved score when an earlier load and stale server seed arrive afterwards', async () => {
+    let answer!: (response: Response) => void
+    fetchMock.mockReturnValue(
+      new Promise((resolve) => {
+        answer = resolve
+      }),
+    )
+    const { result } = renderHook(() => useDocumentSlot(id))
+    const loading = loadDocument(composition, id)
+    act(() => rememberScore(id, { scoreXml: '<saved/>', updatedAt: '2026-10-02T10:00:05.000Z' }))
+    answer(
+      new Response(
+        JSON.stringify({
+          ...serverDocument('2026-10-02T10:00:00.000Z'),
+          documentType: 'score',
+          scoreXml: '<old/>',
+        }),
+      ),
+    )
+    await act(() => loading)
+    act(() =>
+      seedDocument(id, {
+        documentType: 'score',
+        content: null,
+        scoreXml: '<old/>',
+        updatedAt: '2026-10-02T10:00:00.000Z',
+        checkedAt: Date.now(),
+      }),
+    )
+    expect(result.current).toMatchObject({
+      status: 'ready',
+      document: { documentType: 'score', scoreXml: '<saved/>' },
+    })
   })
 })

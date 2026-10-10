@@ -53,6 +53,19 @@ describe('score documents in a composition', () => {
       payload.update({
         collection: 'binder-items',
         id: score.id,
+        data: { scoreXml: '<score-partwise><broken>' },
+        user: owner,
+        overrideAccess: false,
+      }),
+    ).rejects.toBeInstanceOf(ValidationError)
+    expect((await payload.findByID({ collection: 'binder-items', id: score.id })).scoreXml).toBe(
+      SAMPLE_SCORE,
+    )
+
+    await expect(
+      payload.update({
+        collection: 'binder-items',
+        id: score.id,
         data: { content: { root: { type: 'root', version: 1, children: [] } } },
         user: owner,
         overrideAccess: false,

@@ -65,6 +65,22 @@ describe('binder actions', () => {
     await cleanupTestUsers(payload)
   })
 
+  it('refuses invalid MusicXML on save and transposed-copy creation without changing the binder', async () => {
+    const composition = await newComposition(alice)
+    const score = await actions.createBinderItem(composition.id, 'document', null, 'score')
+    if (score.status !== 'done') throw new Error('Score creation failed')
+    const before = await itemsOf(composition)
+    const brokenXml = '<score-partwise><broken>'
+    expect(await actions.saveScoreDocument(score.data.id, brokenXml)).toEqual({ status: 'error' })
+    expect(
+      await actions.createTransposedScore(score.data.id, brokenXml, {
+        mode: 'key',
+        intervalIndex: 1,
+      }),
+    ).toEqual({ status: 'error' })
+    expect(await itemsOf(composition)).toEqual(before)
+  })
+
   it('creates an item titled in the user’s language, last in its folder', async () => {
     const composition = await newComposition(alice)
     const result = await actions.createBinderItem(composition.id, 'folder', null)

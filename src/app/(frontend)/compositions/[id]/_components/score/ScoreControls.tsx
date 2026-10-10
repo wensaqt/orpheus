@@ -1,14 +1,13 @@
-import type { Instrument, Pitch, ScoreNote, Step } from '@/lib/scores/prototype'
-import { INSTRUMENTS, INTERVALS } from '@/lib/scores/prototype'
+import type { Instrument, Pitch, ScoreNote, Step } from '@/lib/scores'
+import { INSTRUMENT_IDS, INTERVALS, STEPS } from '@/lib/scores'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { Button } from '@front/_components/ui/Button/Button'
 import { NumberStepper } from '@front/_components/ui/NumberStepper/NumberStepper'
 import { SelectField } from '@front/_components/ui/SelectField/SelectField'
 
+import type { useScoreTransposition } from './useScoreTransposition'
 import styles from './ScoreDocument.module.css'
-
-const STEPS: Step[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 
 export function PitchCorrectionControls({
   notes,
@@ -84,35 +83,33 @@ export function PitchCorrectionControls({
   )
 }
 
+type Transposition = ReturnType<typeof useScoreTransposition>
+type TranspositionControlsProps = {
+  settings: Transposition['controls']['settings']
+  actions: Transposition['controls']['actions']
+  availability: {
+    sourceDeclared: boolean
+    hasPreview: boolean
+    canApply: boolean
+    applying: boolean
+  }
+}
+
 export function TranspositionControls({
-  mode,
-  intervalIndex,
-  instrument,
-  sourceInstrument,
-  sourceDeclared,
-  hasPreview,
-  applying,
-  onModeChange,
-  onIntervalChange,
-  onInstrumentChange,
-  onSourceInstrumentChange,
-  onPreview,
-  onApply,
-}: {
-  mode: 'key' | 'instrument'
-  intervalIndex: number
-  instrument: Instrument
-  sourceInstrument: Instrument | null
-  sourceDeclared: boolean
-  hasPreview: boolean
-  applying: boolean
-  onModeChange: (mode: 'key' | 'instrument') => void
-  onIntervalChange: (index: number) => void
-  onInstrumentChange: (instrument: Instrument) => void
-  onSourceInstrumentChange: (instrument: Instrument) => void
-  onPreview: () => void
-  onApply: () => void
-}) {
+  settings,
+  actions,
+  availability,
+}: TranspositionControlsProps) {
+  const { mode, intervalIndex, instrument, sourceInstrument } = settings
+  const { sourceDeclared, hasPreview, canApply, applying } = availability
+  const {
+    onModeChange,
+    onIntervalChange,
+    onInstrumentChange,
+    onSourceInstrumentChange,
+    onPreview,
+    onApply,
+  } = actions
   const t = useT()
   return (
     <div className={styles.transposeControls}>
@@ -149,9 +146,9 @@ export function TranspositionControls({
               <option value="" disabled>
                 {t('score.chooseSourceInstrument')}
               </option>
-              {Object.entries(INSTRUMENTS).map(([id, profile]) => (
+              {INSTRUMENT_IDS.map((id) => (
                 <option key={id} value={id}>
-                  {profile.label}
+                  {t(`score.instruments.${id}`)}
                 </option>
               ))}
             </SelectField>
@@ -166,7 +163,7 @@ export function TranspositionControls({
           >
             {INTERVALS.map((interval, index) => (
               <option key={index} value={index}>
-                {interval.label}
+                {t(`score.intervals.${interval.id}`)}
               </option>
             ))}
           </SelectField>
@@ -176,9 +173,9 @@ export function TranspositionControls({
             value={instrument}
             onChange={(event) => onInstrumentChange(event.target.value as Instrument)}
           >
-            {Object.entries(INSTRUMENTS).map(([id, profile]) => (
+            {INSTRUMENT_IDS.map((id) => (
               <option key={id} value={id}>
-                {profile.label}
+                {t(`score.instruments.${id}`)}
               </option>
             ))}
           </SelectField>
@@ -197,7 +194,7 @@ export function TranspositionControls({
           {t('score.preview')}
         </Button>
         {hasPreview && (
-          <Button onClick={onApply} disabled={applying}>
+          <Button onClick={onApply} disabled={applying || !canApply}>
             {t('score.apply')}
           </Button>
         )}

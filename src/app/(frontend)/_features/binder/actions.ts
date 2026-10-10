@@ -1,34 +1,28 @@
 'use server'
 
-import {
-  commitTransaction,
-  createLocalReq,
-  initTransaction,
-  killTransaction,
-  type RequiredDataFromCollectionSlug,
-} from 'payload'
+import type { RequiredDataFromCollectionSlug } from 'payload'
 
 import { type BinderItemKind, MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
-import {
-  type BinderMove,
-  type BinderNodeData,
-  planMove,
-  siblingsOf,
-  toBinderNode,
-} from '@/lib/binder/tree'
-import { relationId } from '@/lib/relationId'
+import type { BinderMove, BinderNodeData } from '@/lib/binder/tree'
 import { cleanTitle } from '@/lib/titles'
 import type { Id } from '@/lib/ids'
 import type { BinderItem } from '@/payload-types'
 import { isId } from '@/lib/ids'
+import { validateScoreImport } from '@/lib/scores/validation'
 import { SAMPLE_SCORE } from '@/lib/scores/sample'
-import { scoreVariantTitle, type ScoreVariant } from '@/lib/scores/variantTitle'
+import type { ScoreVariant } from '@/lib/scores/variantTitle'
 
 import { type ActionResult, done, failed } from '@front/_lib/actionResult'
 import { authedAction } from '@front/_lib/server/auth'
 import { getT } from '@front/_lib/server/i18n'
 
 import { binderEntries, toEntry } from './queries'
+import {
+  createScoreVariant,
+  inBinderTransaction,
+  planBinderMove,
+  writePlacements,
+} from './mutations'
 import type { BinderEntry, LexicalContent } from './types'
 import { isBinderNodes, isKind, isMove, isParent } from './validation'
 
@@ -89,14 +83,9 @@ export const saveScoreDocument = authedAction(
     id: Id,
     scoreXml: string,
   ): Promise<ActionResult<{ updatedAt: string }>> => {
-    if (
-      !isId(id) ||
-      typeof scoreXml !== 'string' ||
-      !scoreXml.includes('<score-partwise') ||
-      scoreXml.length > 2_000_000
-    )
-      return failed
+    if (!isId(id)) return failed
     try {
+      validateScoreImport(scoreXml)
       const item = await payload.findByID({
         collection: 'binder-items',
         id,
@@ -170,96 +159,15 @@ export const createBinderItem = authedAction(
 // A transposition is a new score beside its source. Creation and placement commit together.
 export const createTransposedScore = authedAction(
   async (
-    { payload, user },
+    session,
     sourceId: Id,
     scoreXml: string,
     variant: ScoreVariant,
   ): Promise<ActionResult<BinderEntry & Pick<BinderItem, 'updatedAt'>>> => {
-    if (
-      !isId(sourceId) ||
-      typeof scoreXml !== 'string' ||
-      !scoreXml.includes('<score-partwise') ||
-      scoreXml.length > 2_000_000
+    if (!isId(sourceId)) return failed
+    return inBinderTransaction(session, (req) =>
+      createScoreVariant(req, sourceId, scoreXml, variant),
     )
-      return failed
-
-    const req = await createLocalReq({ user }, payload)
-    try {
-      await initTransaction(req)
-      const source = await payload.findByID({
-        collection: 'binder-items',
-        id: sourceId,
-        user,
-        overrideAccess: false,
-        depth: 0,
-        req,
-      })
-      if (source.kind !== 'document' || source.documentType !== 'score') {
-        await killTransaction(req)
-        return failed
-      }
-      const title = scoreVariantTitle(source.title, variant, scoreXml)
-      if (!title) {
-        await killTransaction(req)
-        return failed
-      }
-      const compositionId = relationId(source.composition)
-      const parent = relationId(source.parent)
-      const created = await payload.create({
-        collection: 'binder-items',
-        data: {
-          composition: compositionId,
-          kind: 'document',
-          documentType: 'score',
-          parent,
-          title,
-          scoreXml,
-        } as RequiredDataFromCollectionSlug<'binder-items'>,
-        user,
-        overrideAccess: false,
-        depth: 0,
-        req,
-      })
-      const { docs } = await payload.find({
-        collection: 'binder-items',
-        where: { composition: { equals: compositionId } },
-        select: { kind: true, parent: true, position: true },
-        user,
-        overrideAccess: false,
-        pagination: false,
-        depth: 0,
-        req,
-      })
-      const nodes = docs.map(toBinderNode)
-      const sourceIndex = siblingsOf(nodes, parent).findIndex((item) => item.id === sourceId)
-      if (sourceIndex < 0) throw new Error('Source score is missing from its folder')
-      const placements = planMove(nodes, created.id, { parent, index: sourceIndex + 1 })
-      for (const { id, parent: destination, position } of placements) {
-        await payload.update({
-          collection: 'binder-items',
-          id,
-          data: { parent: destination, position },
-          user,
-          overrideAccess: false,
-          depth: 0,
-          req,
-          context: { keepPosition: true },
-        })
-      }
-      const placed = await payload.findByID({
-        collection: 'binder-items',
-        id: created.id,
-        user,
-        overrideAccess: false,
-        depth: 0,
-        req,
-      })
-      await commitTransaction(req)
-      return done({ ...toEntry(placed), updatedAt: placed.updatedAt })
-    } catch {
-      await killTransaction(req)
-      return failed
-    }
   },
 )
 
@@ -317,54 +225,13 @@ export const moveBinderItem = authedAction(
   async (session, id: Id, move: BinderMove, expected?: BinderNodeData[]): Promise<ActionResult> => {
     if (!isId(id) || !isMove(move) || (expected !== undefined && !isBinderNodes(expected)))
       return failed
-    const { payload, user } = session
-    const item = await payload
-      .findByID({ collection: 'binder-items', id, user, overrideAccess: false, depth: 0 })
-      .catch(() => null)
-    if (!item) return failed
-
-    let placements
     try {
-      const entries = await binderEntries(session, relationId(item.composition))
-      if (
-        expected !== undefined &&
-        (expected.length !== entries.length ||
-          expected.some((node) => {
-            const current = entries.find((entry) => entry.id === node.id)
-            return (
-              !current ||
-              current.kind !== node.kind ||
-              current.parent !== node.parent ||
-              current.position !== node.position
-            )
-          }))
-      )
-        return failed
-      placements = planMove(entries, id, move)
+      const placements = await planBinderMove(session, id, move, expected)
+      return await inBinderTransaction(session, async (req) => {
+        await writePlacements(req, placements)
+        return undefined
+      })
     } catch {
-      return failed
-    }
-
-    const req = await createLocalReq({ user }, payload)
-    try {
-      await initTransaction(req)
-      for (const { id: itemId, parent, position } of placements) {
-        await payload.update({
-          collection: 'binder-items',
-          id: itemId,
-          data: { parent, position },
-          user,
-          overrideAccess: false,
-          depth: 0,
-          req,
-          // Positions are planned above: the collection must not move the item to the end
-          context: { keepPosition: true },
-        })
-      }
-      await commitTransaction(req)
-      return done()
-    } catch {
-      await killTransaction(req)
       return failed
     }
   },

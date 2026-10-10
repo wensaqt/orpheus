@@ -16,7 +16,7 @@ import { uuid } from '../../helpers/ids'
 const version = (updatedAt: string) => ({ content: null, updatedAt })
 const ready = (checkedAt: number): DocumentSlot => ({
   status: 'ready',
-  document: { ...version('2026-10-02T10:00:00.000Z'), checkedAt },
+  document: { ...version('2026-10-02T10:00:00.000Z'), documentType: 'text', checkedAt },
 })
 
 describe('newerText', () => {

@@ -1,6 +1,42 @@
 import { seed } from './binderHelpers'
 import { expect, test } from './fixtures'
 
+test('keeps corrections when reopening the score initially rendered by the server', async ({
+  page,
+  account,
+}) => {
+  const { composition } = await seed(account)
+  await page.goto(`/compositions/${composition.id}`)
+  await page.getByRole('button', { name: 'New score' }).click()
+  const title = page.getByLabel('Document title')
+  await expect(title).toHaveValue('Untitled score')
+  await title.fill('Source score')
+  await title.blur()
+  const sourceId = page.url().split('/').at(-1)!
+  await expect
+    .poll(
+      async () =>
+        (await account.payload.findByID({ collection: 'binder-items', id: sourceId })).title,
+    )
+    .toBe('Source score')
+  // A reload supplies the initial server snapshot that must not be reused after a save.
+  await page.reload()
+  await page.locator('.vf-notehead').first().click()
+  await page.getByLabel('Measure 1 · note 1 · note name').selectOption('A')
+  await expect
+    .poll(
+      async () =>
+        (await account.payload.findByID({ collection: 'binder-items', id: sourceId })).scoreXml,
+    )
+    .toContain('<step>A</step>')
+  await page.getByRole('button', { name: 'New score' }).click()
+  await expect(title).toHaveValue('Untitled score')
+  await page.getByRole('treeitem', { name: 'Source score', exact: true }).click()
+  await expect(title).toHaveValue('Source score')
+  await page.locator('.vf-notehead').first().click()
+  await expect(page.getByLabel('Measure 1 · note 1 · note name')).toHaveValue('A')
+})
+
 test('transposition creates adjacent score documents and preserves their sources', async ({
   page,
   account,
@@ -186,7 +222,7 @@ test('changes key on a polyphonic piano while keeping direct correction guarded'
   await page.getByLabel('Transpose for an instrument').check()
   await page.getByLabel('Source instrument').selectOption('concert')
   await page.getByRole('button', { name: 'Preview' }).click()
-  await expect(page.locator('p[role="alert"]')).toContainText('plusieurs voix ou portées')
+  await expect(page.locator('p[role="alert"]')).toContainText('multiple voices or staves')
   await page.getByLabel('Change key').check()
   await page.getByRole('button', { name: 'Preview' }).click()
   await expect(page.locator('.vf-notehead')).toHaveCount(5)

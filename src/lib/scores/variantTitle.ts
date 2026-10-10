@@ -1,6 +1,7 @@
 import { MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
 
-import { INSTRUMENTS, INTERVALS, type Instrument } from './prototype'
+import { readScoreMetadata } from './validation'
+import { INSTRUMENTS, INTERVALS, type Instrument } from './model'
 
 export type ScoreVariant =
   { mode: 'key'; intervalIndex: number } | { mode: 'instrument'; instrument: Instrument }
@@ -10,7 +11,9 @@ const INSTRUMENT_CODES = new Set(Object.values(INSTRUMENTS).map(({ code }) => co
 function baseTitle(title: string): string {
   const match = /^(.*) \(([^()]*)\)$/.exec(title)
   if (!match) return title
-  return INSTRUMENT_CODES.has(match[2]) || /^[0-7][♯♭]$/.test(match[2]) ? match[1] : title
+  return INSTRUMENT_CODES.has(match[2]) || match[2] === 'Sans alt.' || /^[0-7][♯♭]$/.test(match[2])
+    ? match[1]
+    : title
 }
 
 export function scoreVariantTitle(
@@ -22,11 +25,9 @@ export function scoreVariantTitle(
   let code: string | undefined
   if (variant.mode === 'key') {
     if (!Number.isInteger(variant.intervalIndex) || !INTERVALS[variant.intervalIndex]) return null
-    const fifths = /<fifths>\s*(-?\d+)\s*<\/fifths>/.exec(scoreXml)
-    if (!fifths) return null
-    const count = Number(fifths[1])
-    if (!Number.isInteger(count) || Math.abs(count) > 7) return null
-    code = `${Math.abs(count)}${count < 0 ? '♭' : '♯'}`
+    const { fifths: count } = readScoreMetadata(scoreXml)
+    if (count === null || Math.abs(count) > 7) return null
+    code = count === 0 ? 'Sans alt.' : `${Math.abs(count)}${count < 0 ? '♭' : '♯'}`
   } else if (Object.hasOwn(INSTRUMENTS, variant.instrument)) {
     code = INSTRUMENTS[variant.instrument].code
   }

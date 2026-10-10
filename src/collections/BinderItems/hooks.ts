@@ -1,3 +1,4 @@
+import { validateScoreImport } from '@/lib/scores/validation'
 import type {
   CollectionBeforeDeleteHook,
   CollectionBeforeValidateHook,
@@ -108,12 +109,11 @@ export const validateDocumentBody: CollectionBeforeValidateHook = ({ data, origi
       throw invalid('kind', 'A folder cannot hold a document.')
   } else if (documentType === 'score') {
     if (content != null) throw invalid('content', 'A score cannot contain Lexical text.')
-    if (
-      typeof scoreXml !== 'string' ||
-      !scoreXml.includes('<score-partwise') ||
-      scoreXml.length > 2_000_000
-    )
-      throw invalid('scoreXml', 'A score needs a MusicXML document under 2 MB.')
+    try {
+      validateScoreImport(scoreXml)
+    } catch {
+      throw invalid('scoreXml', 'A score needs a valid MusicXML document under 2 MB.')
+    }
   } else if (scoreXml != null) {
     throw invalid('scoreXml', 'A text document cannot contain a score.')
   }

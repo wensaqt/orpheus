@@ -27,7 +27,11 @@ import {
 import type { BinderEntry } from '@front/_features/binder/types'
 import { type ActionResult, succeeded } from '@front/_lib/actionResult'
 import type { Translate } from '@front/_lib/i18n'
-import { forgetDocuments, rememberDocument } from '@front/_features/binder/documentStore'
+import {
+  forgetDocuments,
+  rememberDocument,
+  rememberScore,
+} from '@front/_features/binder/documentStore'
 
 import { useEditorHistory } from '../../history/HistoryProvider'
 import { applyBinderOp, type BinderOp } from './binderOps'
@@ -158,6 +162,7 @@ export function useBinderCommands({
           const created = result.data
           history.discard((scope) => scope.kind === 'binder' && scope.operation === 'move')
           apply({ type: 'add', entry: created })
+          rememberScore(created.id, { scoreXml: xml, updatedAt: created.updatedAt })
           createdItem.entry = created
           return true
         })

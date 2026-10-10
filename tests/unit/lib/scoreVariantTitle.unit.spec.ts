@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 
-import { adaptToInstrument, INTERVALS, transposeKey } from '@/lib/scores/prototype'
+import { adaptToInstrument, INTERVALS, transposeKey } from '@/lib/scores'
 import { SAMPLE_SCORE } from '@/lib/scores/sample'
 import { scoreVariantTitle } from '@/lib/scores/variantTitle'
 
@@ -24,4 +24,16 @@ it('keeps one short, current score qualifier through repeated transpositions', (
   expect(
     scoreVariantTitle(trumpetTitle!, { mode: 'instrument', instrument: 'concert' }, concert),
   ).toBe('Mélodie (Ut)')
+})
+
+it('labels an unaltered key and replaces its qualifier on the next transposition', () => {
+  const title = scoreVariantTitle('Mélodie (2♯)', { mode: 'key', intervalIndex: 0 }, SAMPLE_SCORE)
+  expect(title).toBe('Mélodie (Sans alt.)')
+  expect(
+    scoreVariantTitle(
+      title!,
+      { mode: 'key', intervalIndex: 1 },
+      transposeKey(SAMPLE_SCORE, INTERVALS[1]),
+    ),
+  ).toBe('Mélodie (2♯)')
 })

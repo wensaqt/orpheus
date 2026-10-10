@@ -9,7 +9,7 @@ import {
   INTERVALS,
   transposeKey,
   validateScoreImport,
-} from '@/lib/scores/prototype'
+} from '@/lib/scores'
 import { SAMPLE_SCORE } from '@/lib/scores/sample'
 
 const read = (xml: string) => new DOMParser().parseFromString(xml, 'application/xml')
@@ -54,13 +54,16 @@ describe('MusicXML prototype', () => {
   })
 
   it('rejects multiple parts before changing the document', () => {
-    const invalid = SAMPLE_SCORE.replace('</score-partwise>', '<part id="P2"/></score-partwise>')
-    expect(() => transposeKey(invalid, INTERVALS[1])).toThrow('plusieurs parties instrumentales')
+    const invalid = SAMPLE_SCORE.replace(
+      '</part-list>',
+      '<score-part id="P2"><part-name>Violin</part-name></score-part></part-list>',
+    ).replace('</score-partwise>', '<part id="P2"><measure number="1"/></part></score-partwise>')
+    expect(() => transposeKey(invalid, INTERVALS[1])).toThrow('multipleParts')
   })
 
   it('transposes both staves of a polyphonic piano without changing their rhythms', () => {
     expect(() => validateScoreImport(polyphonicPiano)).not.toThrow()
-    expect(() => inspectScore(polyphonicPiano)).toThrow('<backup>')
+    expect(() => inspectScore(polyphonicPiano)).toThrow('backup')
     const transposed = transposeKey(polyphonicPiano, INTERVALS[1])
     const original = read(polyphonicPiano)
     const result = read(transposed)
@@ -76,7 +79,7 @@ describe('MusicXML prototype', () => {
       Array.from(result.querySelectorAll('note > duration'), (node) => node.textContent),
     ).toEqual(Array.from(original.querySelectorAll('note > duration'), (node) => node.textContent))
     expect(() => adaptToInstrument(polyphonicPiano, 'tenor-sax-bb', 'concert')).toThrow(
-      'plusieurs voix ou portées',
+      'unsupportedVoices',
     )
   })
 
@@ -110,7 +113,7 @@ describe('MusicXML prototype', () => {
       '</measure>',
       '</measure><measure number="2"><attributes><transpose><diatonic>-5</diatonic><chromatic>-9</chromatic></transpose></attributes></measure>',
     )
-    expect(() => adaptToInstrument(changed, 'concert')).toThrow('change dans la partition')
+    expect(() => adaptToInstrument(changed, 'concert')).toThrow('changingTranspose')
   })
 
   it('preserves tuplet timing when changing key', () => {
@@ -145,7 +148,7 @@ describe('MusicXML prototype', () => {
 
   it('requires an explicit source instrument only when MusicXML has no transposition', () => {
     expect(hasInstrumentTranspose(SAMPLE_SCORE)).toBe(false)
-    expect(() => adaptToInstrument(SAMPLE_SCORE, 'trumpet-bb')).toThrow('instrument source')
+    expect(() => adaptToInstrument(SAMPLE_SCORE, 'trumpet-bb')).toThrow('sourceRequired')
     const trumpet = adaptToInstrument(SAMPLE_SCORE, 'trumpet-bb', 'concert')
     expect(hasInstrumentTranspose(trumpet)).toBe(true)
     expect(() => adaptToInstrument(trumpet, 'concert')).not.toThrow()

@@ -2,7 +2,13 @@ import type { Id } from '@/lib/ids'
 import { inReadingOrder } from '@/lib/binder/tree'
 
 import { DOCUMENT_FRESH_FOR_MS, MAX_CACHED_DOCUMENTS } from './constants'
-import type { BinderEntry, DocumentSlot, DocumentText, LexicalContent } from './types'
+import type {
+  BinderEntry,
+  DocumentSlot,
+  DocumentText,
+  LexicalContent,
+  CachedDocument,
+} from './types'
 
 /*
  * Pure rules of the client cache of documents' text (see documentStore.ts). Titles are not
@@ -11,6 +17,11 @@ import type { BinderEntry, DocumentSlot, DocumentText, LexicalContent } from './
 
 // The more recent of two versions (ISO 8601 timestamps from one server compare as strings)
 export function newerText(a?: DocumentText, b?: DocumentText): DocumentText | undefined {
+  if (!a || !b) return a ?? b
+  return a.updatedAt >= b.updatedAt ? a : b
+}
+
+export function newerDocument(a?: CachedDocument, b?: CachedDocument): CachedDocument | undefined {
   if (!a || !b) return a ?? b
   return a.updatedAt >= b.updatedAt ? a : b
 }
