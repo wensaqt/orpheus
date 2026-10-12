@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 import { deploymentConfig } from './lib/deployment'
 
+import { BetaInvitations } from './collections/BetaInvitations'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { BinderItems } from './collections/BinderItems'
@@ -23,7 +24,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Compositions, BinderItems, ThesaurusEntries],
+  collections: [Users, BetaInvitations, Media, Compositions, BinderItems, ThesaurusEntries],
   editor: lexicalEditor(),
   secret: deployment.secret,
   serverURL: deployment.origin,

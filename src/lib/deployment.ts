@@ -30,24 +30,3 @@ export function deploymentConfig(env: Environment) {
   if (production && !origin) throw new Error('APP_URL or VERCEL_URL is required in production.')
   return { production, secret, databaseUrl, origin }
 }
-
-// The allowlist applies at collection access, so REST cannot bypass the signup form.
-export function canRegisterEmail(email: unknown, env: Environment = process.env): boolean {
-  if (env.NODE_ENV !== 'production') return true
-  if (typeof email !== 'string') return false
-  const allowed = (env.BETA_ALLOWED_EMAILS ?? '')
-    .split(',')
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean)
-  return allowed.includes(email.trim().toLowerCase())
-}
-import { timingSafeEqual } from 'node:crypto'
-
-export function verifyBetaInvite(code: unknown, env: Environment = process.env): boolean {
-  if (env.NODE_ENV !== 'production') return true
-  const expected = env.BETA_INVITE_CODE
-  if (!expected || expected.length < 32 || typeof code !== 'string') return false
-  const submitted = Buffer.from(code)
-  const secret = Buffer.from(expected)
-  return submitted.length === secret.length && timingSafeEqual(submitted, secret)
-}

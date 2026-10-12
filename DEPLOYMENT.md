@@ -16,15 +16,13 @@ Node.js : branche LTS 24. Commandes : `pnpm install --frozen-lockfile`, puis `pn
 
 Configurer ces variables dans l’environnement **Production** du projet :
 
-| Variable              | Valeur                                                             |
-| --------------------- | ------------------------------------------------------------------ |
-| `DATABASE_URL`        | Connexion Neon avec pooling et SSL                                 |
-| `PAYLOAD_SECRET`      | Secret aléatoire d’au moins 32 caractères, conservé durablement    |
-| `APP_URL`             | URL HTTPS publique de la bêta, sans chemin                         |
-| `BETA_ALLOWED_EMAILS` | Liste des adresses invitées, séparées par des virgules             |
-| `BETA_INVITE_CODE`    | Code privé aléatoire d’au moins 32 caractères, partagé aux invités |
+| Variable         | Valeur                                                          |
+| ---------------- | --------------------------------------------------------------- |
+| `DATABASE_URL`   | Connexion Neon avec pooling et SSL                              |
+| `PAYLOAD_SECRET` | Secret aléatoire d’au moins 32 caractères, conservé durablement |
+| `APP_URL`        | URL HTTPS publique de la bêta, sans chemin                      |
 
-Sans liste d’invités et code privé valide, aucune inscription publique n’est autorisée. Transmettre le code uniquement aux testeurs invités ; ils le saisissent sur le formulaire. Les administrateurs peuvent créer des comptes depuis l’admin. L’inscription par REST suit la même règle que le formulaire.
+Les inscriptions de production nécessitent un lien d’invitation individuel, lié à une adresse e-mail, valable 7 jours et utilisable une seule fois. La whitelist et le code partagé ne sont plus utilisés. L’API REST applique les mêmes règles que le formulaire.
 
 Générer chaque secret séparément :
 
@@ -71,6 +69,16 @@ NODE_ENV=production pnpm users:create-admin
 ```
 
 Le mot de passe doit respecter les règles de l’application. Retirer ensuite ces deux variables du fichier et conserver le mot de passe dans un gestionnaire dédié. Le premier inscrit ne reçoit jamais le rôle admin. Le reset par e-mail est fermé pendant cette bêta : un administrateur connecté peut modifier le mot de passe d’un compte depuis l’admin. En cas de perte du seul compte administrateur, utiliser le script privé pour créer un nouvel administrateur sous une autre adresse, puis rétablir l’accès.
+
+Pour inviter un testeur, ajouter son adresse comme `BETA_INVITE_EMAIL` dans le fichier privé puis exécuter :
+
+```sh
+pnpm users:invite
+```
+
+Le script affiche une URL `/signup?invite=…` à copier dans un e-mail envoyé depuis votre boîte habituelle. Le destinataire arrive sur un formulaire avec son adresse préremplie et choisit son mot de passe. La base conserve seulement le hash du token. L’ouverture du lien ne le consomme pas : la création réussie du compte le fait, dans la même transaction. Un lien expiré ou consommé ne fonctionne plus. Pour révoquer un lien avant utilisation, supprimer son entrée dans `beta-invitations` depuis l’admin. Une nouvelle invitation peut être générée si nécessaire.
+
+Les anciennes variables `BETA_ALLOWED_EMAILS` et `BETA_INVITE_CODE` peuvent être retirées de Vercel. Aucun fournisseur d’e-mail n’est requis pour cet envoi manuel.
 
 Le dictionnaire de synonymes n’est pas inclus dans les migrations. Pour commencer, importer seulement la source Dicollecte depuis une machine de confiance :
 

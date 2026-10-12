@@ -61,12 +61,13 @@ jobs:
           docker run --rm --volume "$RUNNER_TEMP/orpheus-image.tar:/input/image.tar:ro" \
             aquasec/trivy:0.75.0 image --input /input/image.tar \
             --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1
+      - name: Prepare private invitation smoke fixtures
+        run: NODE_ENV=production pnpm exec payload run scripts/create-smoke-invitations.ts
       - name: Check container readiness
         run: |
           docker run --detach --name orpheus-smoke --network host \
             --env DATABASE_URL --env PAYLOAD_SECRET --env APP_URL \
-            --env BETA_ALLOWED_EMAILS=beta-first@example.test,beta-other@example.test \
-            --env BETA_INVITE_CODE=ci-only-beta-invitation-with-at-least-32-characters orpheus:ci
+            orpheus:ci
           curl --fail --retry 12 --retry-delay 5 --retry-all-errors http://localhost:3000/api/health
       - name: Check production security through the public API
         run: node scripts/smoke-production.mjs

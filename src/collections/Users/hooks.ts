@@ -1,5 +1,6 @@
 import {
   type CollectionBeforeValidateHook,
+  type CollectionAfterChangeHook,
   type CollectionBeforeOperationHook,
   ValidationError,
   APIError,
@@ -46,4 +47,18 @@ export const checkCredentials: CollectionBeforeValidateHook = ({ data, originalD
   }
   if (errors.length) throw new ValidationError({ collection: 'users', errors })
   return data
+}
+
+/** The invitation and account commit together. Unique user emails serialize competing redemptions. */
+export const consumeBetaInvitation: CollectionAfterChangeHook = async ({ operation, doc, req }) => {
+  const id = req.context.betaInvitationId
+  if (operation !== 'create' || typeof id !== 'string') return doc
+  await req.payload.update({
+    collection: 'beta-invitations',
+    id,
+    data: { consumedAt: new Date().toISOString() },
+    overrideAccess: true,
+    req,
+  })
+  return doc
 }

@@ -1,4 +1,4 @@
-import { AuthenticationError, LockedAuth, ValidationError } from 'payload'
+import { APIError, AuthenticationError, LockedAuth, ValidationError } from 'payload'
 
 import type { LogInError, SignUpError } from './types'
 
@@ -18,6 +18,7 @@ export function toLogInError(error: unknown): LogInError {
  * malformed address.
  */
 export function toSignUpError(error: unknown): SignUpError {
+  if (error instanceof APIError && error.status === 403) return 'betaClosed'
   if (!(error instanceof ValidationError)) return 'unknown'
   const paths = error.data.errors.map((fieldError) => fieldError.path)
   if (paths.includes('email')) return 'invalidEmail'

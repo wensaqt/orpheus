@@ -4,7 +4,7 @@ import { adminOnly, adminOnlyField } from '@/access/isAdmin'
 import { DEFAULT_PLAN, DEFAULT_USER_ROLE, isAdmin, PLANS, USER_ROLES } from '@/lib/users'
 
 import { adminOrSelf, canCreateUser } from './access'
-import { checkCredentials, requirePasswordResetDelivery } from './hooks'
+import { checkCredentials, requirePasswordResetDelivery, consumeBetaInvitation } from './hooks'
 
 // Role and plan can only be granted by an admin, never by the account itself
 const restricted = { create: adminOnlyField, update: adminOnlyField }
@@ -24,7 +24,7 @@ export const Users: CollectionConfig = {
   access: {
     // The admin panel is for admins; everyone else signs in on the app's own /login page
     admin: ({ req: { user } }) => isAdmin(user),
-    // Production beta registration is allowlisted; public creation never grants admin.
+    // Production beta registration requires an individual invitation; public creation never grants admin.
     create: canCreateUser,
     read: adminOrSelf,
     update: adminOrSelf,
@@ -34,6 +34,7 @@ export const Users: CollectionConfig = {
   hooks: {
     beforeOperation: [requirePasswordResetDelivery],
     beforeValidate: [checkCredentials],
+    afterChange: [consumeBetaInvitation],
   },
   fields: [
     // Email added by default

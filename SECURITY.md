@@ -4,18 +4,18 @@ Périmètre : configuration de production, authentification et inscriptions, acc
 
 ## Problèmes identifiés et traitement
 
-| Priorité       | Constat                                                                                       | Traitement                                                                                                                                   |
-| -------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Critique       | Les versions installées comprenaient une alerte critique Next.js et plusieurs alertes élevées | Next.js/eslint-config-next 16.3.8, Sharp 0.35.5, corrections transitives DOMPurify/Undici/source-map-js/esbuild ; audit bloquant dans la CI  |
-| Haute          | Le premier inscrit devenait admin                                                             | Attribution automatique supprimée ; administrateur créé explicitement depuis une machine de confiance                                        |
-| Haute          | Inscription publique illimitée pour une bêta privée                                           | Liste d’e-mails et code privé côté serveur, appliqués au formulaire et à l’accès collection REST ; configuration vide = inscriptions fermées |
-| Haute          | Stockage local de médias et lecture publique                                                  | Accès médias réservé aux admins ; création/modification fermées en production ; MusicXML indépendant de cette collection                     |
-| Haute          | Secrets/configuration silencieusement absents                                                 | Validation de la configuration et longueur minimale du secret en production ; aucune valeur secrète de production nécessaire au build Docker |
-| Haute          | Migrations incapables d’initialiser une base vide                                             | Bootstrap historique suivi des deux migrations existantes, testé sur une base jetable ; schema push désactivé en production                  |
-| Moyenne        | Reset password sans fournisseur e-mail : messages/token écrits dans les logs                  | Opération fermée en production jusqu’à configuration d’une vraie livraison e-mail ; récupération manuelle documentée                         |
-| Moyenne        | Défense navigateur limitée                                                                    | CSP à nonce de script par requête, cookies HttpOnly/Secure/SameSite Lax, headers nosniff/frame/referrer/permissions                          |
-| Moyenne        | Surface GraphQL inutilisée                                                                    | GraphQL désactivé ; API REST reste soumise aux accès Payload et à la protection CSRF                                                         |
-| Opérationnelle | Déploiement direct de chaque push et absence de sauvegarde préalable                          | Tags contrôlés depuis main, CI sans secrets de production, candidate avant promotion, sauvegarde chiffrée et migrations séquentielles        |
+| Priorité       | Constat                                                                                       | Traitement                                                                                                                                             |
+| -------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Critique       | Les versions installées comprenaient une alerte critique Next.js et plusieurs alertes élevées | Next.js/eslint-config-next 16.3.8, Sharp 0.35.5, corrections transitives DOMPurify/Undici/source-map-js/esbuild ; audit bloquant dans la CI            |
+| Haute          | Le premier inscrit devenait admin                                                             | Attribution automatique supprimée ; administrateur créé explicitement depuis une machine de confiance                                                  |
+| Haute          | Inscription publique illimitée pour une bêta privée                                           | Liens individuels expirables et consommables côté serveur, appliqués au formulaire et à l’accès collection REST ; sans invitation = inscription fermée |
+| Haute          | Stockage local de médias et lecture publique                                                  | Accès médias réservé aux admins ; création/modification fermées en production ; MusicXML indépendant de cette collection                               |
+| Haute          | Secrets/configuration silencieusement absents                                                 | Validation de la configuration et longueur minimale du secret en production ; aucune valeur secrète de production nécessaire au build Docker           |
+| Haute          | Migrations incapables d’initialiser une base vide                                             | Bootstrap historique suivi des deux migrations existantes, testé sur une base jetable ; schema push désactivé en production                            |
+| Moyenne        | Reset password sans fournisseur e-mail : messages/token écrits dans les logs                  | Opération fermée en production jusqu’à configuration d’une vraie livraison e-mail ; récupération manuelle documentée                                   |
+| Moyenne        | Défense navigateur limitée                                                                    | CSP à nonce de script par requête, cookies HttpOnly/Secure/SameSite Lax, headers nosniff/frame/referrer/permissions                                    |
+| Moyenne        | Surface GraphQL inutilisée                                                                    | GraphQL désactivé ; API REST reste soumise aux accès Payload et à la protection CSRF                                                                   |
+| Opérationnelle | Déploiement direct de chaque push et absence de sauvegarde préalable                          | Tags contrôlés depuis main, CI sans secrets de production, candidate avant promotion, sauvegarde chiffrée et migrations séquentielles                  |
 
 Les opérations applicatives vérifiées utilisent `overrideAccess: false` avec une session reconnue. Les bypass restants servent aux hooks internes, migrations, scripts privés ou à la readiness sans données personnelles. Les UUID ne sont pas considérés comme une protection d’accès.
 
@@ -56,7 +56,7 @@ Sources : [advisories Next.js](https://github.com/vercel/next.js/security/adviso
 - 350 tests unitaires et 59 tests d’intégration passent.
 - Les 16 scénarios Chromium ciblés d’authentification/admin/partitions sont validés ; un timeout initial de signup pendant la compilation concurrente a été rejoué seul (trois scénarios signup passent).
 - L’image de production compile sans base accessible, démarre en utilisateur `orpheus`, répond à la readiness et pèse environ 106 Mo.
-- Le smoke REST de production passe, y compris le refus d’une adresse invitée sans code privé et le rôle régulier du premier inscrit.
+- Le smoke REST de production passe, y compris le refus d’une inscription sans invitation valide et le rôle régulier du premier inscrit.
 - Un navigateur Chromium a vérifié login, création de composition et rendu d’une partition sur le conteneur de production, sans erreur navigateur ni violation CSP.
 - Une sauvegarde PostgreSQL custom a été restaurée dans une seconde base temporaire : deux comptes et la composition attendue sont présents. Le chiffrement GPG du workflow sera vérifié lors de sa première exécution GitHub.
 - TypeScript, ESLint, Actionlint et le scan Git Gitleaks passent. L’audit pnpm reste vert avec la seule exception braces documentée.
@@ -69,3 +69,5 @@ Le scan Trivy a également identifié des alertes corrigeables de `perl-base` da
 La CI scanne les paquets de l’image finale avec Trivy 0.75.0 et bloque les alertes HIGH/CRITICAL pour lesquelles un correctif existe. `--ignore-unfixed` ne signifie pas qu’une image est sans aucune vulnérabilité : les alertes sans correctif restent à réévaluer. Dependabot suit aussi le Dockerfile.
 
 Le scan final de l’image ne trouve aucune alerte HIGH/CRITICAL avec correctif disponible. La readiness de cette image corrigée passe.
+
+Les invitations de bêta utilisent désormais des tokens aléatoires de 256 bits, stockés uniquement sous forme de hash SHA-256. Chaque lien est lié à une adresse, expire après 7 jours, et est consommé avec la création du compte dans la même transaction. L’unicité de l’adresse du compte empêche les doubles créations concurrentes. Les invitations consommées restent enregistrées après suppression du compte. Les liens sont générés localement et envoyés manuellement ; aucun e-mail n’est envoyé par l’application. La page d’inscription demande une politique de referrer `no-referrer`.

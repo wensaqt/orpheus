@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 
 import config from '@payload-config'
-import { canRegisterEmail, verifyBetaInvite } from '@/lib/deployment'
+import { findInvitation } from '@/lib/betaInvitations'
 
 import { safeReturnTo } from '@front/_lib/returnTo'
 import { RETURN_TO_PARAM, ROUTES } from '@front/_lib/routes'
@@ -41,20 +41,22 @@ export async function logIn(_previous: LogInState, form: FormData): Promise<LogI
 
 /*
  * Creates a regular, free account (the collection ignores any role or plan sent by a visitor),
- * signs it in and goes back to the page that asked for it. No email verification yet: it needs
- * an email provider.
+ * consumes its email-bound invitation, signs it in and returns to the requested page.
  */
 export async function signUp(_previous: SignUpState, form: FormData): Promise<SignUpState> {
   const email = field(form, 'email').trim()
-  const inviteCode = field(form, 'inviteCode')
-  if (!canRegisterEmail(email) || !verifyBetaInvite(inviteCode))
-    return { error: 'betaClosed', email }
+  const inviteToken = field(form, 'inviteToken')
   const password = field(form, 'password')
   const invalid = checkSignUp({ email, password, confirm: field(form, 'confirm') })
   if (invalid) return { error: invalid, email }
 
   try {
     const payload = await getPayload({ config })
+    if (process.env.NODE_ENV === 'production') {
+      const invitation = await findInvitation(payload, inviteToken)
+      if (!invitation || invitation.email !== email.toLowerCase())
+        return { error: 'betaClosed', email }
+    }
     // Payload stores emails in lower case
     const { totalDocs } = await payload.count({
       collection: 'users',
@@ -65,7 +67,7 @@ export async function signUp(_previous: SignUpState, form: FormData): Promise<Si
       collection: 'users',
       data: { email, password },
       overrideAccess: false,
-      context: { betaInviteCode: inviteCode },
+      context: { betaInviteToken: inviteToken },
     })
     await login({ collection: 'users', config, email, password })
   } catch (error) {

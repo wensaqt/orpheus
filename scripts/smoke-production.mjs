@@ -7,16 +7,19 @@ assert(
   'Smoke fixtures must never run against a public deployment.',
 )
 const password = 'local smoke test password 42'
-const invite = 'ci-only-beta-invitation-with-at-least-32-characters'
+const invite = 'a'.repeat(64)
 
-async function request(path, { body, cookie, method = 'POST', withInvite = false } = {}) {
+async function request(
+  path,
+  { body, cookie, method = 'POST', withInvite = false, token = invite } = {},
+) {
   return fetch(new URL(path, base), {
     method,
     headers: {
       'Content-Type': 'application/json',
       Origin: base.origin,
       ...(cookie ? { cookie } : {}),
-      ...(withInvite ? { 'x-beta-invite': invite } : {}),
+      ...(withInvite ? { 'x-beta-invite': token } : {}),
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
     signal: AbortSignal.timeout(15_000),
@@ -27,6 +30,7 @@ async function create(email) {
   const response = await request('/api/users', {
     body: { email, password, role: 'admin', plan: 'pro' },
     withInvite: true,
+    token: email === 'beta-first@example.test' ? invite : 'b'.repeat(64),
   })
   assert.equal(response.status, 201)
   const { doc } = await response.json()
@@ -61,6 +65,11 @@ assert.equal(
 )
 const first = await create('beta-first@example.test')
 const other = await create('beta-other@example.test')
+assert.equal(
+  (await request('/api/users', { body: { email: first.email, password }, withInvite: true }))
+    .status,
+  403,
+)
 const ownSession = await session(first.email)
 const otherSession = await session(other.email)
 const compositionResponse = await request('/api/compositions', {

@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    'beta-invitations': BetaInvitation;
     media: Media;
     compositions: Composition;
     'binder-items': BinderItem;
@@ -80,6 +81,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    'beta-invitations': BetaInvitationsSelect<false> | BetaInvitationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     compositions: CompositionsSelect<false> | CompositionsSelect<true>;
     'binder-items': BinderItemsSelect<false> | BinderItemsSelect<true>;
@@ -150,6 +152,19 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "beta-invitations".
+ */
+export interface BetaInvitation {
+  id: string;
+  email: string;
+  tokenHash: string;
+  expiresAt: string;
+  consumedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -293,6 +308,10 @@ export interface PayloadLockedDocument {
         value: string | User;
       } | null)
     | ({
+        relationTo: 'beta-invitations';
+        value: string | BetaInvitation;
+      } | null)
+    | ({
         relationTo: 'media';
         value: string | Media;
       } | null)
@@ -374,6 +393,18 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "beta-invitations_select".
+ */
+export interface BetaInvitationsSelect<T extends boolean = true> {
+  email?: T;
+  tokenHash?: T;
+  expiresAt?: T;
+  consumedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
