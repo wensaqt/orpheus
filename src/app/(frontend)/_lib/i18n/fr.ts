@@ -31,6 +31,7 @@ export const fr: Messages = {
   },
   auth: {
     fields: {
+      inviteCode: 'Code d’invitation',
       email: 'E-mail',
       password: 'Mot de passe',
       confirmPassword: 'Confirmer le mot de passe',
@@ -65,6 +66,7 @@ export const fr: Messages = {
         predictable: 'Trop facile à deviner : évitez les caractères répétés ou qui se suivent.',
         taken: 'Un compte existe déjà avec cet e-mail.',
         invalidEmail: 'Saisissez une adresse e-mail valide.',
+        betaClosed: 'Cette bêta est réservée aux comptes invités.',
         unknown: 'Impossible de créer le compte. Veuillez réessayer.',
       },
     },

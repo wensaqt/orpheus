@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.github
+.vercel
+.env*
+!.env.example
+test.env
+media
+coverage
+test-results
+playwright-report
+blob-report
+*.pem
+*.key
+*.tsbuildinfo
+.DS_Store

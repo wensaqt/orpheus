@@ -26,7 +26,13 @@ const PASSWORD_ERRORS: SignUpError[] = [
   'mismatch',
 ]
 
-export function SignupForm({ returnTo }: { returnTo: string }) {
+export function SignupForm({
+  returnTo,
+  requiresInvite = false,
+}: {
+  returnTo: string
+  requiresInvite?: boolean
+}) {
   const t = useT()
   const [state, action, pending] = useActionState<SignUpState, FormData>(
     signUp,
@@ -59,6 +65,17 @@ export function SignupForm({ returnTo }: { returnTo: string }) {
         defaultValue={state.email}
         errorId={on(EMAIL_ERRORS)}
       />
+      {requiresInvite && (
+        <AuthField
+          label={t('auth.fields.inviteCode')}
+          type="password"
+          name="inviteCode"
+          autoComplete="off"
+          maxLength={128}
+          required
+          errorId={on(['betaClosed'])}
+        />
+      )}
       <AuthField
         label={t('auth.fields.password')}
         hint={t('auth.fields.passwordHint', lengths)}

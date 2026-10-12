@@ -1,6 +1,6 @@
 {
   "name": "orpheus",
-  "version": "1.0.0",
+  "version": "0.1.0-beta.1",
   "description": "A personal writing and composition app",
   "license": "MIT",
   "type": "module",
@@ -20,7 +20,12 @@
     "test:coverage": "cross-env NODE_OPTIONS=--no-deprecation vitest run --coverage",
     "thesaurus:import": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/import-thesaurus.ts",
     "users:set": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/set-user-access.ts",
-    "passwords:blocklist": "tsx scripts/build-password-blocklist.ts"
+    "passwords:blocklist": "tsx scripts/build-password-blocklist.ts",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "cross-env NODE_ENV=production payload migrate",
+    "db:migrate:status": "cross-env NODE_ENV=production payload migrate:status",
+    "users:create-admin": "payload run scripts/create-admin.ts",
+    "security:audit": "pnpm audit --prod --audit-level=high"
   },
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^4.0.0",
@@ -42,13 +47,13 @@
     "fast-xml-parser": "^5.11.2",
     "graphql": "^16.8.1",
     "lexical": "0.50.0",
-    "next": "16.3.3",
+    "next": "16.3.8",
     "opensheetmusicdisplay": "^2.2.0",
     "payload": "3.90.1",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "server-only": "^0.0.1",
-    "sharp": "0.35.4"
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",
@@ -59,7 +64,7 @@
     "@vitejs/plugin-react": "4.5.2",
     "@vitest/coverage-v8": "4.0.18",
     "eslint": "^9.16.0",
-    "eslint-config-next": "16.3.3",
+    "eslint-config-next": "16.3.8",
     "jsdom": "28.0.0",
     "prettier": "^3.4.2",
     "tsx": "4.22.4",
@@ -68,7 +73,8 @@
     "vitest": "4.0.18"
   },
   "engines": {
-    "node": "^18.20.2 || >=20.9.0",
-    "pnpm": "^9 || ^10 || ^11"
-  }
+    "node": ">=24 <25",
+    "pnpm": "11.24.0"
+  },
+  "packageManager": "pnpm@11.24.0"
 }

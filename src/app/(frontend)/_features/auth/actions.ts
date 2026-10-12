@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 
 import config from '@payload-config'
+import { canRegisterEmail, verifyBetaInvite } from '@/lib/deployment'
 
 import { safeReturnTo } from '@front/_lib/returnTo'
 import { RETURN_TO_PARAM, ROUTES } from '@front/_lib/routes'
@@ -45,6 +46,9 @@ export async function logIn(_previous: LogInState, form: FormData): Promise<LogI
  */
 export async function signUp(_previous: SignUpState, form: FormData): Promise<SignUpState> {
   const email = field(form, 'email').trim()
+  const inviteCode = field(form, 'inviteCode')
+  if (!canRegisterEmail(email) || !verifyBetaInvite(inviteCode))
+    return { error: 'betaClosed', email }
   const password = field(form, 'password')
   const invalid = checkSignUp({ email, password, confirm: field(form, 'confirm') })
   if (invalid) return { error: invalid, email }
@@ -61,6 +65,7 @@ export async function signUp(_previous: SignUpState, form: FormData): Promise<Si
       collection: 'users',
       data: { email, password },
       overrideAccess: false,
+      context: { betaInviteCode: inviteCode },
     })
     await login({ collection: 'users', config, email, password })
   } catch (error) {

@@ -1,0 +1,7 @@
+# Reviewed false positives: public password blocklist and an integration-test password.
+# Exact historical findings only; new matches remain blocking.
+d16eb597b32c5845d00906ae777991df301f7f80:tests/helpers/testUsers.ts:generic-api-key:8
+d16eb597b32c5845d00906ae777991df301f7f80:src/lib/passwords/commonPasswords.ts:linkedin-client-secret:1755
+d16eb597b32c5845d00906ae777991df301f7f80:src/lib/passwords/commonPasswords.ts:linkedin-client-secret:1757
+d16eb597b32c5845d00906ae777991df301f7f80:src/lib/passwords/commonPasswords.ts:generic-api-key:372
+d16eb597b32c5845d00906ae777991df301f7f80:src/lib/passwords/commonPasswords.ts:generic-api-key:1758

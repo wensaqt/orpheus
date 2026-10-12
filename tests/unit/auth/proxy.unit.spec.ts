@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { NextRequest } from 'next/server'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { SESSION_COOKIE } from '@front/_lib/auth'
 import { config, proxy } from '@/proxy'
@@ -11,6 +11,7 @@ const request = (path: string, cookie?: string) =>
   })
 
 describe('proxy', () => {
+  afterEach(() => vi.unstubAllEnvs())
   it('redirects a protected route without a session cookie to the login page', () => {
     const response = proxy(request('/compositions/12?view=grid'))
     expect(response.status).toBe(307)
@@ -31,7 +32,23 @@ describe('proxy', () => {
     }
   })
 
-  it('matches the protected prefix and its sub-paths', () => {
-    expect(config.matcher).toEqual(['/compositions/:path*'])
+  it('covers pages while excluding APIs and static assets', () => {
+    const pattern = new RegExp(`^${config.matcher[0]}$`)
+    for (const path of ['/login', '/admin', '/compositions/12'])
+      expect(pattern.test(path)).toBe(true)
+    for (const path of ['/api/users', '/_next/static/main.js', '/favicon.ico', '/font.woff2'])
+      expect(pattern.test(path)).toBe(false)
+  })
+
+  it('uses a fresh script nonce per production request without allowing inline scripts', () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const first = proxy(request('/login')).headers.get('Content-Security-Policy')!
+    const second = proxy(request('/login')).headers.get('Content-Security-Policy')!
+    expect(first).not.toBe(second)
+    expect(first).toContain("script-src 'self' 'nonce-")
+    expect(first).toContain("frame-ancestors 'none'")
+    expect(first.split(';').find((directive) => directive.includes('script-src'))).not.toContain(
+      'unsafe-inline',
+    )
   })
 })

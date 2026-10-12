@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
+jobs:
+  release-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+      - run: node scripts/verify-release.mjs
+      - name: Release commit must belong to main
+        run: git merge-base --is-ancestor HEAD origin/main
+  verify:
+    needs: release-check
+    uses: ./.github/workflows/ci.yml
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    permissions:
+      contents: write
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      # Direct PostgreSQL URL for schema changes/backups. App runtime uses the pooled URL.
+      DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+      PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+      APP_URL: ${{ vars.APP_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      NEXT_TELEMETRY_DISABLED: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+      - name: Verify deployment configuration
+        run: node scripts/verify-deployment.mjs
+      - run: npm install --global pnpm@11.24.0 vercel@63.1.2
+      - run: pnpm install --frozen-lockfile
+      - name: Fetch production build settings
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Build without changing production data
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+      - name: Deploy candidate without moving production domain
+        id: candidate
+        run: |
+          deployment_url=$(vercel deploy --prebuilt --prod --skip-domain --yes --token="$VERCEL_TOKEN")
+          echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
+      - name: Back up before changing schema
+        run: |
+          docker run --rm --env DATABASE_URL postgres:17-alpine \
+            sh -c 'pg_dump --dbname="$DATABASE_URL" --format=custom' > "$RUNNER_TEMP/pre-release.dump"
+          test -s "$RUNNER_TEMP/pre-release.dump"
+          gpg --batch --yes --symmetric --cipher-algo AES256 \
+            --passphrase-fd 0 --output "$RUNNER_TEMP/pre-release.dump.gpg" \
+            "$RUNNER_TEMP/pre-release.dump" <<< "$BACKUP_PASSPHRASE"
+      - name: Retain encrypted backup
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: database-backup-${{ github.run_id }}
+          path: ${{ runner.temp }}/pre-release.dump.gpg
+          retention-days: 14
+          if-no-files-found: error
+      - run: pnpm db:migrate
+      - name: Check candidate against migrated database
+        env:
+          DEPLOYMENT_URL: ${{ steps.candidate.outputs.url }}
+          VERCEL_PROTECTION_BYPASS: ${{ secrets.VERCEL_PROTECTION_BYPASS }}
+        run: node scripts/check-deployment.mjs
+      - name: Promote tested production build
+        env:
+          DEPLOYMENT_URL: ${{ steps.candidate.outputs.url }}
+        run: vercel promote "$DEPLOYMENT_URL" --yes --token="$VERCEL_TOKEN"
+      - name: Verify promoted production URL
+        env:
+          DEPLOYMENT_URL: ${{ vars.APP_URL }}
+        run: node scripts/check-deployment.mjs
+      - name: Publish GitHub release
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --prerelease

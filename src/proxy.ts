@@ -11,11 +11,38 @@ import { ROUTES } from '@front/_lib/routes'
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
-  if (!isProtectedPath(pathname) || request.cookies.has(SESSION_COOKIE)) return NextResponse.next()
-  return NextResponse.redirect(new URL(ROUTES.login(`${pathname}${search}`), request.url))
+  if (isProtectedPath(pathname) && !request.cookies.has(SESSION_COOKIE))
+    return NextResponse.redirect(new URL(ROUTES.login(`${pathname}${search}`), request.url))
+  return securedPageResponse(request)
 }
 
-// Must be a static literal (analysed at build time): mirrors PROTECTED_PREFIXES
+function securedPageResponse(request: NextRequest) {
+  if (process.env.NODE_ENV !== 'production') return NextResponse.next()
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const csp = [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "worker-src 'self' blob:",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join('; ')
+  const headers = new Headers(request.headers)
+  headers.set('x-nonce', nonce)
+  headers.set('Content-Security-Policy', csp)
+  const response = NextResponse.next({ request: { headers } })
+  response.headers.set('Content-Security-Policy', csp)
+  return response
+}
+
+// Static matcher required by Next. APIs use Payload access and CSRF checks, not this page guard.
 export const config = {
-  matcher: ['/compositions/:path*'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?|css|js)$).*)',
+  ],
 }

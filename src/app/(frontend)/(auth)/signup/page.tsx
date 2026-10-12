@@ -17,7 +17,7 @@ export default async function SignupPage({ searchParams }: PageProps<'/signup'>)
   const t = await getT()
   return (
     <>
-      <SignupForm returnTo={returnTo} />
+      <SignupForm returnTo={returnTo} requiresInvite={process.env.NODE_ENV === 'production'} />
       <AuthSwitch
         question={t('auth.signup.switch.question')}
         action={t('auth.signup.switch.action')}

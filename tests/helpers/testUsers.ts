@@ -11,8 +11,7 @@ export const TEST_PASSWORD = 'lyre-of-thrace-42'
 export const getTestPayload = () => getPayload({ config })
 
 /*
- * A temporary account with the given role. The role is set after creation: in an empty
- * database the collection makes the first account an admin, whatever the test wants.
+ * A temporary account with the given role, explicitly granted through the trusted Local API.
  */
 export async function createTestUser(payload: Payload, name: string, role: UserRole = 'user') {
   const email = `${TEST_EMAIL_PREFIX}${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`

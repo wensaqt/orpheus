@@ -29,6 +29,7 @@ export const en = {
   },
   auth: {
     fields: {
+      inviteCode: 'Invitation code',
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm password',
@@ -63,6 +64,7 @@ export const en = {
         predictable: 'Too easy to guess: avoid repeated or consecutive characters.',
         taken: 'An account already exists for this email.',
         invalidEmail: 'Enter a valid email address.',
+        betaClosed: 'This beta is available to invited accounts only.',
         unknown: 'Could not create the account. Please try again.',
       },
     },
