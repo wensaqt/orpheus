@@ -137,6 +137,22 @@ export function $setSelectionFont(selection: RangeSelection, font: FontChoice) {
   $addUpdateTag(HISTORY_PUSH_TAG)
 }
 
+function $formattingAtDocumentStart(): Formatting {
+  const first = $getRoot().getFirstDescendant()
+  const style = $nodeTextStyle(first)
+  return $formattingAt(
+    first ?? $getRoot(),
+    $isTextNode(first) ? formatsOf(first) : NO_FORMATTING.formats,
+    fontFromFamily(getStyleObjectFromCSS(style)[FONT_FAMILY_PROPERTY]),
+  )
+}
+
+function $nodeTextStyle(node: LexicalNode | null): string {
+  if ($isTextNode(node)) return node.getStyle()
+  if ($isElementNode(node)) return node.getTextStyle()
+  return ''
+}
+
 /*
  * The formatting of the selection. Text formats come from the selection itself: over a range,
  * the formats every selected text shares; at a caret, those the next typed text takes (which
@@ -145,17 +161,7 @@ export function $setSelectionFont(selection: RangeSelection, font: FontChoice) {
  */
 export function $readFormatting(): Formatting {
   const selection = $getSelection()
-  if (selection === null) {
-    const first = $getRoot().getFirstDescendant()
-    let style = ''
-    if ($isTextNode(first)) style = first.getStyle()
-    else if ($isElementNode(first)) style = first.getTextStyle()
-    return $formattingAt(
-      first ?? $getRoot(),
-      $isTextNode(first) ? formatsOf(first) : NO_FORMATTING.formats,
-      fontFromFamily(getStyleObjectFromCSS(style)[FONT_FAMILY_PROPERTY]),
-    )
-  }
+  if (selection === null) return $formattingAtDocumentStart()
   if (!$isRangeSelection(selection)) return NO_FORMATTING
   return $formattingAt(selection.anchor.getNode(), formatsOf(selection), $selectionFont(selection))
 }

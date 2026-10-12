@@ -32,40 +32,63 @@ export function caretTarget(
   return caretPoint(click, editable.getBoundingClientRect(), lineY)
 }
 
-// Columns share a height: locate the clicked page horizontally, then its nearest text
-// rectangle. This also handles a short final page and margins outside the editable root.
-export function bookCaretTarget(
-  editable: HTMLElement,
+type BookColumn = { left: number; pitch: number; scale: number }
+
+/** Resolve the clicked column in viewport coordinates, accounting for zoom. */
+function clickedBookColumn(
   root: HTMLElement,
   click: Point,
   { page, gap, pages }: PagesOnScreen,
-): Point | null {
+): BookColumn {
   const box = root.getBoundingClientRect()
   const scale = box.width / parseFloat(getComputedStyle(root).width)
   const pitch = (page.width + gap) * scale
   const index = clamp(Math.floor((click.x - box.left) / pitch), 0, pages - 1)
-  const left = box.left + index * pitch
+  return { left: box.left + index * pitch, pitch, scale }
+}
+
+/** Visit text and line-break rectangles without including unrelated element boxes. */
+function* textRectangles(editable: HTMLElement): Generator<DOMRect> {
   const range = document.createRange()
   const walker = document.createTreeWalker(editable, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT)
-  let nearest: Point | null = null
-  let distance = Infinity
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     if (node.nodeType !== Node.TEXT_NODE && !(node instanceof HTMLBRElement)) continue
     if (node instanceof HTMLBRElement) range.selectNode(node)
     else range.selectNodeContents(node)
-    for (const rect of range.getClientRects()) {
-      if (!rect.height || rect.left < left || rect.left >= left + pitch) continue
-      const inset = Math.min(LINE_INSET * scale, rect.width / 2)
-      const point = {
-        x: clamp(click.x, rect.left + inset, rect.right - inset),
-        y: rect.top + rect.height / 2,
-      }
-      const nextDistance = Math.abs(click.y - point.y) + Math.abs(click.x - point.x)
-      if (nextDistance < distance) {
-        distance = nextDistance
-        nearest = point
-      }
-    }
+    yield* range.getClientRects()
+  }
+}
+
+function caretInColumn(
+  rect: DOMRect,
+  click: Point,
+  { left, pitch, scale }: BookColumn,
+): Point | null {
+  if (!rect.height || rect.left < left || rect.left >= left + pitch) return null
+  const inset = Math.min(LINE_INSET * scale, rect.width / 2)
+  return {
+    x: clamp(click.x, rect.left + inset, rect.right - inset),
+    y: rect.top + rect.height / 2,
+  }
+}
+
+/** Find the nearest text point within the clicked book page, including a short final page. */
+export function bookCaretTarget(
+  editable: HTMLElement,
+  root: HTMLElement,
+  click: Point,
+  pages: PagesOnScreen,
+): Point | null {
+  const column = clickedBookColumn(root, click, pages)
+  let nearest: Point | null = null
+  let distance = Infinity
+  for (const rect of textRectangles(editable)) {
+    const point = caretInColumn(rect, click, column)
+    if (!point) continue
+    const nextDistance = Math.abs(click.y - point.y) + Math.abs(click.x - point.x)
+    if (nextDistance >= distance) continue
+    distance = nextDistance
+    nearest = point
   }
   return nearest
 }

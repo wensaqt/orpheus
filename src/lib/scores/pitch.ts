@@ -1,11 +1,14 @@
 import { ScoreError } from './errors'
 import { STEPS, NATURAL, type Pitch, type Step, type Interval } from './model'
-import { child, required, setValue, value } from './musicXml'
+import { findXmlChild, requireXmlValue, setXmlValue, readXmlValue } from './musicXml'
+
+const DIATONIC_STEPS_PER_OCTAVE = STEPS.length
+const SEMITONES_PER_OCTAVE = 12
 
 export function readPitch(pitch: Element): Pitch {
-  const step = required(pitch, 'step') as Step
-  const alter = Number(value(pitch, 'alter') ?? 0)
-  const octave = Number(required(pitch, 'octave'))
+  const step = requireXmlValue(pitch, 'step') as Step
+  const alter = Number(readXmlValue(pitch, 'alter') ?? 0)
+  const octave = Number(requireXmlValue(pitch, 'octave'))
   if (
     !STEPS.includes(step) ||
     !Number.isInteger(alter) ||
@@ -18,26 +21,29 @@ export function readPitch(pitch: Element): Pitch {
 }
 
 export function writePitch(pitch: Element, next: Pitch): void {
-  setValue(pitch, 'step', next.step)
-  let alter = child(pitch, 'alter')
+  setXmlValue(pitch, 'step', next.step)
+  let alter = findXmlChild(pitch, 'alter')
   if (next.alter === 0) alter?.remove()
   else {
     if (!alter) {
       alter = pitch.ownerDocument.createElement('alter')
-      pitch.insertBefore(alter, child(pitch, 'octave'))
+      pitch.insertBefore(alter, findXmlChild(pitch, 'octave'))
     }
     alter.textContent = String(next.alter)
   }
-  setValue(pitch, 'octave', String(next.octave))
+  setXmlValue(pitch, 'octave', String(next.octave))
 }
 
 export function shiftPitch(pitch: Pitch, interval: Interval): Pitch {
-  const index = STEPS.indexOf(pitch.step) + pitch.octave * 7 + interval.diatonic
-  const targetStep = ((index % 7) + 7) % 7
-  const octave = Math.floor(index / 7)
+  const index =
+    STEPS.indexOf(pitch.step) + pitch.octave * DIATONIC_STEPS_PER_OCTAVE + interval.diatonic
+  const targetStep =
+    ((index % DIATONIC_STEPS_PER_OCTAVE) + DIATONIC_STEPS_PER_OCTAVE) % DIATONIC_STEPS_PER_OCTAVE
+  const octave = Math.floor(index / DIATONIC_STEPS_PER_OCTAVE)
   const oldIndex = STEPS.indexOf(pitch.step)
-  const semitone = pitch.octave * 12 + NATURAL[oldIndex] + pitch.alter + interval.semitones
-  const alter = semitone - (octave * 12 + NATURAL[targetStep])
+  const semitone =
+    pitch.octave * SEMITONES_PER_OCTAVE + NATURAL[oldIndex] + pitch.alter + interval.semitones
+  const alter = semitone - (octave * SEMITONES_PER_OCTAVE + NATURAL[targetStep])
   if (Math.abs(alter) > 2) throw new ScoreError('extremeAccidental')
   return { step: STEPS[targetStep], alter, octave }
 }

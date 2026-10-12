@@ -1,5 +1,4 @@
-'use client'
-
+// Used inside client boundaries; callback props never cross the server boundary.
 import React, { useEffect, useRef } from 'react'
 import { Heading } from '@front/_components/ui/Heading/Heading'
 

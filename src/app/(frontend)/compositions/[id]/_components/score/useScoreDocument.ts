@@ -22,13 +22,16 @@ import type { Translate } from '@front/_lib/i18n'
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
 import { SAVERS } from '../binder/state/saverKeys'
 import { useHistoryState } from '../history/HistoryProvider'
-import { useRegisterScoreCommands, type ScoreCommands, type ScorePanel } from './ScoreCommands'
+import { useRegisterScoreCommands, type ScoreCommands } from './ScoreCommands'
 import { useScoreImport } from './useScoreImport'
 import { useScoreTransposition } from './useScoreTransposition'
 import { useScoreXml } from './useScoreXml'
+import { useScorePanel } from './useScorePanel'
+import { isModShortcut } from '@front/_components/ui/shortcuts'
 
 type ScoreDocumentOptions = { id: Id; title: string; initialXml: string }
 
+// A score may render while containing structures the pitch correction tools cannot edit.
 function inspectCorrectableNotes(
   xml: string,
   t: Translate,
@@ -72,12 +75,13 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
   const t = useT()
   const { commands: binderCommands } = useBinder()
   const content = useScoreXml(initialXml)
-  const [panel, setPanel] = useState<ScorePanel>(null)
-  const [selectedNote, setSelectedNote] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
   const transposition = useScoreTransposition(content.xml, createVariant, setError)
   const { preview, reset: resetPreview } = transposition
+  const { panel, selectedNote, setSelectedNote, openPanel, selectNote, closePanel } = useScorePanel(
+    { resetPreview, onError: setError },
+  )
   const {
     inputRef: fileInput,
     importFile,
@@ -123,7 +127,7 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
   function acceptImport(next: string) {
     changeXml(next)
     transposition.resetSource()
-    setPanel(null)
+    closePanel()
   }
   function correctNote(index: number, pitch: Pitch) {
     if (importInProgress.current) return
@@ -137,17 +141,6 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
     setSelectedNote(index)
     correctNote(index, pitch)
   }
-  function selectNote(index: number) {
-    setSelectedNote(index)
-    setPanel('correct')
-    setError(null)
-  }
-  function closePanel() {
-    setPanel(null)
-    setSelectedNote(null)
-    resetPreview()
-  }
-
   const restorePreviousXml = content.restorePreviousXml
   // These callbacks feed the command registration effect. Keep their identities
   // stable until their actual inputs change, to avoid re-registering on panel/error changes.
@@ -157,16 +150,6 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
     resetPreview()
     queueSave()
   }, [restorePreviousXml, resetPreview, queueSave, importInProgress])
-  const openPanel = useCallback(
-    (next: ScorePanel) => {
-      setPanel(next)
-      setSelectedNote(null)
-      resetPreview()
-      setError(null)
-    },
-    [resetPreview],
-  )
-
   const actions: ScoreCommands = useMemo(
     () => ({
       openImport: () => fileInput.current?.click(),
@@ -185,18 +168,15 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
       closePanel()
       return
     }
-    if (event.key.toLowerCase() !== 'z' || !(event.metaKey || event.ctrlKey) || event.shiftKey)
-      return
+    if (!isModShortcut(event, 'z')) return
     if (
-      event.altKey ||
-      (event.target instanceof HTMLElement &&
-        event.target.closest('input, textarea, [contenteditable=true]'))
+      event.target instanceof HTMLElement &&
+      event.target.closest('input, textarea, [contenteditable=true]')
     )
       return
     event.preventDefault()
     undoXml()
   }
-
   return {
     sheetRef,
     fileInput,

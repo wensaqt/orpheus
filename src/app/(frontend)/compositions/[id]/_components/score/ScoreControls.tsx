@@ -29,48 +29,14 @@ export function PitchCorrectionControls({
     <>
       <p className={styles.hint}>{issue ?? t('score.correctionLimit')}</p>
       <div className={styles.notes}>
-        {visibleNotes.map(({ index, measure, pitch }) => {
-          const name = t('score.noteInMeasure', { index: index + 1, measure })
-          return (
-            <div
-              className={styles.note}
-              key={index}
-              data-note-index={index}
-              data-selected={index === selectedIndex}
-            >
-              <span className={styles.noteName}>{name}</span>
-              <SelectField
-                aria-label={`${name} · ${t('score.pitchStep')}`}
-                value={pitch.step}
-                onChange={(event) => onEdit(index, { ...pitch, step: event.target.value as Step })}
-              >
-                {STEPS.map((step) => (
-                  <option key={step}>{step}</option>
-                ))}
-              </SelectField>
-              <SelectField
-                aria-label={`${name} · ${t('score.accidental')}`}
-                value={pitch.alter}
-                onChange={(event) => onEdit(index, { ...pitch, alter: Number(event.target.value) })}
-              >
-                <option value={-2}>𝄫</option>
-                <option value={-1}>♭</option>
-                <option value={0}>♮</option>
-                <option value={1}>♯</option>
-                <option value={2}>𝄪</option>
-              </SelectField>
-              <NumberStepper
-                label={`${name} · ${t('score.octave')}`}
-                decreaseLabel={t('score.decreaseOctave', { note: name })}
-                increaseLabel={t('score.increaseOctave', { note: name })}
-                min={0}
-                max={9}
-                value={pitch.octave}
-                onChange={(octave) => onEdit(index, { ...pitch, octave })}
-              />
-            </div>
-          )
-        })}
+        {visibleNotes.map((note) => (
+          <PitchCorrectionRow
+            key={note.index}
+            note={note}
+            selected={note.index === selectedIndex}
+            onEdit={onEdit}
+          />
+        ))}
       </div>
       {selectedIndex !== null && (
         <div className={styles.actions}>
@@ -80,6 +46,88 @@ export function PitchCorrectionControls({
         </div>
       )}
     </>
+  )
+}
+
+function PitchCorrectionRow({
+  note: { index, measure, pitch },
+  selected,
+  onEdit,
+}: {
+  note: ScoreNote
+  selected: boolean
+  onEdit: (index: number, pitch: Pitch) => void
+}) {
+  const t = useT()
+  const name = t('score.noteInMeasure', { index: index + 1, measure })
+  return (
+    <div className={styles.note} key={index} data-note-index={index} data-selected={selected}>
+      <span className={styles.noteName}>{name}</span>
+      <SelectField
+        aria-label={`${name} · ${t('score.pitchStep')}`}
+        value={pitch.step}
+        onChange={(event) => onEdit(index, { ...pitch, step: event.target.value as Step })}
+      >
+        {STEPS.map((step) => (
+          <option key={step}>{step}</option>
+        ))}
+      </SelectField>
+      <SelectField
+        aria-label={`${name} · ${t('score.accidental')}`}
+        value={pitch.alter}
+        onChange={(event) => onEdit(index, { ...pitch, alter: Number(event.target.value) })}
+      >
+        <option value={-2}>𝄫</option>
+        <option value={-1}>♭</option>
+        <option value={0}>♮</option>
+        <option value={1}>♯</option>
+        <option value={2}>𝄪</option>
+      </SelectField>
+      <NumberStepper
+        label={`${name} · ${t('score.octave')}`}
+        decreaseLabel={t('score.decreaseOctave', { note: name })}
+        increaseLabel={t('score.increaseOctave', { note: name })}
+        min={0}
+        max={9}
+        value={pitch.octave}
+        onChange={(octave) => onEdit(index, { ...pitch, octave })}
+      />
+    </div>
+  )
+}
+
+function InstrumentField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string
+  value: Instrument | null
+  onChange: (instrument: Instrument) => void
+  placeholder?: string
+}) {
+  const t = useT()
+  return (
+    <SelectField
+      label={label}
+      value={value ?? ''}
+      onChange={(event) => {
+        const instrument = INSTRUMENT_IDS.find((id) => id === event.target.value)
+        if (instrument) onChange(instrument)
+      }}
+    >
+      {placeholder && (
+        <option value="" disabled>
+          {placeholder}
+        </option>
+      )}
+      {INSTRUMENT_IDS.map((id) => (
+        <option key={id} value={id}>
+          {t(`score.instruments.${id}`)}
+        </option>
+      ))}
+    </SelectField>
   )
 }
 
@@ -138,20 +186,12 @@ export function TranspositionControls({
           <p className={styles.hint}>{t('score.sourceFromMusicXml')}</p>
         ) : (
           <div className={styles.transposeField}>
-            <SelectField
+            <InstrumentField
               label={t('score.sourceInstrument')}
-              value={sourceInstrument ?? ''}
-              onChange={(event) => onSourceInstrumentChange(event.target.value as Instrument)}
-            >
-              <option value="" disabled>
-                {t('score.chooseSourceInstrument')}
-              </option>
-              {INSTRUMENT_IDS.map((id) => (
-                <option key={id} value={id}>
-                  {t(`score.instruments.${id}`)}
-                </option>
-              ))}
-            </SelectField>
+              value={sourceInstrument}
+              onChange={onSourceInstrumentChange}
+              placeholder={t('score.chooseSourceInstrument')}
+            />
           </div>
         ))}
       <div className={styles.transposeField}>
@@ -168,17 +208,11 @@ export function TranspositionControls({
             ))}
           </SelectField>
         ) : (
-          <SelectField
+          <InstrumentField
             label={t('score.targetInstrument')}
             value={instrument}
-            onChange={(event) => onInstrumentChange(event.target.value as Instrument)}
-          >
-            {INSTRUMENT_IDS.map((id) => (
-              <option key={id} value={id}>
-                {t(`score.instruments.${id}`)}
-              </option>
-            ))}
-          </SelectField>
+            onChange={onInstrumentChange}
+          />
         )}
       </div>
       <div className={styles.actions}>

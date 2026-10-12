@@ -1,7 +1,7 @@
 import { ScoreError } from './errors'
 import { FIFTH_TONICS, type Instrument, type Interval, type Pitch, type Step, STEPS } from './model'
 import { assertTransposable } from './capabilities'
-import { child, parse, required, setValue, value } from './musicXml'
+import { findXmlChild, parseMusicXml, requireXmlValue, setXmlValue, readXmlValue } from './musicXml'
 import { accidentalName, readPitch, shiftPitch, writePitch } from './pitch'
 import { instrumentConversionInterval, updateInstrumentMetadata } from './instrumentTransposition'
 
@@ -22,39 +22,39 @@ function fifthsOfTonic(pitch: Pitch): number {
 }
 
 function transposeKeySignature(key: Element, interval: Interval): void {
-  const fifths = child(key, 'fifths')
+  const fifths = findXmlChild(key, 'fifths')
   if (!fifths) throw new ScoreError('nonstandardKey')
   const tonic = tonicOfKey(Number(fifths.textContent))
   fifths.textContent = String(fifthsOfTonic(shiftPitch(tonic, interval)))
 }
 
 function transposeNote(note: Element, interval: Interval): void {
-  const pitch = child(note, 'pitch')
+  const pitch = findXmlChild(note, 'pitch')
   if (!pitch) return
   const shifted = shiftPitch(readPitch(pitch), interval)
   writePitch(pitch, shifted)
   note.removeAttribute('default-y')
-  const accidental = child(note, 'accidental')
+  const accidental = findXmlChild(note, 'accidental')
   if (accidental) accidental.textContent = accidentalName(shifted.alter)
 }
 
 function transposeChordPitch(parent: Element, kind: 'root' | 'bass', interval: Interval) {
   const stepName = `${kind}-step`
   const alterName = `${kind}-alter`
-  const step = required(parent, stepName) as Step
+  const step = requireXmlValue(parent, stepName) as Step
   if (!STEPS.includes(step)) throw new ScoreError('unsupportedChord')
   const shifted = shiftPitch(
-    { step, alter: Number(value(parent, alterName) ?? 0), octave: 4 },
+    { step, alter: Number(readXmlValue(parent, alterName) ?? 0), octave: 4 },
     interval,
   )
-  setValue(parent, stepName, shifted.step)
-  if (shifted.alter === 0) child(parent, alterName)?.remove()
-  else setValue(parent, alterName, String(shifted.alter))
+  setXmlValue(parent, stepName, shifted.step)
+  if (shifted.alter === 0) findXmlChild(parent, alterName)?.remove()
+  else setXmlValue(parent, alterName, String(shifted.alter))
 }
 
 function transposeHarmony(harmony: Element, interval: Interval): void {
-  const root = child(harmony, 'root')
-  const bass = child(harmony, 'bass')
+  const root = findXmlChild(harmony, 'root')
+  const bass = findXmlChild(harmony, 'bass')
   if (root) transposeChordPitch(root, 'root', interval)
   if (bass) transposeChordPitch(bass, 'bass', interval)
 }
@@ -72,7 +72,7 @@ function transposeContent(document: Document, interval: Interval): void {
 }
 
 function transposableDocument(xml: string): Document {
-  const document = parse(xml)
+  const document = parseMusicXml(xml)
   assertTransposable(document)
   return document
 }
