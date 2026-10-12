@@ -30,9 +30,9 @@ export function RowMenu({ row, ref, onMoveTo, onClose }: RowMenuProps) {
   const { commands, setFolderOpen, setRenamingId } = useBinder()
   const { entry } = row
 
-  const createInside = (kind: BinderItemKind) => {
+  const createInside = (kind: BinderItemKind, documentType: 'text' | 'score' = 'text') => {
     setFolderOpen(entry.id, true)
-    void commands.create(kind, entry.id)
+    void commands.create(kind, entry.id, documentType)
   }
   const reorder = (step: -1 | 1) => {
     const destination = reorderDestination(row, step)
@@ -47,6 +47,10 @@ export function RowMenu({ row, ref, onMoveTo, onClose }: RowMenuProps) {
           {
             label: t('binder.actions.newDocumentInside'),
             onSelect: () => createInside('document'),
+          },
+          {
+            label: t('binder.actions.newScoreInside'),
+            onSelect: () => createInside('document', 'score'),
           },
           { label: t('binder.actions.newFolderInside'), onSelect: () => createInside('folder') },
         ]

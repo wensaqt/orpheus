@@ -208,6 +208,7 @@ export interface BinderItem {
   id: string;
   title: string;
   kind: 'folder' | 'document';
+  documentType: 'text' | 'score';
   composition: string | Composition;
   owner: string | User;
   parent?: (string | null) | BinderItem;
@@ -221,6 +222,7 @@ export interface BinderItem {
       [k: string]: unknown;
     };
   };
+  scoreXml?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -427,11 +429,13 @@ export interface CompositionsSelect<T extends boolean = true> {
 export interface BinderItemsSelect<T extends boolean = true> {
   title?: T;
   kind?: T;
+  documentType?: T;
   composition?: T;
   owner?: T;
   parent?: T;
   position?: T;
   content?: T;
+  scoreXml?: T;
   updatedAt?: T;
   createdAt?: T;
 }

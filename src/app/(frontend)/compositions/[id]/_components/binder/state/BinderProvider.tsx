@@ -1,29 +1,17 @@
 'use client'
 
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useOptimistic,
-  useRef,
-  useState,
-} from 'react'
+import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react'
 
-import { type Id, isIdList } from '@/lib/ids'
+import type { Id } from '@/lib/ids'
 
-import { loadBinderEntries } from '@front/_features/binder/actions'
 import type { BinderEntry } from '@front/_features/binder/types'
 import type { SaveControls } from '@front/_hooks/useAutosave'
-import { useStoredState } from '@front/_hooks/useStoredState'
-import { STORAGE_KEYS } from '@front/_lib/preferences'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 import { useEditorHistory } from '../../history/HistoryProvider'
-import { applyBinderOp, type BinderOp } from './binderOps'
+import { useBinderEntries } from './useBinderEntries'
+import { useCollapsedFolders } from './useCollapsedFolders'
 import { type BinderCommands, useBinderCommands } from './useBinderCommands'
 import { useOpenDocument } from './useOpenDocument'
 import { useSaveRegistry } from './useSaveRegistry'
@@ -64,44 +52,10 @@ export function BinderProvider({
   const history = useEditorHistory()
   const t = useT()
   const toast = useToast()
-  const [saved, setSaved] = useState(serverEntries)
-  const [entries, showOp] = useOptimistic(saved, applyBinderOp)
-  // Set by the first local change: from then on, this tab's binder is the newer one
-  const changedHere = useRef(false)
-  const apply = useCallback((op: BinderOp) => {
-    changedHere.current = true
-    setSaved((list) => applyBinderOp(list, op))
-  }, [])
-
-  /*
-   * The layout may come back from the router's cache (browser back button): check the server,
-   * unless the writer has already changed something here (a title typed meanwhile)
-   */
-  useEffect(() => {
-    void loadBinderEntries(compositionId)
-      .then((result) => {
-        if (result.status === 'done' && !changedHere.current) setSaved(result.data)
-      })
-      .catch(() => {})
-  }, [compositionId])
-
-  const [collapsedIds, setCollapsedIds] = useStoredState(
-    STORAGE_KEYS.collapsedFolders(compositionId),
-    [],
-    isIdList,
+  const { entries, showOp, apply } = useBinderEntries(compositionId, serverEntries, () =>
+    toast.error(t('binder.loadError')),
   )
-  const collapsed = useMemo(() => new Set(collapsedIds), [collapsedIds])
-  const setFolderOpen = useCallback(
-    (id: Id, open: boolean) => {
-      if (collapsed.has(id) !== open) return
-      const next = new Set(collapsed)
-      if (open) next.delete(id)
-      else next.add(id)
-      // Folders deleted since are forgotten along the way
-      setCollapsedIds([...next].filter((folder) => saved.some((entry) => entry.id === folder)))
-    },
-    [collapsed, saved, setCollapsedIds],
-  )
+  const { collapsed, setFolderOpen } = useCollapsedFolders(compositionId, entries)
 
   const [renamingId, setRenamingId] = useState<Id | null>(null)
   const { register, flushAll, cancelDocuments } = useSaveRegistry()

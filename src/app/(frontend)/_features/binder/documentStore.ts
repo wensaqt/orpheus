@@ -4,10 +4,16 @@ import type { Id } from '@/lib/ids'
 
 import { isFresh, withSlot } from './documentCache'
 import { fetchDocument } from './fetchDocument'
-import type { CachedDocument, DocumentSlot, DocumentText } from './types'
+import type {
+  CachedDocument,
+  DocumentSlot,
+  DocumentSnapshot,
+  DocumentText,
+  EditorDocument,
+} from './types'
 
 /*
- * The text of the documents this tab has seen, so that switching documents needs no server
+ * The content of the documents this tab has seen, so that switching documents needs no server
  * round trip. It lives at module scope on purpose: it must outlive the editor's layout (which
  * remounts when coming back from the compositions list) for the tab's whole session. It holds
  * the newest version known, whether loaded or saved here. Never written during render, and
@@ -39,16 +45,38 @@ export const useDocumentSlot = (id: Id) =>
   )
 
 // A version confirmed by the server (a load or a save): kept unless a newer one is known
-export function rememberDocument(id: Id, { content, updatedAt }: DocumentText) {
+function rememberSnapshot(id: Id, document: DocumentSnapshot) {
   const current = slots.get(id)
   const kept =
-    current?.status === 'ready' && current.document.updatedAt > updatedAt
+    current?.status === 'ready' && current.document.updatedAt > document.updatedAt
       ? current.document
-      : { content, updatedAt }
+      : document
   setSlot(id, {
     status: 'ready',
-    document: { content: kept.content, updatedAt: kept.updatedAt, checkedAt: Date.now() },
+    document: { ...kept, checkedAt: Date.now() },
   })
+}
+
+export function rememberDocument(id: Id, { content, updatedAt }: DocumentText) {
+  rememberSnapshot(id, { documentType: 'text', content, updatedAt })
+}
+
+export function rememberScore(
+  id: Id,
+  { scoreXml, updatedAt }: Pick<EditorDocument, 'scoreXml' | 'updatedAt'>,
+) {
+  rememberSnapshot(id, { documentType: 'score', content: null, scoreXml, updatedAt })
+}
+
+function snapshotOf(document: EditorDocument): DocumentSnapshot {
+  return document.documentType === 'score'
+    ? {
+        documentType: 'score',
+        content: null,
+        scoreXml: document.scoreXml,
+        updatedAt: document.updatedAt,
+      }
+    : { documentType: 'text', content: document.content, updatedAt: document.updatedAt }
 }
 
 /*
@@ -58,8 +86,7 @@ export function rememberDocument(id: Id, { content, updatedAt }: DocumentText) {
  */
 export function seedDocument(id: Id, document: CachedDocument) {
   if (slots.get(id)?.status === 'ready') return
-  const { content, updatedAt, checkedAt } = document
-  setSlot(id, { status: 'ready', document: { content, updatedAt, checkedAt } })
+  setSlot(id, { status: 'ready', document })
 }
 
 /*
@@ -77,7 +104,7 @@ export function loadDocument(compositionId: Id, id: Id): Promise<void> {
   const load = fetchDocument(compositionId, id)
     .then((document) => {
       if (started !== generation) return
-      if (document) rememberDocument(id, document)
+      if (document) rememberSnapshot(id, snapshotOf(document))
       else setSlot(id, { status: 'missing' })
     })
     .catch(() => {

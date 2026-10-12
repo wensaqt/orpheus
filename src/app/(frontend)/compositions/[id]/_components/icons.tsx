@@ -19,6 +19,13 @@ export const DocumentIcon = () => (
   </svg>
 )
 
+export const ScoreIcon = () => (
+  <svg {...common}>
+    <path d="M2 4h12M2 7h12M2 10h12M9.5 2.5v8.75" />
+    <path d="M9.5 10.75c-1.25-.75-3.5-.25-3.5 1.25s2.25 1.75 3.5.25" />
+  </svg>
+)
+
 export const FolderIcon = ({ open }: { open: boolean }) => (
   <svg {...common}>
     {open ? (
@@ -47,6 +54,13 @@ export const NewDocumentIcon = () => (
   <svg {...common}>
     <path d="M9.25 14.25H4V1.75h5.25L12.5 5v3" />
     <path d="M9 1.75V5.25h3.5M12.5 10.5v4M10.5 12.5h4" />
+  </svg>
+)
+
+export const NewScoreIcon = () => (
+  <svg {...common}>
+    <path d="M2 4h9M2 7h9M7 2.5v8.75M7 10.75c-1.25-.75-3.5-.25-3.5 1.25s2.25 1.75 3.5.25" />
+    <path d="M13 10v4M11 12h4" />
   </svg>
 )
 

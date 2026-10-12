@@ -24,6 +24,64 @@ function preferring<T extends SynonymGroup>(groups: T[], partOfSpeech?: PartOfSp
 
 const withWords = <T extends SynonymGroup>(group: T, words: string[]): T => ({ ...group, words })
 
+type NeighboursOf = NonNullable<ComposeOptions['neighboursOf']>
+
+function groupsOf(entries: SourceEntry[], source: ThesaurusSource): SynonymGroup[] {
+  return entries.find((entry) => entry.source === source)?.groups ?? []
+}
+
+function curatedWordsByPartOfSpeech(groups: SynonymGroup[]): Map<PartOfSpeech, Set<string>> {
+  const byPartOfSpeech = new Map<PartOfSpeech, Set<string>>()
+  for (const group of groups) {
+    const words = byPartOfSpeech.get(group.partOfSpeech) ?? new Set<string>()
+    group.words.forEach((word) => words.add(word))
+    byPartOfSpeech.set(group.partOfSpeech, words)
+  }
+  return byPartOfSpeech
+}
+
+function coherentSuggestions(
+  words: string[],
+  curated: Set<string>,
+  neighboursOf: NeighboursOf,
+): string[] {
+  const required = Math.min(MIN_SHARED_WITH_CURATED, curated.size)
+  const sharedWords = (word: string) =>
+    [...(neighboursOf(word) ?? [])].filter((neighbour) => curated.has(neighbour)).length
+  return words.filter((word) => sharedWords(word) >= required).slice(0, MORE_PER_GROUP)
+}
+
+function appendUncoveredGroup(
+  main: ResultGroup[],
+  group: SynonymGroup,
+  words: string[],
+  hasCuratedEntry: boolean,
+): void {
+  const suggestions = hasCuratedEntry ? words.slice(0, MORE_PER_GROUP) : words
+  if (suggestions.length) main.push({ ...withWords(group, suggestions), reliable: false })
+}
+
+function mergeDicollecte(
+  groups: SynonymGroup[],
+  wiktionary: SynonymGroup[],
+  neighboursOf: NeighboursOf,
+) {
+  const curatedByPartOfSpeech = curatedWordsByPartOfSpeech(wiktionary)
+  const shown = new Set(wiktionary.flatMap((group) => group.words))
+  const main: ResultGroup[] = wiktionary.map((group) => ({ ...group, reliable: true }))
+  const more: SynonymGroup[] = []
+  for (const group of groups) {
+    const fresh = group.words.filter((word) => !shown.has(word))
+    const curated = curatedByPartOfSpeech.get(group.partOfSpeech)
+    if (!curated) appendUncoveredGroup(main, group, fresh, wiktionary.length > 0)
+    else {
+      const coherent = coherentSuggestions(fresh, curated, neighboursOf)
+      if (coherent.length) more.push(withWords(group, coherent))
+    }
+  }
+  return { main, more }
+}
+
 /*
  * Combines the sources' entries for one word (pure).
  *
@@ -40,36 +98,11 @@ export function composeResult(
   entries: SourceEntry[],
   { preferredPartOfSpeech, neighboursOf = () => undefined }: ComposeOptions = {},
 ): Omit<SynonymResult, 'query'> {
-  const groupsOf = (source: ThesaurusSource) =>
-    entries.find((entry) => entry.source === source)?.groups ?? []
-  const wiktionary = groupsOf('wiktionary')
-  const dicollecte = groupsOf('dicollecte')
+  const wiktionary = groupsOf(entries, 'wiktionary')
+  const dicollecte = groupsOf(entries, 'dicollecte')
   if (!wiktionary.length && !dicollecte.length) return EMPTY_RESULT
 
-  const curatedByPartOfSpeech = new Map<PartOfSpeech, Set<string>>()
-  for (const group of wiktionary) {
-    const words = curatedByPartOfSpeech.get(group.partOfSpeech) ?? new Set<string>()
-    for (const w of group.words) words.add(w)
-    curatedByPartOfSpeech.set(group.partOfSpeech, words)
-  }
-  const shown = new Set(wiktionary.flatMap((group) => group.words))
-
-  const main: ResultGroup[] = wiktionary.map((group) => ({ ...group, reliable: true }))
-  const more: SynonymGroup[] = []
-  for (const group of dicollecte) {
-    const curated = curatedByPartOfSpeech.get(group.partOfSpeech)
-    const fresh = group.words.filter((w) => !shown.has(w))
-    if (!curated) {
-      // Uncovered part of speech: Dicollecte stands in (all of it when there is no Wiktionary entry)
-      const words = wiktionary.length ? fresh.slice(0, MORE_PER_GROUP) : fresh
-      if (words.length) main.push({ ...withWords(group, words), reliable: false })
-      continue
-    }
-    const required = Math.min(MIN_SHARED_WITH_CURATED, curated.size)
-    const shared = (w: string) => [...(neighboursOf(w) ?? [])].filter((n) => curated.has(n)).length
-    const coherent = fresh.filter((w) => shared(w) >= required)
-    if (coherent.length) more.push(withWords(group, coherent.slice(0, MORE_PER_GROUP)))
-  }
+  const { main, more } = mergeDicollecte(dicollecte, wiktionary, neighboursOf)
 
   return {
     word,

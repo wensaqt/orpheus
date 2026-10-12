@@ -16,7 +16,7 @@ import { uuid } from '../../helpers/ids'
 const version = (updatedAt: string) => ({ content: null, updatedAt })
 const ready = (checkedAt: number): DocumentSlot => ({
   status: 'ready',
-  document: { ...version('2026-10-02T10:00:00.000Z'), checkedAt },
+  document: { ...version('2026-10-02T10:00:00.000Z'), documentType: 'text', checkedAt },
 })
 
 describe('newerText', () => {
@@ -80,6 +80,13 @@ describe('neighbourDocuments', () => {
     expect(neighbourDocuments(entries, uuid(4))).toEqual([uuid(3), uuid(5)])
     expect(neighbourDocuments(entries, uuid(1))).toEqual([uuid(3)])
     expect(neighbourDocuments(entries, uuid(9))).toEqual([])
+  })
+
+  it('does not prefetch score documents into the Lexical text cache', () => {
+    const withScore = entries.map((entry) =>
+      entry.id === uuid(4) ? { ...entry, documentType: 'score' as const } : entry,
+    )
+    expect(neighbourDocuments(withScore, uuid(3))).toEqual([uuid(1), uuid(5)])
   })
 })
 

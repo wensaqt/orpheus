@@ -4,7 +4,7 @@ import { useT } from '@front/_components/i18n/I18nProvider'
 import { IconButton } from '@front/_components/ui/IconButton/IconButton'
 
 import styles from './BinderPanel.module.css'
-import { ChevronIcon, NewDocumentIcon, NewFolderIcon } from '../icons'
+import { ChevronIcon, NewDocumentIcon, NewFolderIcon, NewScoreIcon } from '../icons'
 import { useBinder } from './state/BinderProvider'
 import { BinderTree } from './tree/BinderTree'
 
@@ -24,6 +24,11 @@ export function BinderPanel({ onHide }: BinderPanelProps) {
           label={t('binder.newDocument')}
           icon={<NewDocumentIcon />}
           onClick={() => void commands.create('document', null)}
+        />
+        <IconButton
+          label={t('binder.newScore')}
+          icon={<NewScoreIcon />}
+          onClick={() => void commands.create('document', null, 'score')}
         />
         <IconButton
           label={t('binder.newFolder')}

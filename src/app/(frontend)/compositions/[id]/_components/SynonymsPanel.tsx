@@ -8,6 +8,7 @@ import { THESAURUS_CREDITS } from '@/lib/thesaurus/source'
 
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 import { IconButton } from '@front/_components/ui/IconButton/IconButton'
+import { Heading } from '@front/_components/ui/Heading/Heading'
 
 import { type SynonymResult, SynonymStatus } from '@front/_features/lexicon/types'
 import { useSynonyms } from '@front/_features/lexicon/useSynonyms'
@@ -42,9 +43,9 @@ export function SynonymsPanel({ onHide }: { onHide: () => void }) {
   return (
     <aside className={styles.panel} aria-labelledby={titleId}>
       <div className={styles.heading}>
-        <h2 id={titleId} className={styles.title}>
+        <Heading id={titleId} level={2} variant="panel">
           {t('synonyms.title')}
-        </h2>
+        </Heading>
         <IconButton
           label={t('synonyms.hide')}
           tooltipAlign="end"

@@ -20,6 +20,7 @@ import { useBinder } from '../binder/state/BinderProvider'
 import { useLayout } from '../page/LayoutProvider'
 import { DocumentEditor } from './DocumentEditor'
 import { EmptyBinder } from './EmptyBinder'
+import { ScoreDocumentLoader } from '../score/ScoreDocumentLoader'
 import styles from './OpenDocument.module.css'
 
 // A document as the server page rendered it, with when (its last check)
@@ -31,8 +32,18 @@ type RenderedDocument = EditorDocument & Pick<CachedDocument, 'checkedAt'>
  * (a direct visit, a reload), as `initial`.
  */
 export function OpenDocument({ initial }: { initial: RenderedDocument | null }) {
-  const { activeDocumentId } = useBinder()
+  const { activeDocumentId, entries } = useBinder()
   if (activeDocumentId === null) return <EmptyBinder />
+  const active = entries.find((entry) => entry.id === activeDocumentId)
+  if (active?.documentType === 'score') {
+    return (
+      <ScoreDocumentLoader
+        key={activeDocumentId}
+        id={activeDocumentId}
+        initial={initial?.id === activeDocumentId ? initial : undefined}
+      />
+    )
+  }
   return (
     <DocumentLoader
       key={activeDocumentId}
@@ -57,7 +68,13 @@ function DocumentLoader({ id, initial }: { id: Id; initial?: RenderedDocument })
   useEffect(() => {
     // Not in the binder (deleted meanwhile): nothing to load
     if (!exists) return
-    if (initial) seedDocument(id, initial)
+    if (initial)
+      seedDocument(id, {
+        documentType: 'text',
+        content: initial.content,
+        updatedAt: initial.updatedAt,
+        checkedAt: initial.checkedAt,
+      })
     // On a miss this is the load; otherwise a check of an older cached version
     void loadDocument(compositionId, id)
   }, [compositionId, id, initial, exists])

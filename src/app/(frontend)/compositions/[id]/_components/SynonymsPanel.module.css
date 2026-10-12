@@ -18,23 +18,6 @@
   gap: var(--space-2);
 }
 
-/* Panel title, underlined with a short rule as on the other pages */
-.title {
-  font-size: var(--text-lg);
-  font-weight: 300;
-  letter-spacing: 0.02em;
-  color: var(--color-primary-hover);
-}
-
-.title::after {
-  content: '';
-  display: block;
-  width: var(--rule-length-short);
-  height: var(--rule-thickness);
-  margin-block-start: var(--space-2);
-  background-color: var(--color-divider);
-}
-
 /* Frameless input, underlined with a line that turns violet on focus */
 .search {
   width: 100%;

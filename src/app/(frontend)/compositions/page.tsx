@@ -2,6 +2,7 @@ import { listCompositionCards } from '@front/_features/compositions/queries'
 import { getT } from '@front/_lib/server/i18n'
 import { ROUTES } from '@front/_lib/routes'
 import { requireUser } from '@front/_lib/server/auth'
+import { Heading } from '@front/_components/ui/Heading/Heading'
 
 import { CompositionGrid } from './_components/CompositionGrid'
 import styles from './page.module.css'
@@ -15,7 +16,9 @@ export default async function CompositionsPage() {
     <div className={styles.page}>
       <div className={styles.inner}>
         <header className={styles.header}>
-          <h1 className={styles.heading}>{t('compositions.heading')}</h1>
+          <Heading level={1} variant="page">
+            {t('compositions.heading')}
+          </Heading>
         </header>
         <CompositionGrid compositions={compositions} />
       </div>

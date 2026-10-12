@@ -1,3 +1,4 @@
+import { validateScoreImport } from '@/lib/scores/validation'
 import type {
   CollectionBeforeDeleteHook,
   CollectionBeforeValidateHook,
@@ -92,6 +93,29 @@ export const keepBinderTree: CollectionBeforeValidateHook = async ({
   ) {
     const siblings = items.filter((item) => item.parent === parent && item.id !== originalDoc?.id)
     data.position = siblings.length ? Math.max(...siblings.map((item) => item.position)) + 1 : 0
+  }
+  return data
+}
+
+export const validateDocumentBody: CollectionBeforeValidateHook = ({ data, originalDoc }) => {
+  if (!data) return data
+  const kind = data.kind ?? originalDoc?.kind
+  const documentType = data.documentType ?? originalDoc?.documentType ?? 'text'
+  const content = data.content ?? originalDoc?.content
+  const scoreXml = data.scoreXml ?? originalDoc?.scoreXml
+
+  if (kind === 'folder') {
+    if (documentType !== 'text' || content != null || scoreXml != null)
+      throw invalid('kind', 'A folder cannot hold a document.')
+  } else if (documentType === 'score') {
+    if (content != null) throw invalid('content', 'A score cannot contain Lexical text.')
+    try {
+      validateScoreImport(scoreXml)
+    } catch {
+      throw invalid('scoreXml', 'A score needs a valid MusicXML document under 2 MB.')
+    }
+  } else if (scoreXml != null) {
+    throw invalid('scoreXml', 'A text document cannot contain a score.')
   }
   return data
 }

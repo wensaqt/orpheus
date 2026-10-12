@@ -16,7 +16,7 @@ import { BINDER_HIDDEN_COOKIE, setPreferenceCookie } from '@front/_lib/preferenc
 
 import { BinderPanel } from './binder/BinderPanel'
 import { BinderIcon, SynonymsIcon } from './icons'
-import { BinderProvider } from './binder/state/BinderProvider'
+import { BinderProvider, useBinder } from './binder/state/BinderProvider'
 import styles from './EditorShell.module.css'
 import { DocumentTitleSlot } from './header/documentTitleSlot'
 import { EditorHeader } from './header/EditorHeader'
@@ -27,6 +27,7 @@ import { useSideRoom } from './sideRoom'
 import { HistoryProvider, historyShortcut, useEditorHistory } from './history/HistoryProvider'
 import { EditorViewProvider, useEditorView } from './editorView'
 import { SynonymsPanel } from './SynonymsPanel'
+import { ScoreCommandProvider } from './score/ScoreCommands'
 
 type EditorShellProps = {
   fontClassName: string
@@ -75,12 +76,14 @@ export function EditorShell({
               rulerHidden={rulerHidden}
               synonymsHidden={synonymsHidden}
             >
-              <DocumentTitleSlot value={documentTitleSlot}>
-                <HistoryScreen fontClassName={fontClassName}>
-                  <EditorHeader title={title} documentTitleRef={setDocumentTitleSlot} />
-                  <Desk binderHidden={binderHidden}>{children}</Desk>
-                </HistoryScreen>
-              </DocumentTitleSlot>
+              <ScoreCommandProvider>
+                <DocumentTitleSlot value={documentTitleSlot}>
+                  <HistoryScreen fontClassName={fontClassName}>
+                    <EditorHeader title={title} documentTitleRef={setDocumentTitleSlot} />
+                    <Desk binderHidden={binderHidden}>{children}</Desk>
+                  </HistoryScreen>
+                </DocumentTitleSlot>
+              </ScoreCommandProvider>
             </EditorViewProvider>
           </OpenEditorContext>
         </LayoutProvider>
@@ -99,6 +102,10 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   const { layout } = useLayout()
   const [binderFolded, setBinderFolded] = useState(binderHidden)
   const view = useEditorView()
+  const { entries, activeDocumentId } = useBinder()
+  const scoreOpen = entries.some(
+    (entry) => entry.id === activeDocumentId && entry.documentType === 'score',
+  )
   const desk = useRef<HTMLDivElement>(null)
   const binderCell = useRef<HTMLDivElement>(null)
   const panelProbe = useRef<HTMLDivElement>(null)
@@ -147,7 +154,12 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   }
 
   return (
-    <div ref={desk} className={styles.desk} data-book={view.bookView}>
+    <div
+      ref={desk}
+      className={styles.desk}
+      data-book={!scoreOpen && view.bookView}
+      data-score={scoreOpen}
+    >
       <div ref={binderCell} className={styles.binder}>
         {binderFolded ? (
           <IconButton
@@ -162,28 +174,30 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
       </div>
       <div ref={column} className={styles.column}>
         <div ref={surface} className={styles.pageSurface}>
-          {view.rulerVisible && <Ruler />}
+          {!scoreOpen && view.rulerVisible && <Ruler />}
           {children}
         </div>
       </div>
-      <div className={styles.aside}>
-        {/* As wide as the open panel: whether it fits is measured with it */}
-        <div ref={panelProbe} className={styles.panelProbe} aria-hidden="true" />
-        {!view.synonymsVisible ? (
-          <IconButton
-            ref={showSynonyms}
-            label={t('synonyms.show')}
-            tooltipAlign="end"
-            icon={<SynonymsIcon />}
-            className={styles.show}
-            onClick={view.showSynonyms}
-          />
-        ) : (
-          <div className={styles.synonyms} data-over={over} onKeyDown={handleSynonymsKeyDown}>
-            <SynonymsPanel onHide={hideSynonyms} />
-          </div>
-        )}
-      </div>
+      {!scoreOpen && (
+        <div className={styles.aside}>
+          {/* As wide as the open panel: whether it fits is measured with it */}
+          <div ref={panelProbe} className={styles.panelProbe} aria-hidden="true" />
+          {!view.synonymsVisible ? (
+            <IconButton
+              ref={showSynonyms}
+              label={t('synonyms.show')}
+              tooltipAlign="end"
+              icon={<SynonymsIcon />}
+              className={styles.show}
+              onClick={view.showSynonyms}
+            />
+          ) : (
+            <div className={styles.synonyms} data-over={over} onKeyDown={handleSynonymsKeyDown}>
+              <SynonymsPanel onHide={hideSynonyms} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -193,10 +207,14 @@ function HistoryScreen({
   fontClassName,
 }: Pick<EditorShellProps, 'children' | 'fontClassName'>) {
   const history = useEditorHistory()
+  const { entries, activeDocumentId } = useBinder()
+  const scoreOpen = entries.some(
+    (entry) => entry.id === activeDocumentId && entry.documentType === 'score',
+  )
   return (
     <div
       className={classNames(styles.screen, fontClassName)}
-      onKeyDownCapture={(event) => historyShortcut(history, event)}
+      onKeyDownCapture={scoreOpen ? undefined : (event) => historyShortcut(history, event)}
     >
       {children}
     </div>

@@ -12,12 +12,14 @@ import {
 } from '@/lib/binder/tree'
 import { cleanTitle } from '@/lib/titles'
 import type { Id } from '@/lib/ids'
+import type { ScoreVariant } from '@/lib/scores/variantTitle'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { useConfirm } from '@front/_components/ui/Feedback/ConfirmProvider'
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 import {
   createBinderItem,
+  createTransposedScore,
   deleteBinderItem,
   moveBinderItem,
   renameBinderItem,
@@ -25,7 +27,11 @@ import {
 import type { BinderEntry } from '@front/_features/binder/types'
 import { type ActionResult, succeeded } from '@front/_lib/actionResult'
 import type { Translate } from '@front/_lib/i18n'
-import { forgetDocuments, rememberDocument } from '@front/_features/binder/documentStore'
+import {
+  forgetDocuments,
+  rememberDocument,
+  rememberScore,
+} from '@front/_features/binder/documentStore'
 
 import { useEditorHistory } from '../../history/HistoryProvider'
 import { applyBinderOp, type BinderOp } from './binderOps'
@@ -121,15 +127,20 @@ export function useBinderCommands({
             : navigate(id),
 
       // A new folder is named straight away; a new document opens
-      async create(kind: BinderItemKind, parent: Id | null) {
+      async create(
+        kind: BinderItemKind,
+        parent: Id | null,
+        documentType: 'text' | 'score' = 'text',
+      ) {
         const createdItem: { entry: BinderEntry | null } = { entry: null }
         const accepted = await perform(async () => {
-          const result = await createBinderItem(compositionId, kind, parent)
+          const result = await createBinderItem(compositionId, kind, parent, documentType)
           if (result.status !== 'done') return false
           const { updatedAt, ...created } = result.data
           history.discard((scope) => scope.kind === 'binder' && scope.operation === 'move')
           apply({ type: 'add', entry: created })
-          if (kind === 'document') rememberDocument(created.id, { content: null, updatedAt })
+          if (kind === 'document' && documentType === 'text')
+            rememberDocument(created.id, { content: null, updatedAt })
           createdItem.entry = created
           return true
         })
@@ -141,6 +152,23 @@ export function useBinderCommands({
           await navigate(entry.id)
         }
         return entry
+      },
+
+      async createScoreTransposition(sourceId: Id, xml: string, variant: ScoreVariant) {
+        const createdItem: { entry: BinderEntry | null } = { entry: null }
+        const accepted = await perform(async () => {
+          const result = await createTransposedScore(sourceId, xml, variant)
+          if (result.status !== 'done') return false
+          const created = result.data
+          history.discard((scope) => scope.kind === 'binder' && scope.operation === 'move')
+          apply({ type: 'add', entry: created })
+          rememberScore(created.id, { scoreXml: xml, updatedAt: created.updatedAt })
+          createdItem.entry = created
+          return true
+        })
+        if (!accepted || !createdItem.entry) return null
+        await navigate(createdItem.entry.id)
+        return createdItem.entry
       },
 
       // From the tree's rename field

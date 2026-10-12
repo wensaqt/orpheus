@@ -14,15 +14,15 @@ import type { BinderEntry, EditorDocument } from './types'
 
 // A binder item reduced to its line in the binder column
 export const toEntry = (
-  item: Pick<BinderItem, 'id' | 'kind' | 'title' | 'parent' | 'position'>,
-): BinderEntry => ({ ...toBinderNode(item), title: item.title })
+  item: Pick<BinderItem, 'id' | 'kind' | 'title' | 'parent' | 'position' | 'documentType'>,
+): BinderEntry => ({ ...toBinderNode(item), title: item.title, documentType: item.documentType })
 
 // The structure of a binder (no content): what the binder column shows
 export async function binderEntries({ payload, user }: Session, compositionId: Id) {
   const { docs } = await payload.find({
     collection: 'binder-items',
     where: { composition: { equals: compositionId } },
-    select: { kind: true, title: true, parent: true, position: true },
+    select: { kind: true, title: true, parent: true, position: true, documentType: true },
     user,
     overrideAccess: false,
     pagination: false,
@@ -72,6 +72,8 @@ export async function findDocument(
     id: item.id,
     title: item.title,
     content: item.content ?? null,
+    documentType: item.documentType,
+    scoreXml: item.scoreXml ?? null,
     updatedAt: item.updatedAt,
   }
 }
