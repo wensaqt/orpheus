@@ -1,5 +1,5 @@
 import { NATURAL, STEPS, type Pitch } from '@/lib/scores/model'
-import { child, children, parse, value } from '@/lib/scores/musicXml'
+import { findXmlChild, findXmlChildren, parseMusicXml, readXmlValue } from '@/lib/scores/musicXml'
 import { readPitch } from '@/lib/scores/pitch'
 
 type Display = InstanceType<typeof import('opensheetmusicdisplay').OpenSheetMusicDisplay>
@@ -7,9 +7,10 @@ type SourceMeasure = Display['Sheet']['SourceMeasures'][number]
 type RenderedNote = ReturnType<typeof renderedNotes>[number]
 type XmlNote = { index: number; onset: number; duration: number; pitch: Pitch }
 
+/** Reject structures whose visual notes cannot be mapped unambiguously. */
 function supportsNotePicking(document: Document): boolean {
   return (
-    children(document.documentElement, 'part').length === 1 &&
+    findXmlChildren(document.documentElement, 'part').length === 1 &&
     !document.querySelector('backup, forward, chord, grace, time-modification, unpitched') &&
     Array.from(document.querySelectorAll('voice, staff, staves')).every(
       (node) => node.textContent?.trim() === '1',
@@ -17,6 +18,7 @@ function supportsNotePicking(document: Document): boolean {
   )
 }
 
+/** Require a single timing scale declared before the notes. */
 function hasStableDivisions(measure: Element): boolean {
   const nodes = Array.from(measure.children)
   const firstNote = nodes.findIndex((node) => node.localName === 'note')
@@ -28,20 +30,23 @@ function hasStableDivisions(measure: Element): boolean {
   )
 }
 
+/** Resolve the inherited or declared number of divisions per quarter note. */
 function divisionsFor(measure: Element, inherited: number): number | null {
   if (!hasStableDivisions(measure)) return null
-  const declared = value(child(measure, 'attributes') ?? measure, 'divisions')
+  const declared = readXmlValue(findXmlChild(measure, 'attributes') ?? measure, 'divisions')
   const divisions = declared === null ? inherited : Number(declared)
   return Number.isSafeInteger(divisions) && divisions > 0 ? divisions : null
 }
 
+// Rests advance the onset too; skipping them early would misidentify later notes.
+/** Collect pitched notes while preserving the elapsed time of rests. */
 function xmlNotes(measure: Element, firstIndex: number): XmlNote[] | null {
   let onset = 0
   const notes: XmlNote[] = []
-  for (const note of children(measure, 'note')) {
-    const duration = Number(value(note, 'duration'))
+  for (const note of findXmlChildren(measure, 'note')) {
+    const duration = Number(readXmlValue(note, 'duration'))
     if (!Number.isSafeInteger(duration) || duration <= 0) return null
-    const pitch = child(note, 'pitch')
+    const pitch = findXmlChild(note, 'pitch')
     if (pitch)
       notes.push({ index: firstIndex + notes.length, onset, duration, pitch: readPitch(pitch) })
     onset += duration
@@ -49,6 +54,7 @@ function xmlNotes(measure: Element, firstIndex: number): XmlNote[] | null {
   return notes
 }
 
+/** Flatten renderer voice entries and exclude rests. */
 function renderedNotes(measure: SourceMeasure) {
   return measure.VerticalSourceStaffEntryContainers.flatMap((entry) => entry.StaffEntries)
     .flatMap((entry) => entry.VoiceEntries)
@@ -56,6 +62,7 @@ function renderedNotes(measure: SourceMeasure) {
     .filter((note) => !note.isRest())
 }
 
+/** Compare spelled pitches using the renderer's octave convention. */
 function samePitch(expected: Pitch, note: RenderedNote, octaveDifference: number): boolean {
   return (
     NATURAL[STEPS.indexOf(expected.step)] === note.Pitch.FundamentalNote &&
@@ -64,6 +71,7 @@ function samePitch(expected: Pitch, note: RenderedNote, octaveDifference: number
   )
 }
 
+/** Compare exact rational onsets and durations without float rounding. */
 function sameTiming(expected: XmlNote, note: RenderedNote, divisions: number): boolean {
   const timestamp = note.ParentVoiceEntry.Timestamp
   const denominator = divisions * 4
@@ -73,6 +81,7 @@ function sameTiming(expected: XmlNote, note: RenderedNote, divisions: number): b
   )
 }
 
+/** Accept a visual note only when exactly one XML candidate matches. */
 function uniqueXmlMatch(
   candidates: XmlNote[],
   note: RenderedNote,
@@ -86,6 +95,7 @@ function uniqueXmlMatch(
   return matches.length === 1 ? matches[0] : null
 }
 
+/** Build a one-to-one mapping or reject the whole measure. */
 function indexMeasureNotes(
   indexes: WeakMap<object, number>,
   candidates: XmlNote[],
@@ -106,8 +116,9 @@ function indexMeasureNotes(
 
 // Match sequential single-staff notes by measure, time, duration and spelled pitch.
 // Any unsupported structure, mismatch or ambiguity disables picking.
+/** Map supported XML notes to their renderer objects; ambiguous scores remain unselectable. */
 export function indexRenderedNotes(display: Display, xml: string, octaveDifference: number) {
-  const document = parse(xml)
+  const document = parseMusicXml(xml)
   if (!supportsNotePicking(document)) return null
   const measures = Array.from(document.querySelectorAll('part > measure'))
   if (measures.length !== display.Sheet.SourceMeasures.length) return null

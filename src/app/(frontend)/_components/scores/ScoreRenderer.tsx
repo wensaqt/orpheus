@@ -1,9 +1,8 @@
-'use client'
-
-import { useEffect, useEffectEvent, useRef, useState } from 'react'
+// Used inside client boundaries; callback props never cross the server boundary.
+import { useEffect, useEffectEvent, useRef, useState, type MouseEvent } from 'react'
 
 import { createNotePicker } from './scoreNotePicking'
-import { DISPLAY_OPTIONS, type ScoreRenderState } from './scoreRendering'
+import { renderScoreXml, type ScoreRenderState } from './scoreRendering'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { scoreErrorMessage } from './scoreErrorMessage'
 
@@ -36,13 +35,10 @@ export function ScoreRenderer({ xml, className, onNoteClick, onRenderState }: Sc
     setRenderedPicker(null)
     setError(null)
     report({ xml, status: 'loading' })
-    void import('opensheetmusicdisplay')
-      .then(async (osmd) => {
-        if (canceled) return
-        const display = new osmd.OpenSheetMusicDisplay(container, DISPLAY_OPTIONS)
-        await display.load(xml)
-        if (canceled) return
-        display.render()
+    void renderScoreXml(xml, container, () => canceled)
+      .then((rendered) => {
+        if (!rendered || canceled) return
+        const { display, osmd } = rendered
         const pick = createNotePicker(display, xml, container, osmd)
         if (pick) setRenderedPicker({ xml, pick })
         report({ xml, status: 'ready' })
@@ -58,6 +54,12 @@ export function ScoreRenderer({ xml, className, onNoteClick, onRenderState }: Sc
     }
   }, [xml])
 
+  function handleNoteClick(event: MouseEvent<HTMLDivElement>) {
+    if (!onNoteClick || !picker) return
+    const index = picker(event.nativeEvent)
+    if (index !== null) onNoteClick(index)
+  }
+
   return (
     <>
       {error && <p role="alert">{t('score.renderError', { detail: error })}</p>}
@@ -65,11 +67,7 @@ export function ScoreRenderer({ xml, className, onNoteClick, onRenderState }: Sc
         ref={ref}
         className={className}
         data-selectable={onNoteClick && picker ? 'true' : undefined}
-        onClick={(event) => {
-          if (!onNoteClick || !picker) return
-          const index = picker(event.nativeEvent)
-          if (index !== null) onNoteClick(index)
-        }}
+        onClick={handleNoteClick}
       />
     </>
   )

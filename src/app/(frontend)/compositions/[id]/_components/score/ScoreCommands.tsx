@@ -1,5 +1,4 @@
-'use client'
-
+// Used inside client boundaries; callback props never cross the server boundary.
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
 
 export type ScorePanel = 'correct' | 'transpose' | null

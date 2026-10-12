@@ -1,8 +1,9 @@
 import { ScoreError } from './errors'
-import { child, children } from './musicXml'
+import { findXmlChild, findXmlChildren } from './musicXml'
 
 export function assertSinglePart(document: Document): void {
-  if (children(document.documentElement, 'part').length !== 1) throw new ScoreError('multipleParts')
+  if (findXmlChildren(document.documentElement, 'part').length !== 1)
+    throw new ScoreError('multipleParts')
 }
 
 export function assertPitchCorrectionSupported(document: Document): void {
@@ -16,10 +17,14 @@ export function assertPitchCorrectionSupported(document: Document): void {
 export function assertTransposable(document: Document): void {
   assertSinglePart(document)
   if (document.querySelector('unpitched')) throw new ScoreError('unpitched')
-  if (Array.from(document.querySelectorAll('key')).some((key) => !child(key, 'fifths')))
+  if (Array.from(document.querySelectorAll('key')).some((key) => !findXmlChild(key, 'fifths')))
     throw new ScoreError('nonstandardKey')
   if (!document.querySelector('part > measure')?.querySelector('attributes > key > fifths'))
     throw new ScoreError('initialKeyRequired')
-  if (Array.from(document.querySelectorAll('harmony')).some((harmony) => !child(harmony, 'root')))
+  if (
+    Array.from(document.querySelectorAll('harmony')).some(
+      (harmony) => !findXmlChild(harmony, 'root'),
+    )
+  )
     throw new ScoreError('chordRootRequired')
 }

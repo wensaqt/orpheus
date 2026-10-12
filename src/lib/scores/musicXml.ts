@@ -1,26 +1,32 @@
 import { ScoreError } from './errors'
 import { validateScoreImport } from './validation'
 
-export function children(parent: Element, name: string): Element[] {
+/** Find direct child elements by local name, including namespaced MusicXML. */
+/** Find the first direct child; nested descendants must not match. */
+export function findXmlChildren(parent: Element, name: string): Element[] {
   return Array.from(parent.children).filter((child) => child.localName === name)
 }
 
-export function child(parent: Element, name: string): Element | null {
-  return children(parent, name)[0] ?? null
+/** Find the first direct child; nested descendants must not match. */
+export function findXmlChild(parent: Element, name: string): Element | null {
+  return Array.from(parent.children).find((element) => element.localName === name) ?? null
 }
 
-export function value(parent: Element, name: string): string | null {
-  return child(parent, name)?.textContent?.trim() ?? null
+/** Read trimmed text from a direct child, preserving a missing value as null. */
+export function readXmlValue(parent: Element, name: string): string | null {
+  return findXmlChild(parent, name)?.textContent?.trim() ?? null
 }
 
-export function required(parent: Element, name: string): string {
-  const result = value(parent, name)
+/** Read a required field or report its missing MusicXML name. */
+export function requireXmlValue(parent: Element, name: string): string {
+  const result = readXmlValue(parent, name)
   if (!result) throw new ScoreError('missingField', { field: name })
   return result
 }
 
-export function setValue(parent: Element, name: string, text: string): void {
-  let element = child(parent, name)
+/** Update a direct child, creating it when absent. */
+export function setXmlValue(parent: Element, name: string, text: string): void {
+  let element = findXmlChild(parent, name)
   if (!element) {
     element = parent.ownerDocument.createElement(name)
     parent.appendChild(element)
@@ -28,7 +34,8 @@ export function setValue(parent: Element, name: string, text: string): void {
   element.textContent = text
 }
 
-export function parse(xml: string): Document {
+/** Validate the import before constructing its browser DOM. */
+export function parseMusicXml(xml: string): Document {
   validateScoreImport(xml)
   return new DOMParser().parseFromString(xml, 'application/xml')
 }
