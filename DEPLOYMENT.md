@@ -55,22 +55,23 @@ Protéger `main` : PR et job **CI / verify** requis, pas de force-push. Restrein
 
 Ne jamais appliquer les migrations sur la base locale habituelle. La migration initiale est prévue pour une base **vide** ; elle ne devine pas comment reprendre une base créée par schema push.
 
-Créer un fichier privé `.env.production.local`, ignoré par Git, avec les variables de production. Pour ces opérations locales, utiliser l’URL **directe** de Neon comme `DATABASE_URL`. Les CLI Payload chargent ce fichier lorsque `NODE_ENV=production` ; les variables déjà exportées dans le terminal restent prioritaires. Vérifier qu’aucune ancienne `DATABASE_URL` de développement n’est exportée avant de lancer les commandes.
+Pour la première initialisation, utiliser GitHub Actions : aucune connexion de production n’est nécessaire dans l’environnement de développement local.
 
-```sh
-pnpm db:migrate
-pnpm db:migrate:status
-```
+Dans l’environnement GitHub `production`, ajouter les secrets `PRODUCTION_DATABASE_URL` (valeur de `DATABASE_URL_UNPOOLED` dans Vercel) et `PAYLOAD_SECRET` (même secret que Vercel), ainsi que la variable `APP_URL` (URL HTTPS du projet). Une fois la PR de déploiement intégrée à `main`, ouvrir Actions → Initialize beta database → Run workflow, en sélectionnant `main`.
 
-Avant d’exposer la bêta, créer l’administrateur depuis une machine de confiance. Ajouter temporairement `ADMIN_EMAIL` et `ADMIN_PASSWORD` au fichier privé puis exécuter :
+Cette action vérifie d’abord que le schéma applicatif `public` ne contient ni tables ni enums, puis applique les migrations et affiche leur statut. Elle ne supprime rien et refuse une base déjà initialisée. Les changements ultérieurs sont migrés par la release avec sauvegarde préalable.
+
+Les commandes CLI ci-dessous sont réservées aux opérations depuis une machine de confiance explicitement configurée pour la production ; elles ne sont pas à lancer avec le `.env` de développement.
+
+Avant d’exposer la bêta, créer l’administrateur depuis une machine de confiance. Configurer temporairement `ADMIN_EMAIL` et `ADMIN_PASSWORD` dans cet environnement privé puis exécuter :
 
 ```sh
 NODE_ENV=production pnpm users:create-admin
 ```
 
-Le mot de passe doit respecter les règles de l’application. Retirer ensuite ces deux variables du fichier et conserver le mot de passe dans un gestionnaire dédié. Le premier inscrit ne reçoit jamais le rôle admin. Le reset par e-mail est fermé pendant cette bêta : un administrateur connecté peut modifier le mot de passe d’un compte depuis l’admin. En cas de perte du seul compte administrateur, utiliser le script privé pour créer un nouvel administrateur sous une autre adresse, puis rétablir l’accès.
+Le mot de passe doit respecter les règles de l’application. Retirer ensuite ces deux variables de cet environnement et conserver le mot de passe dans un gestionnaire dédié. Le premier inscrit ne reçoit jamais le rôle admin. Le reset par e-mail est fermé pendant cette bêta : un administrateur connecté peut modifier le mot de passe d’un compte depuis l’admin. En cas de perte du seul compte administrateur, utiliser le script privé pour créer un nouvel administrateur sous une autre adresse, puis rétablir l’accès.
 
-Pour inviter un testeur, ajouter son adresse comme `BETA_INVITE_EMAIL` dans le fichier privé puis exécuter :
+Pour inviter un testeur, configurer son adresse comme `BETA_INVITE_EMAIL` dans l’environnement privé puis exécuter :
 
 ```sh
 pnpm users:invite
