@@ -57,14 +57,11 @@ jobs:
         run: node scripts/verify-deployment.mjs
       - run: npm install --global pnpm@11.24.0 vercel@63.1.2
       - run: pnpm install --frozen-lockfile
-      - name: Fetch production build settings
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-      - name: Build without changing production data
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-      - name: Deploy candidate without moving production domain
+      # Secret Vercel variables cannot be pulled; build remotely where their values are available.
+      - name: Build and deploy candidate without moving production domain
         id: candidate
         run: |
-          deployment_url=$(vercel deploy --prebuilt --prod --skip-domain --yes --token="$VERCEL_TOKEN")
+          deployment_url=$(vercel deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")
           echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
       - name: Back up before changing schema
         run: |
