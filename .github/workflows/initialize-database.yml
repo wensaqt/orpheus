@@ -19,7 +19,7 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
       PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
-      APP_URL: ${{ vars.APP_URL }}
+      APP_URL: ${{ vars.APP_URL || secrets.APP_URL }}
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - name: Require the production branch
