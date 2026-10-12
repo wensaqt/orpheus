@@ -63,6 +63,8 @@ export const en = {
         predictable: 'Too easy to guess: avoid repeated or consecutive characters.',
         taken: 'An account already exists for this email.',
         invalidEmail: 'Enter a valid email address.',
+        betaClosed:
+          'This invitation link is invalid, expired or already used. Please request a new invitation.',
         unknown: 'Could not create the account. Please try again.',
       },
     },

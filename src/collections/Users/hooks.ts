@@ -1,20 +1,22 @@
 import {
-  type CollectionBeforeChangeHook,
   type CollectionBeforeValidateHook,
+  type CollectionAfterChangeHook,
+  type CollectionBeforeOperationHook,
   ValidationError,
+  APIError,
 } from 'payload'
 
 import { type PasswordProblem, passwordProblem } from '@/lib/passwords/strength'
 import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@/lib/users'
 
-/*
- * The very first account becomes the admin: it is created from the admin panel's "create first
- * user" screen, before anyone could grant the role.
- */
-export const firstUserIsAdmin: CollectionBeforeChangeHook = async ({ data, operation, req }) => {
-  if (operation !== 'create') return data
-  const { totalDocs } = await req.payload.count({ collection: 'users', req })
-  return totalDocs === 0 ? { ...data, role: 'admin' } : data
+// Without an email adapter, Payload logs reset messages (including tokens) to stdout.
+export const requirePasswordResetDelivery: CollectionBeforeOperationHook = ({
+  args,
+  operation,
+}) => {
+  if (operation === 'forgotPassword' && process.env.NODE_ENV === 'production')
+    throw new APIError('Password reset delivery is not configured for this beta.', 503)
+  return args
 }
 
 const PASSWORD_PROBLEM_MESSAGES: Record<PasswordProblem, string> = {
@@ -45,4 +47,18 @@ export const checkCredentials: CollectionBeforeValidateHook = ({ data, originalD
   }
   if (errors.length) throw new ValidationError({ collection: 'users', errors })
   return data
+}
+
+/** The invitation and account commit together. Unique user emails serialize competing redemptions. */
+export const consumeBetaInvitation: CollectionAfterChangeHook = async ({ operation, doc, req }) => {
+  const id = req.context.betaInvitationId
+  if (operation !== 'create' || typeof id !== 'string') return doc
+  await req.payload.update({
+    collection: 'beta-invitations',
+    id,
+    data: { consumedAt: new Date().toISOString() },
+    overrideAccess: true,
+    req,
+  })
+  return doc
 }

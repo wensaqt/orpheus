@@ -1,4 +1,4 @@
-import { ValidationError } from 'payload'
+import { APIError, ValidationError } from 'payload'
 import { describe, expect, it } from 'vitest'
 
 import { toSignUpError } from '@front/_features/auth/errors'
@@ -44,6 +44,10 @@ describe('exceedsCredentialLimits', () => {
 })
 
 describe('toSignUpError', () => {
+  it('reports an invitation denied during registration without hiding other server errors', () => {
+    expect(toSignUpError(new APIError('Forbidden', 403))).toBe('betaClosed')
+    expect(toSignUpError(new APIError('Unavailable', 503))).toBe('unknown')
+  })
   it('maps an email rejected by the collection to a malformed address', () => {
     expect(toSignUpError(validation('email'))).toBe('invalidEmail')
   })

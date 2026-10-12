@@ -26,7 +26,13 @@ const PASSWORD_ERRORS: SignUpError[] = [
   'mismatch',
 ]
 
-export function SignupForm({ returnTo }: { returnTo: string }) {
+export function SignupForm({
+  returnTo,
+  invitation,
+}: {
+  returnTo: string
+  invitation?: { token: string; email: string }
+}) {
   const t = useT()
   const [state, action, pending] = useActionState<SignUpState, FormData>(
     signUp,
@@ -56,9 +62,11 @@ export function SignupForm({ returnTo }: { returnTo: string }) {
         autoComplete="email"
         maxLength={MAX_EMAIL_LENGTH}
         required
-        defaultValue={state.email}
+        defaultValue={invitation?.email ?? state.email}
+        readOnly={invitation !== undefined}
         errorId={on(EMAIL_ERRORS)}
       />
+      {invitation && <input type="hidden" name="inviteToken" value={invitation.token} />}
       <AuthField
         label={t('auth.fields.password')}
         hint={t('auth.fields.passwordHint', lengths)}

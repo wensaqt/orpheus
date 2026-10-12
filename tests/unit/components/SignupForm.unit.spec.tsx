@@ -66,3 +66,23 @@ describe('SignupForm', () => {
     expect(screen.getByLabelText('Confirm password').getAttribute('aria-invalid')).toBeNull()
   })
 })
+
+it('submits the invitation token with its fixed email, without asking for a shared code', async () => {
+  cleanup()
+  signUp.mockReset()
+  signUp.mockResolvedValue({ error: null, email: '' })
+  render(
+    <SignupForm
+      returnTo="/"
+      invitation={{ token: 'test-invitation-token', email: 'invited@example.test' }}
+    />,
+  )
+  const email = screen.getByLabelText('Email')
+  expect(email.getAttribute('readonly')).not.toBeNull()
+  expect(email.getAttribute('value')).toBe('invited@example.test')
+  await submit({ Password: 'eurydice', 'Confirm password': 'eurydice' })
+  const form: FormData = signUp.mock.calls[0][1]
+  expect(form.get('inviteToken')).toBe('test-invitation-token')
+  expect(form.get('email')).toBe('invited@example.test')
+  expect(form.get('inviteCode')).toBeNull()
+})

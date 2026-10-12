@@ -4,3 +4,17 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   workerd: true
+
+# Security patches for dependencies supplied by Payload and its editor tooling.
+overrides:
+  dompurify: 3.4.16
+  undici: 7.29.1
+  source-map-js: 1.2.2
+  '@esbuild-kit/core-utils>esbuild': 0.25.12
+  sharp: 0.35.5
+
+# No upstream fix yet. Only used by Sass file watching during builds/development;
+# production does not expose user-controlled glob patterns. Reassess on dependency updates.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm

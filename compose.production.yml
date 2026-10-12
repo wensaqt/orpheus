@@ -1,0 +1,13 @@
+# Local production smoke test. Vercel hosts Next.js natively; it does not use this Compose stack.
+services:
+  app:
+    build: .
+    ports:
+      - '127.0.0.1:3000:3000'
+    env_file: .env.production.local
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

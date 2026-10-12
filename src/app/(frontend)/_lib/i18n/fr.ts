@@ -65,6 +65,8 @@ export const fr: Messages = {
         predictable: 'Trop facile à deviner : évitez les caractères répétés ou qui se suivent.',
         taken: 'Un compte existe déjà avec cet e-mail.',
         invalidEmail: 'Saisissez une adresse e-mail valide.',
+        betaClosed:
+          'Ce lien d’invitation est invalide, expiré ou déjà utilisé. Demandez une nouvelle invitation.',
         unknown: 'Impossible de créer le compte. Veuillez réessayer.',
       },
     },
