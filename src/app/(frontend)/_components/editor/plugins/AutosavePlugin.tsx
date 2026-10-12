@@ -13,6 +13,7 @@ import { isContentUpdate } from '../contentUpdates'
 import { readContent } from '../storedContent'
 
 // Cmd/Ctrl+S saves now
+// TODO: weird const, weird use case, might store this in another place
 const SAVE_KEY = 's'
 
 /*

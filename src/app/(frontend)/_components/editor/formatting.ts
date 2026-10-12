@@ -145,6 +145,7 @@ export function $setSelectionFont(selection: RangeSelection, font: FontChoice) {
  */
 export function $readFormatting(): Formatting {
   const selection = $getSelection()
+  // TODO: no nested conditions if possible
   if (selection === null) {
     const first = $getRoot().getFirstDescendant()
     let style = ''

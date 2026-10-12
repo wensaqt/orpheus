@@ -29,6 +29,7 @@ function isNearNote(note: GraphicalNote, point: Point): boolean {
   )
 }
 
+//TODO: this function can be improved or splitted
 function noteAtClick(
   event: MouseEvent,
   container: HTMLElement,

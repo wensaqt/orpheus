@@ -33,6 +33,7 @@ export function writePitch(pitch: Element, next: Pitch): void {
 
 export function shiftPitch(pitch: Pitch, interval: Interval): Pitch {
   const index = STEPS.indexOf(pitch.step) + pitch.octave * 7 + interval.diatonic
+  // TODO : enlever les magic numbers
   const targetStep = ((index % 7) + 7) % 7
   const octave = Math.floor(index / 7)
   const oldIndex = STEPS.indexOf(pitch.step)

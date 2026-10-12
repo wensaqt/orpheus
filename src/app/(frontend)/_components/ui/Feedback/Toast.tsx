@@ -13,6 +13,7 @@ const TOAST_DURATION_MS = 5000
 type ToastProps = {
   toast: ToastMessage
   // Stable: the timer isn't restarted when other toasts arrive
+  // TODO: remove type warning
   onDismiss: (id: number) => void
 }
 

@@ -29,6 +29,7 @@ import { useScoreXml } from './useScoreXml'
 
 type ScoreDocumentOptions = { id: Id; title: string; initialXml: string }
 
+// TODO: explain score issues
 function inspectCorrectableNotes(
   xml: string,
   t: Translate,
@@ -68,6 +69,9 @@ function useScoreTitle(id: Id, title: string) {
   return { field, busy }
 }
 
+// TODO: i think we can improve the way we dispose panels with a provider for all documents
+// TODO: its weird to store current selection directly within the document but challenge this comment
+// TODO: same for errors, maybe we can make a proper logger to handle errors across the app (btw, i've seen a custom class "ScoreError", why pass through a state here ?)
 export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions) {
   const t = useT()
   const { commands: binderCommands } = useBinder()
@@ -98,6 +102,7 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
       panel === 'correct' ? inspectCorrectableNotes(content.xml, t) : { notes: [], issue: null },
     [content.xml, panel, t],
   )
+  // TODO: no magical strings
   const sourceDeclared = useMemo(
     () => panel === 'transpose' && hasInstrumentTranspose(content.xml),
     [content.xml, panel],
@@ -110,6 +115,7 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
   async function persistCurrentXml() {
     const sentXml = content.xmlRef.current
     const result = await saveScoreDocument(id, sentXml)
+    // TODO: remove magical strings, use enums or consts instead
     if (result.status === 'done')
       rememberScore(id, { scoreXml: sentXml, updatedAt: result.data.updatedAt })
     return result
@@ -180,6 +186,7 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
   )
   useRegisterScoreCommands(actions)
 
+  //TODO: magical strings for keys ?
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape' && panel) {
       closePanel()
@@ -196,7 +203,7 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
     event.preventDefault()
     undoXml()
   }
-
+  // TODO: this hook returns a shit load of things dont you think ? it handles panels, transposition, renderer, and its own core logic
   return {
     sheetRef,
     fileInput,

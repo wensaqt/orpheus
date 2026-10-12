@@ -2,6 +2,8 @@ import { PAGES_ATTRIBUTE } from './constants'
 
 const MIRROR_ONLY_ATTRIBUTES = new Set([PAGES_ATTRIBUTE, 'id', 'tabindex', 'contenteditable'])
 
+//TODO: JSdoc for all functions here
+
 // The inactive spread shows the same DOM flow as the editor. Keep a node map so a
 // keystroke updates the corresponding text node instead of copying the whole book.
 export class BookMirror {
@@ -9,6 +11,7 @@ export class BookMirror {
   private readonly nodes = new WeakMap<Node, Node>()
 
   constructor(source: HTMLElement) {
+    // TODO: remove type assertion if possible
     this.element = source.cloneNode(true) as HTMLElement
     this.mapNodes(source, this.element)
     this.element.removeAttribute(PAGES_ATTRIBUTE)
@@ -45,6 +48,7 @@ export class BookMirror {
 
   private copyAttribute(record: MutationRecord, copy: Node) {
     const name = record.attributeName
+    // TODO: extract condition in dedicated function with explicit documentation
     if (
       !(copy instanceof Element) ||
       !(record.target instanceof Element) ||

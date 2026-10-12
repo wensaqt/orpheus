@@ -15,10 +15,12 @@ import styles from './ScoreDocument.module.css'
 
 type ScoreLoaderProps = { id: Id; initial?: EditorDocument & Pick<CachedDocument, 'checkedAt'> }
 
+//TODO: this file seems odd, we should challenge the way we load scores, maybe add a context or something; this feels globally overengineered
 export function ScoreDocumentLoader({ id, initial }: ScoreLoaderProps) {
   const t = useT()
   const { compositionId, entries } = useBinder()
   const slot = useDocumentSlot(id)
+  //TODO: add enum for slot status
   const ready = newerDocument(
     slot?.status === 'ready' ? slot.document : undefined,
     initial?.documentType === 'score'
@@ -32,6 +34,7 @@ export function ScoreDocumentLoader({ id, initial }: ScoreLoaderProps) {
       : undefined,
   )
   // Choose once per keyed document mount; later checks must not replace unsaved edits.
+  // TODO: challenge this state, why a start state ?
   const [start, setStart] = useState(ready)
   if (!start && ready) setStart(ready)
   const entry = entries.find((item) => item.id === id && item.documentType === 'score')

@@ -9,6 +9,8 @@ import { SelectField } from '@front/_components/ui/SelectField/SelectField'
 import type { useScoreTransposition } from './useScoreTransposition'
 import styles from './ScoreDocument.module.css'
 
+// TODO: remove magic strings 'instrument' 'key' ; and this component can be splitted, cleaned
+
 export function PitchCorrectionControls({
   notes,
   issue,

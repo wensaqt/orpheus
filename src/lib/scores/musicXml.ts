@@ -1,6 +1,9 @@
 import { ScoreError } from './errors'
 import { validateScoreImport } from './validation'
 
+//TODO : names are kinda too generic
+// TODO : is the "child" function really useful?
+// TODO: "name" can be any string ? if not -> enum or const
 export function children(parent: Element, name: string): Element[] {
   return Array.from(parent.children).filter((child) => child.localName === name)
 }

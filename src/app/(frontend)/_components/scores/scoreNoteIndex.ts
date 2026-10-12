@@ -2,6 +2,8 @@ import { NATURAL, STEPS, type Pitch } from '@/lib/scores/model'
 import { child, children, parse, value } from '@/lib/scores/musicXml'
 import { readPitch } from '@/lib/scores/pitch'
 
+//TODO: need short JSdoc for every function
+
 type Display = InstanceType<typeof import('opensheetmusicdisplay').OpenSheetMusicDisplay>
 type SourceMeasure = Display['Sheet']['SourceMeasures'][number]
 type RenderedNote = ReturnType<typeof renderedNotes>[number]
@@ -35,6 +37,7 @@ function divisionsFor(measure: Element, inherited: number): number | null {
   return Number.isSafeInteger(divisions) && divisions > 0 ? divisions : null
 }
 
+// TODO: why no early return ?
 function xmlNotes(measure: Element, firstIndex: number): XmlNote[] | null {
   let onset = 0
   const notes: XmlNote[] = []

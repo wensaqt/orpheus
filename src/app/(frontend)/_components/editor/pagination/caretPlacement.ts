@@ -34,6 +34,7 @@ export function caretTarget(
 
 // Columns share a height: locate the clicked page horizontally, then its nearest text
 // rectangle. This also handles a short final page and margins outside the editable root.
+// TODO: split this function, its doing too much stuff at once
 export function bookCaretTarget(
   editable: HTMLElement,
   root: HTMLElement,
@@ -49,6 +50,7 @@ export function bookCaretTarget(
   const walker = document.createTreeWalker(editable, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT)
   let nearest: Point | null = null
   let distance = Infinity
+  //TODO: remove nested if
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     if (node.nodeType !== Node.TEXT_NODE && !(node instanceof HTMLBRElement)) continue
     if (node instanceof HTMLBRElement) range.selectNode(node)
