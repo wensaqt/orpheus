@@ -6,7 +6,8 @@ import { descriptionOf } from '../../helpers/dom'
 const logOut = vi.fn()
 vi.mock('@front/_features/auth/actions', () => ({ logOut }))
 const pathname = vi.fn()
-vi.mock('next/navigation', () => ({ usePathname: pathname }))
+const push = vi.fn()
+vi.mock('next/navigation', () => ({ usePathname: pathname, useRouter: () => ({ push }) }))
 
 // jsdom has no Popover API; the browser's own behaviour is not under test here
 HTMLElement.prototype.hidePopover ??= () => {}
@@ -54,4 +55,13 @@ describe('AccountMenu', () => {
       cleanup()
     }
   })
+})
+
+it('offers invitation management only to administrators', () => {
+  const view = render(<AccountMenu email="admin@example.test" administrator />)
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Beta invitations', hidden: true }))
+  expect(push).toHaveBeenCalledWith('/beta/invitations')
+  view.rerender(<AccountMenu email="user@example.test" />)
+  expect(screen.queryByRole('menuitem', { name: 'Beta invitations', hidden: true })).toBeNull()
+  cleanup()
 })

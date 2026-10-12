@@ -13,6 +13,7 @@ export const AUTH_PAGES = { login: '/login', signup: '/signup' }
 export const ROUTES = {
   home: '/',
   compositions: '/compositions',
+  betaInvitations: '/beta/invitations',
   composition: (id: Id) => `/compositions/${id}`,
   // A document of the composition's binder, open in the editor
   document: (compositionId: Id, documentId: Id) => `/compositions/${compositionId}/${documentId}`,

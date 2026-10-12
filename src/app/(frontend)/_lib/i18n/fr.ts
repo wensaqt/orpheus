@@ -71,6 +71,25 @@ export const fr: Messages = {
       },
     },
   },
+  betaInvitations: {
+    heading: 'Invitations à la bêta',
+    description:
+      'Générez un lien pour une adresse e-mail. Il expire après sept jours et ne peut être utilisé qu’une fois.',
+    generate: 'Générer une invitation',
+    generating: 'Génération…',
+    link: 'Lien d’invitation',
+    copy: 'Copier le lien',
+    copied: 'Lien copié. Collez-le dans votre e-mail.',
+    copyFailed: 'La copie a échoué. Sélectionnez le lien et copiez-le manuellement.',
+    delivery:
+      'Envoyez ce lien depuis votre boîte mail. Il ne sera plus affiché après avoir quitté cette page.',
+    errors: {
+      invalidEmail: 'Saisissez une adresse e-mail valide.',
+      taken: 'Cette adresse possède déjà un compte.',
+      forbidden: 'Seuls les administrateurs peuvent générer des invitations.',
+      unavailable: 'Impossible de générer l’invitation. Réessayez.',
+    },
+  },
   home: {
     create: { title: 'Nouvelle composition', subtitle: 'Commencer une nouvelle pièce' },
     browse: { title: 'Toutes les compositions', subtitle: 'Retrouver vos pièces' },

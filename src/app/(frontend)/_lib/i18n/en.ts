@@ -69,6 +69,25 @@ export const en = {
       },
     },
   },
+  betaInvitations: {
+    heading: 'Beta invitations',
+    description:
+      'Generate a link for one email address. It expires after seven days and can be used once.',
+    generate: 'Generate invitation',
+    generating: 'Generating…',
+    link: 'Invitation link',
+    copy: 'Copy link',
+    copied: 'Link copied. Paste it into your email.',
+    copyFailed: 'Copy failed. Select the link and copy it manually.',
+    delivery:
+      'Send this link from your own mailbox. It will not be shown again after leaving this page.',
+    errors: {
+      invalidEmail: 'Enter a valid email address.',
+      taken: 'This email already has an account.',
+      forbidden: 'Only administrators can issue invitations.',
+      unavailable: 'Could not generate the invitation. Try again.',
+    },
+  },
   home: {
     create: { title: 'New composition', subtitle: 'Start a new piece' },
     browse: { title: 'All compositions', subtitle: 'Revisit your pieces' },

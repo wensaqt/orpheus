@@ -1,4 +1,5 @@
 import React from 'react'
+import { isAdmin } from '@/lib/users'
 
 import './_styles/tokens.css'
 import './_styles/base.css'
@@ -28,7 +29,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           <FeedbackProvider>
             {/* On every page: the logo links back home, the corner holds language and account */}
             <HomeLink />
-            <CornerActions email={user?.email ?? null} />
+            <CornerActions email={user?.email ?? null} administrator={isAdmin(user)} />
             <main>{children}</main>
           </FeedbackProvider>
         </I18nProvider>
