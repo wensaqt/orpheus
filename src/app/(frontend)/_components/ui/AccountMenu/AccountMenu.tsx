@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 
 import { Menu } from '@front/_components/ui/Menu/Menu'
@@ -24,15 +24,16 @@ function ProfileIcon() {
   )
 }
 
-type AccountMenuProps = { email: string | null }
+type AccountMenuProps = { email: string | null; administrator?: boolean }
 
 /*
  * The account menu when signed in, otherwise a way to sign in that comes back to the current
  * page.
  */
-export function AccountMenu({ email }: AccountMenuProps) {
+export function AccountMenu({ email, administrator = false }: AccountMenuProps) {
   const t = useT()
   const pathname = usePathname()
+  const router = useRouter()
   const [pending, startTransition] = useTransition()
 
   if (!email) {
@@ -51,6 +52,14 @@ export function AccountMenu({ email }: AccountMenuProps) {
   }
 
   const items: MenuItem[] = [
+    ...(administrator
+      ? [
+          {
+            label: t('betaInvitations.heading'),
+            onSelect: () => router.push(ROUTES.betaInvitations),
+          },
+        ]
+      : []),
     { label: t('account.profile'), disabled: true, hint: t('common.soon') },
     {
       label: t('account.logOut'),

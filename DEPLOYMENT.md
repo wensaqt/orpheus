@@ -63,23 +63,13 @@ Cette action vérifie d’abord que le schéma applicatif `public` ne contient n
 
 Les commandes CLI ci-dessous sont réservées aux opérations depuis une machine de confiance explicitement configurée pour la production ; elles ne sont pas à lancer avec le `.env` de développement.
 
-Avant d’exposer la bêta, créer l’administrateur depuis une machine de confiance. Configurer temporairement `ADMIN_EMAIL` et `ADMIN_PASSWORD` dans cet environnement privé puis exécuter :
+Avant d’exposer la bêta, ajouter temporairement `ADMIN_EMAIL` et `ADMIN_PASSWORD` aux secrets de l’environnement GitHub `production`, puis lancer Actions → Create beta administrator → Run workflow depuis `main`. Cette action utilise la base déjà migrée ; elle crée un administrateur explicite sans afficher les credentials. Un compte existant n’est jamais promu silencieusement. Retirer ensuite ces deux secrets et conserver le mot de passe dans un gestionnaire dédié.
 
-```sh
-NODE_ENV=production pnpm users:create-admin
-```
+Une fois la version publiée, se connecter avec ce compte et ouvrir le menu Compte → Invitations à la bêta (`/beta/invitations`). Saisir l’adresse du testeur, générer le lien puis le copier dans un mail envoyé depuis votre boîte habituelle. Cette page et son action sont réservées aux administrateurs. Le lien brut est montré au moment de la génération uniquement ; la base conserve son hash. Il expire après 7 jours et la création réussie du compte le consomme, dans la même transaction. Pour révoquer un lien, supprimer son entrée dans `beta-invitations` depuis l’admin Payload.
 
-Le mot de passe doit respecter les règles de l’application. Retirer ensuite ces deux variables de cet environnement et conserver le mot de passe dans un gestionnaire dédié. Le premier inscrit ne reçoit jamais le rôle admin. Le reset par e-mail est fermé pendant cette bêta : un administrateur connecté peut modifier le mot de passe d’un compte depuis l’admin. En cas de perte du seul compte administrateur, utiliser le script privé pour créer un nouvel administrateur sous une autre adresse, puis rétablir l’accès.
+Les anciennes variables `BETA_ALLOWED_EMAILS` et `BETA_INVITE_CODE` peuvent être retirées de Vercel. Aucun fournisseur d’e-mail n’est requis. Le script `pnpm users:invite` reste disponible pour une administration depuis une machine de confiance, mais n’est pas nécessaire au parcours normal.
 
-Pour inviter un testeur, configurer son adresse comme `BETA_INVITE_EMAIL` dans l’environnement privé puis exécuter :
-
-```sh
-pnpm users:invite
-```
-
-Le script affiche une URL `/signup?invite=…` à copier dans un e-mail envoyé depuis votre boîte habituelle. Le destinataire arrive sur un formulaire avec son adresse préremplie et choisit son mot de passe. La base conserve seulement le hash du token. L’ouverture du lien ne le consomme pas : la création réussie du compte le fait, dans la même transaction. Un lien expiré ou consommé ne fonctionne plus. Pour révoquer un lien avant utilisation, supprimer son entrée dans `beta-invitations` depuis l’admin. Une nouvelle invitation peut être générée si nécessaire.
-
-Les anciennes variables `BETA_ALLOWED_EMAILS` et `BETA_INVITE_CODE` peuvent être retirées de Vercel. Aucun fournisseur d’e-mail n’est requis pour cet envoi manuel.
+Le reset par e-mail reste fermé pendant cette bêta : un administrateur connecté peut modifier le mot de passe depuis l’admin Payload. En cas de perte du seul compte administrateur, l’action privée permet de créer un nouvel administrateur sous une autre adresse.
 
 Le dictionnaire de synonymes n’est pas inclus dans les migrations. Pour commencer, importer seulement la source Dicollecte depuis une machine de confiance :
 
