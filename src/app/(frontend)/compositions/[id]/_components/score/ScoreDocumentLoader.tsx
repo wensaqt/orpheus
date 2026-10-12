@@ -15,48 +15,48 @@ import styles from './ScoreDocument.module.css'
 
 type ScoreLoaderProps = { id: Id; initial?: EditorDocument & Pick<CachedDocument, 'checkedAt'> }
 
-//TODO: this file seems odd, we should challenge the way we load scores, maybe add a context or something; this feels globally overengineered
+/** Preserve the server check time so stale router snapshots are revalidated. */
+function initialScoreSnapshot(initial: ScoreLoaderProps['initial']): CachedDocument | undefined {
+  if (initial?.documentType !== 'score') return undefined
+  return {
+    documentType: 'score',
+    content: null,
+    scoreXml: initial.scoreXml,
+    updatedAt: initial.updatedAt,
+    checkedAt: initial.checkedAt,
+  }
+}
+
 export function ScoreDocumentLoader({ id, initial }: ScoreLoaderProps) {
   const t = useT()
   const { compositionId, entries } = useBinder()
   const slot = useDocumentSlot(id)
-  //TODO: add enum for slot status
   const ready = newerDocument(
     slot?.status === 'ready' ? slot.document : undefined,
-    initial?.documentType === 'score'
-      ? {
-          documentType: 'score',
-          content: null,
-          scoreXml: initial.scoreXml,
-          updatedAt: initial.updatedAt,
-          checkedAt: initial.checkedAt,
-        }
-      : undefined,
+    initialScoreSnapshot(initial),
   )
-  // Choose once per keyed document mount; later checks must not replace unsaved edits.
-  // TODO: challenge this state, why a start state ?
-  const [start, setStart] = useState(ready)
-  if (!start && ready) setStart(ready)
+  // Keep the initialized editor mounted even when a later cache check changes the slot status.
+  // Its local XML owns unsaved edits; this snapshot only initializes each keyed document mount.
+  const [initialSnapshot, setInitialSnapshot] = useState(ready)
+  if (!initialSnapshot && ready) setInitialSnapshot(ready)
   const entry = entries.find((item) => item.id === id && item.documentType === 'score')
   const exists = entry !== undefined
 
   useEffect(() => {
     if (!exists) return
-    if (initial?.documentType === 'score')
-      seedDocument(id, {
-        documentType: 'score',
-        content: null,
-        scoreXml: initial.scoreXml,
-        updatedAt: initial.updatedAt,
-        checkedAt: initial.checkedAt,
-      })
+    const snapshot = initialScoreSnapshot(initial)
+    if (snapshot) seedDocument(id, snapshot)
     void loadDocument(compositionId, id)
   }, [compositionId, id, initial, exists])
 
-  if (!entry || slot?.status === 'missing' || (start && start.documentType !== 'score'))
+  if (
+    !entry ||
+    slot?.status === 'missing' ||
+    (initialSnapshot && initialSnapshot.documentType !== 'score')
+  )
     return <p className={styles.message}>{t('score.documentMissing')}</p>
-  if (start?.documentType === 'score')
-    return <ScoreDocument id={id} title={entry.title} initialXml={start.scoreXml ?? ''} />
+  if (initialSnapshot?.documentType === 'score')
+    return <ScoreDocument id={id} title={entry.title} initialXml={initialSnapshot.scoreXml ?? ''} />
   if (slot?.status === 'error')
     return (
       <div className={styles.message} role="alert">

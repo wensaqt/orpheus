@@ -29,21 +29,24 @@ function isNearNote(note: GraphicalNote, point: Point): boolean {
   )
 }
 
-//TODO: this function can be improved or splitted
-function noteAtClick(
-  event: MouseEvent,
-  container: HTMLElement,
-  display: Display,
-  osmd: Osmd,
-): GraphicalNote | null {
+/** Resolve the renderer page and point together; both depend on the clicked SVG. */
+function scoreClickTarget(event: MouseEvent, { container, display, osmd }: PickingContext) {
   if (!(event.target instanceof SVGElement)) return null
   const svg = event.target.closest('svg')
   if (!svg) return null
   const page =
     display.GraphicSheet.MusicPages[Array.from(container.querySelectorAll('svg')).indexOf(svg)]
-  if (!page) return null
   const point = scorePoint(event, svg, display, osmd)
-  if (!point) return null
+  return page && point ? { page, point } : null
+}
+
+type PickingContext = { container: HTMLElement; display: Display; osmd: Osmd }
+
+function noteAtClick(event: MouseEvent, context: PickingContext): GraphicalNote | null {
+  const target = scoreClickTarget(event, context)
+  if (!target) return null
+  const { page, point } = target
+  const { display, osmd } = context
   const note = display.GraphicSheet.GetNearestNote(
     point,
     new osmd.PointF2D(PICK_DISTANCE, PICK_DISTANCE),
@@ -54,12 +57,10 @@ function noteAtClick(
 
 function pickedNoteIndex(
   event: MouseEvent,
-  container: HTMLElement,
-  display: Display,
-  osmd: Osmd,
+  context: PickingContext,
   indexes: WeakMap<object, number>,
 ): number | null {
-  const note = noteAtClick(event, container, display, osmd)
+  const note = noteAtClick(event, context)
   return note ? (indexes.get(note.sourceNote) ?? null) : null
 }
 
@@ -71,9 +72,9 @@ export function createNotePicker(
 ) {
   try {
     const indexes = indexRenderedNotes(display, xml, osmd.Pitch.OctaveXmlDifference)
-    return indexes
-      ? (event: MouseEvent) => pickedNoteIndex(event, container, display, osmd, indexes)
-      : null
+    if (!indexes) return null
+    const context = { container, display, osmd }
+    return (event: MouseEvent) => pickedNoteIndex(event, context, indexes)
   } catch (cause) {
     // Unsupported structures return null above; unexpected indexing failures need a diagnostic.
     if (!(cause instanceof ScoreError))

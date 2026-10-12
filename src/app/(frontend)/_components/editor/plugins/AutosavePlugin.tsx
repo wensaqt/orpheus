@@ -12,10 +12,6 @@ import type { ActionResult } from '@front/_lib/actionResult'
 import { isContentUpdate } from '../contentUpdates'
 import { readContent } from '../storedContent'
 
-// Cmd/Ctrl+S saves now
-// TODO: weird const, weird use case, might store this in another place
-const SAVE_KEY = 's'
-
 /*
  * Saves the document from inside the editor (a hook, used under the composer). A change only
  * marks it dirty: the text is serialized when it is saved (after a pause, on blur, or on
@@ -46,7 +42,7 @@ export function useAutosavePlugin(
         editor.registerCommand(
           KEY_DOWN_COMMAND,
           (event) => {
-            if (!isModShortcut(event, SAVE_KEY)) return false
+            if (!isModShortcut(event, 's')) return false
             // The browser would offer to save the web page
             event.preventDefault()
             void flush()

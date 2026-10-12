@@ -1,5 +1,4 @@
-'use client'
-
+// Used inside client boundaries; callback props never cross the server boundary.
 import React, { useEffect, useRef } from 'react'
 import { Heading } from '@front/_components/ui/Heading/Heading'
 
@@ -7,8 +6,6 @@ import styles from './Dialog.module.css'
 
 type DialogProps = {
   open: boolean
-  //TODO: remove type warning
-  // Props must be serializable for components in the “use client” entry file. “onClose” is a function that’s not a Server Action. Rename “onClose” either to “action” or have its name end with “Action” e.g. “onCloseAction” to indicate it is a Server Action. (ts 71007)
   onClose: () => void
   // id of the dialog title, for screen readers
   labelledBy: string

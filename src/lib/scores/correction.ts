@@ -1,7 +1,7 @@
 import { ScoreError } from './errors'
 import { STEPS, type Pitch } from './model'
 import { assertPitchCorrectionSupported } from './capabilities'
-import { child, parse } from './musicXml'
+import { findXmlChild, parseMusicXml } from './musicXml'
 import { readPitch, writePitch, accidentalName } from './pitch'
 
 export type ScoreNote = { index: number; measure: string; pitch: Pitch }
@@ -17,7 +17,7 @@ const ELEMENTS_AFTER_ACCIDENTAL = new Set([
 ])
 
 function editableDocument(xml: string): Document {
-  const document = parse(xml)
+  const document = parseMusicXml(xml)
   assertPitchCorrectionSupported(document)
   return document
 }
@@ -66,7 +66,7 @@ function insertAccidental(note: Element, alter: number): void {
 
 function updateCorrectedNote(note: Element, alter: number): void {
   note.removeAttribute('default-y')
-  const accidental = child(note, 'accidental')
+  const accidental = findXmlChild(note, 'accidental')
   if (accidental) accidental.textContent = accidentalName(alter)
   else if (alter !== 0) insertAccidental(note, alter)
 }

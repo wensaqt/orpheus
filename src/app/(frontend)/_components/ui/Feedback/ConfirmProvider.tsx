@@ -9,7 +9,7 @@ import { Button } from '@front/_components/ui/Button/Button'
 import { Dialog, DialogActions, DialogTitle } from '@front/_components/ui/Dialog/Dialog'
 import styles from './ConfirmProvider.module.css'
 
-// TODO: context or store should be extracted from features, no ? idk, that's up to you boss
+// Confirmation is shared UI infrastructure; keep its private context beside its provider.
 
 export type ConfirmOptions = {
   title: string

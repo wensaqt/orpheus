@@ -1,5 +1,4 @@
-'use client'
-
+// Used inside client boundaries; callback props never cross the server boundary.
 import { useEffect, useState } from 'react'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
@@ -13,7 +12,6 @@ const TOAST_DURATION_MS = 5000
 type ToastProps = {
   toast: ToastMessage
   // Stable: the timer isn't restarted when other toasts arrive
-  // TODO: remove type warning
   onDismiss: (id: number) => void
 }
 

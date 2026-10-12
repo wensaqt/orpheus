@@ -1,6 +1,6 @@
 import { ScoreError } from './errors'
 import { INSTRUMENTS, type Instrument, type Interval } from './model'
-import { child, setValue, value } from './musicXml'
+import { findXmlChild, setXmlValue, readXmlValue } from './musicXml'
 import { readScoreMetadata } from './validation'
 
 const TRANSPOSE_SELECTOR = 'part > measure > attributes > transpose'
@@ -15,9 +15,9 @@ function selectedInstrumentOffset(selected: Instrument | null): Interval {
 }
 
 function readWrittenToSounding(transpose: Element): Interval {
-  const diatonic = Number(value(transpose, 'diatonic'))
-  const chromatic = Number(value(transpose, 'chromatic'))
-  const octave = Number(value(transpose, 'octave-change') ?? 0)
+  const diatonic = Number(readXmlValue(transpose, 'diatonic'))
+  const chromatic = Number(readXmlValue(transpose, 'chromatic'))
+  const octave = Number(readXmlValue(transpose, 'octave-change') ?? 0)
   assertSupportedOffset(transpose, [diatonic, chromatic, octave])
   return { diatonic: diatonic + octave * 7, semitones: chromatic + octave * 12 }
 }
@@ -25,9 +25,9 @@ function readWrittenToSounding(transpose: Element): Interval {
 function assertSupportedOffset(transpose: Element, numbers: number[]): void {
   if (
     transpose.hasAttribute('number') ||
-    child(transpose, 'double') ||
-    value(transpose, 'diatonic') === null ||
-    value(transpose, 'chromatic') === null ||
+    findXmlChild(transpose, 'double') ||
+    readXmlValue(transpose, 'diatonic') === null ||
+    readXmlValue(transpose, 'chromatic') === null ||
     numbers.some((number) => !Number.isInteger(number))
   )
     throw new ScoreError('unsupportedTranspose')
@@ -87,7 +87,7 @@ export function instrumentConversionInterval(
 function firstMeasureAttributes(document: Document): Element {
   const measure = document.querySelector('part > measure')
   if (!measure) throw new ScoreError('noMeasures')
-  const attributes = child(measure, 'attributes') ?? document.createElement('attributes')
+  const attributes = findXmlChild(measure, 'attributes') ?? document.createElement('attributes')
   if (!attributes.parentNode) measure.prepend(attributes)
   return attributes
 }
@@ -96,9 +96,9 @@ function createTransposeElement(document: Document, target: Instrument): Element
   const transpose = document.createElement('transpose')
   const offset = INSTRUMENTS[target].writtenToSounding
   const octave = Math.trunc(offset.semitones / 12)
-  setValue(transpose, 'diatonic', String(offset.diatonic - octave * 7))
-  setValue(transpose, 'chromatic', String(offset.semitones - octave * 12))
-  if (octave !== 0) setValue(transpose, 'octave-change', String(octave))
+  setXmlValue(transpose, 'diatonic', String(offset.diatonic - octave * 7))
+  setXmlValue(transpose, 'chromatic', String(offset.semitones - octave * 12))
+  if (octave !== 0) setXmlValue(transpose, 'octave-change', String(octave))
   return transpose
 }
 
