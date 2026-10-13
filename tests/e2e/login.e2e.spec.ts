@@ -3,6 +3,7 @@ import { expect as baseExpect, test as base, type Page } from '@playwright/test'
 import { createTestUser, getTestPayload, TEST_PASSWORD } from '../helpers/testUsers'
 
 import { expect, test } from './fixtures'
+import { SESSION_COOKIE } from '@front/_lib/auth'
 
 // Signs in through the form, as a visitor would
 async function signIn(page: Page, email: string, password: string) {
@@ -66,6 +67,29 @@ test.describe('Signed in', () => {
     await menu.getByRole('menuitem', { name: 'Sign out' }).click()
     await expect(page).toHaveURL(/localhost:3000\/$/)
     await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
+    await page.goto('/compositions')
+    await expect(page).toHaveURL(/\/login\?redirect=%2Fcompositions$/)
+  })
+
+  test('signs out of a revoked session while the account menu still looks signed in', async ({
+    page,
+    context,
+    account,
+  }) => {
+    await page.goto('/compositions')
+    await page.getByRole('button', { name: 'Account' }).click()
+    const menu = page.getByRole('menu', { name: 'Account' })
+    await expect(menu).toContainText(account.user.email)
+    await account.payload.update({
+      collection: 'users',
+      id: account.user.id,
+      data: { sessions: [] },
+    })
+
+    await menu.getByRole('menuitem', { name: 'Sign out' }).click()
+    await expect(page).toHaveURL(/localhost:3000\/$/)
+    await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
+    expect((await context.cookies()).some(({ name }) => name === SESSION_COOKIE)).toBe(false)
     await page.goto('/compositions')
     await expect(page).toHaveURL(/\/login\?redirect=%2Fcompositions$/)
   })

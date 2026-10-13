@@ -1,6 +1,7 @@
 'use server'
 
 import { login, logout } from '@payloadcms/next/auth'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 
@@ -8,6 +9,7 @@ import config from '@payload-config'
 import { findInvitation } from '@/lib/betaInvitations'
 
 import { safeReturnTo } from '@front/_lib/returnTo'
+import { SESSION_COOKIE } from '@front/_lib/auth'
 import { RETURN_TO_PARAM, ROUTES } from '@front/_lib/routes'
 
 import { toLogInError, toSignUpError } from './errors'
@@ -76,8 +78,11 @@ export async function signUp(_previous: SignUpState, form: FormData): Promise<Si
   redirect(safeReturnTo(form.get(RETURN_TO_PARAM)))
 }
 
-// Ends the session (Payload clears the cookie) and goes back to the home page
+// Payload skips cookie deletion when the session is already invalid.
 export async function logOut() {
-  await logout({ config })
+  const result = await logout({ config })
+  if (!result.success) throw new Error('Could not end the session.')
+  const cookieStore = await cookies()
+  cookieStore.delete(SESSION_COOKIE)
   redirect(ROUTES.home)
 }
