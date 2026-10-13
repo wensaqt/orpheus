@@ -52,7 +52,7 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - name: Browser regression checks
-        run: pnpm test:e2e tests/e2e/login.e2e.spec.ts tests/e2e/signup.e2e.spec.ts tests/e2e/admin.e2e.spec.ts tests/e2e/binder.e2e.spec.ts tests/e2e/scoreDocument.e2e.spec.ts --project chromium
+        run: pnpm test:e2e tests/e2e/login.e2e.spec.ts tests/e2e/signup.e2e.spec.ts tests/e2e/admin.e2e.spec.ts tests/e2e/binder.e2e.spec.ts tests/e2e/scoreDocument.e2e.spec.ts tests/e2e/editorHistory.e2e.spec.ts tests/e2e/toolbar.e2e.spec.ts --project chromium
       - name: Build production container
         run: docker build --tag orpheus:ci .
       - name: Scan production image packages
