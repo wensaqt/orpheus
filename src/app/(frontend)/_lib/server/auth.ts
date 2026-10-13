@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload, type Payload, type TypedUser } from 'payload'
 import { cache } from 'react'
@@ -24,7 +24,9 @@ export class UnauthorizedError extends Error {
  * without re-reading the session.
  */
 export const getSession = cache(async () => {
-  const requestHeaders = await headers()
+  const requestHeaders = new Headers(await headers())
+  // cookies() includes Server Action writes; the incoming Cookie header can still be stale.
+  requestHeaders.set('cookie', (await cookies()).toString())
   const payload = await getPayload({ config })
   const { user } = await payload.auth({ headers: requestHeaders })
   return { payload, user }

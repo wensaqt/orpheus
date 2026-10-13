@@ -87,6 +87,8 @@ export const fr: Messages = {
       invalidEmail: 'Saisissez une adresse e-mail valide.',
       taken: 'Cette adresse possède déjà un compte.',
       forbidden: 'Seuls les administrateurs peuvent générer des invitations.',
+      unauthenticated:
+        'Votre session n’a pas pu être vérifiée. Reconnectez-vous pour générer une invitation.',
       unavailable: 'Impossible de générer l’invitation. Réessayez.',
     },
   },
