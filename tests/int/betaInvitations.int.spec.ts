@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from 'vite
 import { findInvitation, newInvitation } from '@/lib/betaInvitations'
 import {
   cleanupTestUsers,
+  createTestUser,
   getTestPayload,
   TEST_EMAIL_PREFIX,
   TEST_PASSWORD,
@@ -85,4 +86,28 @@ it('never exposes invitations to an unauthenticated API reader', async () => {
   await expect(
     payload.find({ collection: 'beta-invitations', overrideAccess: false }),
   ).rejects.toThrow()
+})
+
+it('allows only an administrator to create invitations with access checks enabled', async () => {
+  const regular = await createTestUser(payload, 'invite-regular')
+  const admin = await createTestUser(payload, 'invite-admin', 'admin')
+  const invitation = newInvitation(`${TEST_EMAIL_PREFIX}invite-target-${Date.now()}@example.test`)
+  for (const user of [undefined, regular]) {
+    await expect(
+      payload.create({
+        collection: 'beta-invitations',
+        data: invitation.data,
+        user,
+        overrideAccess: false,
+      }),
+    ).rejects.toThrow()
+  }
+  const created = await payload.create({
+    collection: 'beta-invitations',
+    data: invitation.data,
+    user: admin,
+    overrideAccess: false,
+  })
+  invitationIds.push(created.id)
+  expect(created.email).toBe(invitation.data.email)
 })
