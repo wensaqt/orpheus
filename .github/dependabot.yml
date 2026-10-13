@@ -7,6 +7,8 @@ updates:
     groups:
       next:
         patterns: [next, eslint-config-next]
+      lexical:
+        patterns: [lexical, '@lexical/*']
       payload:
         patterns: [payload, '@payloadcms/*']
   - package-ecosystem: github-actions
@@ -17,3 +19,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # Docker must match the Node major supported by Vercel and package.json.
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
