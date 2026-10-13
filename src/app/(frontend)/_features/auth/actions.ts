@@ -1,6 +1,7 @@
 'use server'
 
 import { login, logout } from '@payloadcms/next/auth'
+import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
@@ -38,6 +39,7 @@ export async function logIn(_previous: LogInState, form: FormData): Promise<LogI
     return { error: toLogInError(error), email }
   }
   // Outside the try: redirect() works by throwing
+  revalidatePath('/', 'layout')
   redirect(safeReturnTo(form.get(RETURN_TO_PARAM)))
 }
 
@@ -75,6 +77,7 @@ export async function signUp(_previous: SignUpState, form: FormData): Promise<Si
   } catch (error) {
     return { error: toSignUpError(error), email }
   }
+  revalidatePath('/', 'layout')
   redirect(safeReturnTo(form.get(RETURN_TO_PARAM)))
 }
 

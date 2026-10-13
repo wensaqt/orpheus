@@ -16,12 +16,14 @@ export async function issueInvitation(
     .trim()
     .toLowerCase()
   const state = { email, url: null }
+  if (!user) return { ...state, error: 'unauthenticated' }
   if (!isAdmin(user)) return { ...state, error: 'forbidden' }
   if (email.length > MAX_EMAIL_LENGTH || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return { ...state, error: 'invalidEmail' }
   try {
-    const origin = process.env.APP_URL
-    if (!origin || new URL(origin).protocol !== 'https:') return { ...state, error: 'unavailable' }
+    // Deployment configuration validates and normalizes the same origin used by Payload CSRF.
+    const origin = payload.config.serverURL
+    if (!origin) return { ...state, error: 'unavailable' }
     const { totalDocs } = await payload.count({
       collection: 'users',
       where: { email: { equals: email } },

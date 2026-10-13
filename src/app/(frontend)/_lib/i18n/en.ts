@@ -85,6 +85,8 @@ export const en = {
       invalidEmail: 'Enter a valid email address.',
       taken: 'This email already has an account.',
       forbidden: 'Only administrators can issue invitations.',
+      unauthenticated:
+        'Your session could not be verified. Sign in again to generate an invitation.',
       unavailable: 'Could not generate the invitation. Try again.',
     },
   },

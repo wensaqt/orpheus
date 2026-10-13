@@ -1,6 +1,6 @@
 import { expect as baseExpect, test as base, type Page } from '@playwright/test'
 
-import { createTestUser, getTestPayload, TEST_PASSWORD } from '../helpers/testUsers'
+import { createTestUser, getTestPayload, TEST_EMAIL_PREFIX, TEST_PASSWORD } from '../helpers/testUsers'
 
 import { expect, test } from './fixtures'
 import { SESSION_COOKIE } from '@front/_lib/auth'
@@ -46,6 +46,51 @@ base.describe('Login', () => {
     await signIn(page, email, TEST_PASSWORD)
     await baseExpect(page).toHaveURL(/^http:\/\/localhost:3000\/$/)
   })
+
+  anonymous(
+    'opens the account menu immediately after signing in from the home page',
+    async ({ page, email }) => {
+      await page.goto('/')
+      await page.getByRole('link', { name: 'Sign in', exact: true }).click()
+      await signIn(page, email, TEST_PASSWORD)
+      await baseExpect(page).toHaveURL(/^http:\/\/localhost:3000\/$/)
+      await page.getByRole('button', { name: 'Account', exact: true }).click()
+      await baseExpect(page.getByRole('menu', { name: 'Account', exact: true })).toBeVisible()
+      await baseExpect(page.getByRole('menu', { name: 'Account', exact: true })).toContainText(
+        email,
+      )
+    },
+  )
+
+  anonymous(
+    'an administrator can generate an invitation after login without reloading',
+    async ({ page, email }) => {
+      const payload = await getTestPayload()
+      await payload.update({
+        collection: 'users',
+        where: { email: { equals: email } },
+        data: { role: 'admin' },
+      })
+      const recipient = `${TEST_EMAIL_PREFIX}invite-${Date.now()}@example.test`
+      try {
+        await page.goto('/')
+        await page.getByRole('link', { name: 'Sign in', exact: true }).click()
+        await signIn(page, email, TEST_PASSWORD)
+        await page.getByRole('button', { name: 'Account', exact: true }).click()
+        await page.getByRole('menuitem', { name: 'Beta invitations' }).click()
+        await page.getByLabel('Email').fill(recipient)
+        await page.getByRole('button', { name: 'Generate invitation' }).click()
+        await baseExpect(page.getByLabel('Invitation link')).toHaveValue(
+          /\/signup\?invite=[a-f0-9]{64}$/,
+        )
+      } finally {
+        await payload.delete({
+          collection: 'beta-invitations',
+          where: { email: { equals: recipient } },
+        })
+      }
+    },
+  )
 })
 
 test.describe('Signed in', () => {
