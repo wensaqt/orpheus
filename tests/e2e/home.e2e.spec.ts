@@ -17,10 +17,29 @@ test.describe('Home', () => {
   test('the hovered button’s half of the lyre appears', async ({ page }) => {
     await page.goto('/')
     const browse = page.getByRole('link', { name: /All compositions/ })
-    const lyre = browse.locator('svg')
+    const lyre = browse.locator('svg[data-side]')
     await expect(lyre).toHaveCSS('opacity', '0')
     await browse.hover()
     await expect(lyre).toHaveCSS('opacity', '1')
+  })
+
+  test('small screens show both choices and subtitles without the interactive lyre', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'A page of your own.' })).toBeVisible()
+    const create = page.getByRole('button', { name: /New composition/ })
+    const browse = page.getByRole('link', { name: /All compositions/ })
+    await expect(create).toBeInViewport()
+    await expect(browse).toBeInViewport()
+    await expect(create.getByText('Start a new piece')).toHaveCSS('clip-path', 'none')
+    await expect(browse.getByText('Revisit your pieces')).toHaveCSS('clip-path', 'none')
+    await expect(create.locator('svg[data-side]')).toBeHidden()
+    await expect(browse.locator('svg[data-side]')).toBeHidden()
+    await expect(browse).toHaveCSS('touch-action', 'auto')
+    await browse.click()
+    await expect(page).toHaveURL(/\/login\?redirect=%2Fcompositions$/)
   })
 
   test('composition pages require login', async ({ page }) => {

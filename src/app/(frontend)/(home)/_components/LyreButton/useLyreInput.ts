@@ -59,7 +59,8 @@ export function useLyreInput({ side, pluck, handlers }: Options) {
   // Pointer coordinates in the viewBox (the right side is drawn mirrored); none before it is drawn
   function toLyre(e: React.PointerEvent) {
     rect.current ??= svgRef.current?.getBoundingClientRect() ?? null
-    if (!rect.current) return null
+    // The mobile layout hides the lyre; a zero-size viewBox cannot receive pointer input.
+    if (!rect.current?.width || !rect.current.height) return null
     const { left, top, width, height } = rect.current
     const x = ((e.clientX - left) / width) * W
     return { x: side === LyreSide.Right ? W - x : x, y: ((e.clientY - top) / height) * H }
@@ -112,7 +113,8 @@ export function useLyreInput({ side, pluck, handlers }: Options) {
     // With the keyboard, glissando from left to right
     onFocus(e) {
       handlers.onFocus?.(e)
-      if (!e.currentTarget.matches(':focus-visible')) return
+      if (!e.currentTarget.matches(':focus-visible') || !svgRef.current?.getClientRects().length)
+        return
       cancelGlissando()
       timeouts.current = LEFT_TO_RIGHT[side].map((i, step) =>
         window.setTimeout(() => pluck(i, GLISSANDO_AMP, H / 2), step * GLISSANDO_STEP_MS),

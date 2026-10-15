@@ -91,6 +91,10 @@ export const en = {
     },
   },
   home: {
+    mobile: {
+      heading: 'A page of your own.',
+      subtitle: 'For words, for notes, for whatever inspires you.',
+    },
     about: 'About Orpheus',
     create: { title: 'New composition', subtitle: 'Start a new piece' },
     browse: { title: 'All compositions', subtitle: 'Revisit your pieces' },

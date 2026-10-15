@@ -108,3 +108,45 @@
     transition: none;
   }
 }
+
+@media (max-width: 700px) {
+  .label {
+    align-items: flex-start;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .label::before,
+  .line {
+    display: none;
+  }
+
+  .title {
+    color: inherit;
+    font-size: clamp(1.25rem, 5vw, 1.5rem);
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  .subtitle {
+    color: inherit;
+    font-size: var(--text-sm);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
+    text-align: start;
+    opacity: 0.85;
+  }
+
+  .label[data-side] .subtitle {
+    clip-path: none;
+  }
+
+  :is(:hover, :focus-visible) > .label .title {
+    color: inherit;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+}

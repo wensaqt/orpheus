@@ -30,8 +30,13 @@ export function NewCompositionButton({ text, subtitle, className }: NewCompositi
         subtitle={subtitle}
         disabled={pending}
         aria-busy={pending}
-        onPointerEnter={preloadEditor}
-        onFocus={preloadEditor}
+        // Touch has no anticipatory hover: avoid competing with the navigation on tap.
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'mouse') preloadEditor()
+        }}
+        onFocus={(event) => {
+          if (event.currentTarget.matches(':focus-visible')) preloadEditor()
+        }}
       />
       {pending && <OpeningDesk />}
     </>

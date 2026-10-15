@@ -14,6 +14,11 @@ export default async function HomePage() {
   const t = await getT()
   return (
     <>
+      <header className={styles.mobileIntroduction}>
+        <p className={styles.wordmark}>{t('app.name')}</p>
+        <h1>{t('home.mobile.heading')}</h1>
+        <p className={styles.mobileSubtitle}>{t('home.mobile.subtitle')}</p>
+      </header>
       <div className={styles.container}>
         {/* Created via POST (server action): a link would be prefetched and create documents */}
         <form action={createComposition} className={styles.section}>

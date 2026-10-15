@@ -6,6 +6,7 @@ import React from 'react'
 import { classNames } from '@front/_lib/classNames'
 
 import styles from './LyreButton.module.css'
+import { ChoiceIllustration } from './ChoiceIllustration'
 import { LyreHalf } from './LyreHalf'
 import { LyreLabel } from './LyreLabel'
 import { LyreSide } from './types'
@@ -52,11 +53,17 @@ export function LyreButton(props: LyreButtonProps) {
     handlers: { onPointerEnter, onPointerDown, onPointerMove, onPointerLeave, onFocus, onBlur },
   })
 
-  const shared = { className: classNames(styles.button, className), ...handlers }
+  const shared = { className: classNames(styles.button, className), 'data-side': side, ...handlers }
   const content = (
     <>
       <LyreHalf side={side} svgRef={svgRef} stringRefs={pathRefs} />
+      <span className={styles.mobileIllustration} aria-hidden="true">
+        <ChoiceIllustration side={side} />
+      </span>
       <LyreLabel side={side} title={text} subtitle={subtitle} />
+      <span className={styles.mobileArrow} aria-hidden="true">
+        ↗
+      </span>
     </>
   )
 
