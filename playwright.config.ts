@@ -9,7 +9,8 @@ import { configureTestDatabase } from './tests/helpers/testDatabase'
 
 configureTestDatabase()
 const production = process.env.PLAYWRIGHT_SERVER_MODE === 'production'
-const baseURL = `${production ? 'https' : 'http'}://localhost:3000`
+const port = Number(process.env.PLAYWRIGHT_PORT ?? 3000)
+const baseURL = `${production ? 'https' : 'http'}://localhost:${port}`
 // The local production proxy and Payload must agree on the browser's public origin.
 if (production) process.env.APP_URL = baseURL
 
@@ -42,7 +43,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], channel: 'chromium' },
+      use: {
+        ...devices['Desktop Chrome'],
+        channel: 'chromium',
+        // Keep the self-signed local test certificate accepted across Chromium contexts.
+        launchOptions: production ? { args: ['--ignore-certificate-errors'] } : {},
+      },
     },
     // Pagination, the ruler and the toolbars rely on how each engine lays out lines, moves the
     // caret, keeps the focus and tracks a pointer: all three run them
@@ -61,7 +67,7 @@ export default defineConfig({
   ],
   webServer: {
     stdout: 'pipe',
-    command: production ? 'node scripts/start-e2e-production.mjs' : 'pnpm dev',
+    command: production ? 'node scripts/start-e2e-production.mjs' : `pnpm dev --port ${port}`,
     // Reusing an unrelated local server can make fixtures and browser requests target different DBs.
     reuseExistingServer: false,
     url: baseURL,

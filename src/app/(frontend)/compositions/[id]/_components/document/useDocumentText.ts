@@ -31,6 +31,7 @@ export function useDocumentText(id: Id, text: DocumentText) {
   const [editor] = useLexicalComposerContext()
   // The version shown, to tell a newer one from elsewhere (another tab) from this tab's saves
   const shownVersion = useRef(text.updatedAt)
+  const active = useRef(true)
 
   async function saveText(content: LexicalContent) {
     const result = await saveDocument(
@@ -39,12 +40,19 @@ export function useDocumentText(id: Id, text: DocumentText) {
       await (revision.current ??= contentRevision(initialContent)),
     )
     if (result.status === 'done') {
-      revision.current = Promise.resolve(result.data.revision)
-      const current = readContent(editor)
-      if (JSON.stringify(content) === JSON.stringify(current)) removeDraft(ownerId, id)
-      else if (!writeDraft(ownerId, id, { content: current, revision: result.data.revision }))
-        setDraftUnavailable(true)
-      shownVersion.current = result.data.updatedAt
+      // A detached editor must not remove or overwrite a newer mounting's draft.
+      if (active.current) {
+        revision.current = Promise.resolve(result.data.revision)
+        const current = readContent(editor)
+        if (JSON.stringify(content) === JSON.stringify(current)) {
+          removeDraft(ownerId, id)
+          setDraftUnavailable(false)
+        } else
+          setDraftUnavailable(
+            !writeDraft(ownerId, id, { content: current, revision: result.data.revision }),
+          )
+        shownVersion.current = result.data.updatedAt
+      }
       rememberDocument(id, { content, updatedAt: result.data.updatedAt }, cacheGeneration)
     }
     return result
@@ -53,6 +61,7 @@ export function useDocumentText(id: Id, text: DocumentText) {
   const autosave = useAutosavePlugin(saveText)
   const { queue } = autosave
   useEffect(() => {
+    active.current = true
     const draft = readDraft(ownerId, id)
     if (draft) {
       revision.current = Promise.resolve(draft.revision)
@@ -62,13 +71,18 @@ export function useDocumentText(id: Id, text: DocumentText) {
       })
       queue()
     }
-    return editor.registerUpdateListener((update) => {
+    const unregister = editor.registerUpdateListener((update) => {
       if (!isContentUpdate(update)) return
       const content = readContent(editor)
       void (revision.current ??= contentRevision(initialContent)).then((expected) => {
-        if (!writeDraft(ownerId, id, { content, revision: expected })) setDraftUnavailable(true)
+        if (active.current)
+          setDraftUnavailable(!writeDraft(ownerId, id, { content, revision: expected }))
       })
     })
+    return () => {
+      active.current = false
+      unregister()
+    }
   }, [editor, id, ownerId, queue, initialContent])
   /*
    * A newer version arrived (the document was changed in another tab, and the cache checked

@@ -7,7 +7,8 @@ import { join } from 'node:path'
 
 // Safari requires HTTPS for production's Secure session cookie, even on localhost.
 // The private key exists only in a temporary directory; no test weakens application cookies.
-const origin = 'https://localhost:3000'
+const port = Number(process.env.PLAYWRIGHT_PORT ?? 3000)
+const origin = `https://localhost:${port}`
 if (process.env.APP_URL !== origin) throw new Error(`Production E2E APP_URL must be ${origin}`)
 const temporary = mkdtempSync(join(tmpdir(), 'orpheus-e2e-tls-'))
 const key = join(temporary, 'key.pem')
@@ -48,7 +49,14 @@ try {
 
 const next = spawn(
   process.execPath,
-  ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', '3001'],
+  [
+    'node_modules/next/dist/bin/next',
+    'start',
+    '--hostname',
+    '127.0.0.1',
+    '--port',
+    String(port + 1),
+  ],
   {
     stdio: 'inherit',
     // Playwright imports TS fixtures; Next owns its config loader and must not inherit tsx.
@@ -61,7 +69,7 @@ const server = https.createServer(
     const upstream = http.request(
       {
         hostname: '127.0.0.1',
-        port: 3001,
+        port: port + 1,
         path: request.url,
         method: request.method,
         headers: {
@@ -102,4 +110,4 @@ server.on('error', (error) => {
   console.error(error)
   stop(1)
 })
-server.listen(3000, '127.0.0.1')
+server.listen(port, '127.0.0.1')

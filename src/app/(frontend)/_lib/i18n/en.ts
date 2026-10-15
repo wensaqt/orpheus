@@ -193,6 +193,8 @@ export const en = {
     },
   },
   editor: {
+    safariWarning:
+      'Safari has issues with the caret and text selection. We recommend Google Chrome for this beta. Book view is temporarily disabled in Safari.',
     loading: 'Opening the document…',
     loadError: 'This document could not be opened. Check your connection, then try again.',
     retry: 'Try again',
@@ -297,6 +299,13 @@ export const en = {
     },
   },
   score: {
+    sessionExpired:
+      'Your session expired. Your score remains in this tab. Export it as a precaution, sign in in another tab, then retry saving here.',
+    saveConflict:
+      'Another version was saved. Export your changes as MusicXML before loading the saved version.',
+    logInNewTab: 'Sign in in a new tab',
+    retrySave: 'Retry saving after signing in',
+    discardChanges: 'Discard your unsaved changes and load the saved version?',
     intervals: {
       none: 'None',
       majorSecondUp: 'Major second ↑',

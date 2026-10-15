@@ -43,7 +43,7 @@ base.describe('Login', () => {
   anonymous('ignores a return address on another site', async ({ page, email }) => {
     await page.goto(`/login?redirect=${encodeURIComponent('//evil.example/phish')}`)
     await signIn(page, email, TEST_PASSWORD)
-    await baseExpect(page).toHaveURL(/^https?:\/\/localhost:3000\/$/)
+    await baseExpect(page).toHaveURL('/')
   })
 
   anonymous(
@@ -52,7 +52,7 @@ base.describe('Login', () => {
       await page.goto('/')
       await page.getByRole('link', { name: 'Sign in', exact: true }).click()
       await signIn(page, email, TEST_PASSWORD)
-      await baseExpect(page).toHaveURL(/^https?:\/\/localhost:3000\/$/)
+      await baseExpect(page).toHaveURL('/')
       await page.getByRole('button', { name: 'Account', exact: true }).click()
       await baseExpect(page.getByRole('menu', { name: 'Account', exact: true })).toBeVisible()
       await baseExpect(page.getByRole('menu', { name: 'Account', exact: true })).toContainText(
@@ -75,7 +75,7 @@ base.describe('Login', () => {
         await page.goto('/')
         await page.getByRole('link', { name: 'Sign in', exact: true }).click()
         await signIn(page, email, TEST_PASSWORD)
-        await baseExpect(page).toHaveURL(/^https?:\/\/localhost:3000\/$/)
+        await baseExpect(page).toHaveURL('/')
         if (process.env.PLAYWRIGHT_SERVER_MODE === 'production') {
           const cookies = await page.context().cookies()
           baseExpect(
@@ -118,7 +118,7 @@ test.describe('Signed in', () => {
     await expect(menu.getByRole('menuitem', { name: 'Profile' })).toBeDisabled()
 
     await menu.getByRole('menuitem', { name: 'Sign out' }).click()
-    await expect(page).toHaveURL(/localhost:3000\/$/)
+    await expect(page).toHaveURL('/')
     await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
     await page.goto('/compositions')
     await expect(page).toHaveURL(/\/login\?redirect=%2Fcompositions$/)
@@ -140,7 +140,7 @@ test.describe('Signed in', () => {
     })
 
     await menu.getByRole('menuitem', { name: 'Sign out' }).click()
-    await expect(page).toHaveURL(/localhost:3000\/$/)
+    await expect(page).toHaveURL('/')
     await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
     expect((await context.cookies()).some(({ name }) => name === SESSION_COOKIE)).toBe(false)
     await page.goto('/compositions')

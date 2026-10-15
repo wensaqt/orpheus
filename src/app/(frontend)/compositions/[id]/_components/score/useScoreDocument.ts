@@ -196,6 +196,18 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
     busy,
     error,
     hasSaveError: titleField.status === SaveStatus.Error || save.status === SaveStatus.Error,
+    saveRecovery: {
+      reason: save.failure ?? titleField.failure,
+      onDownload: actions.download,
+      onRetry: async () => {
+        await Promise.all([save.retryAfterLogin(), titleField.retryAfterLogin()])
+      },
+      onDiscard: () => {
+        save.cancel()
+        titleField.cancel()
+        window.location.reload()
+      },
+    },
     panelProps: {
       panel,
       onClose: closePanel,

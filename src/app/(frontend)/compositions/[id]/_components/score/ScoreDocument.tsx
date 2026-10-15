@@ -9,6 +9,7 @@ import { TitleInput } from '@front/_components/ui/TitleInput/TitleInput'
 
 import { useDocumentTitleSlot } from '../header/documentTitleSlot'
 import { ScorePanel } from './ScorePanel'
+import { ScoreSaveAlert } from './ScoreSaveAlert'
 import { useScoreDocument } from './useScoreDocument'
 import styles from './ScoreDocument.module.css'
 
@@ -29,15 +30,14 @@ function ScoreTitlePortal({ titleField, busy }: Pick<ScoreView, 'titleField' | '
   )
 }
 
-function ScoreMessages({ hasSaveError, error }: Pick<ScoreView, 'hasSaveError' | 'error'>) {
-  const t = useT()
+function ScoreMessages({
+  hasSaveError,
+  saveRecovery,
+  error,
+}: Pick<ScoreView, 'hasSaveError' | 'saveRecovery' | 'error'>) {
   return (
     <>
-      {hasSaveError && (
-        <p role="alert" className={styles.error}>
-          {t('editor.saveError')}
-        </p>
-      )}
+      {hasSaveError && <ScoreSaveAlert {...saveRecovery} />}
       {error && (
         <p role="alert" className={styles.error}>
           {error}
@@ -57,6 +57,7 @@ export function ScoreDocument(props: { id: Id; title: string; initialXml: string
     importFile,
     isImporting,
     hasSaveError,
+    saveRecovery,
     error,
     panelProps,
     sheetRef,
@@ -73,7 +74,7 @@ export function ScoreDocument(props: { id: Id; title: string; initialXml: string
         accept=".musicxml,.xml"
         onChange={(event) => void importFile(event)}
       />
-      <ScoreMessages hasSaveError={hasSaveError} error={error} />
+      <ScoreMessages hasSaveError={hasSaveError} saveRecovery={saveRecovery} error={error} />
       {isImporting && (
         <p role="status" aria-live="polite" className={styles.message}>
           {t('score.importing')}

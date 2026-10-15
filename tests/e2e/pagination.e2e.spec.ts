@@ -1,11 +1,12 @@
 import type { RequiredDataFromCollectionSlug } from 'payload'
 import type { Page } from '@playwright/test'
+import sharp from 'sharp'
 
 import { PAGE_BREAK_ATTRIBUTE, PAGE_BREAK_TYPE } from '@front/_components/editor/constants'
 import { toGeometry } from '@front/_components/editor/pagination/pageGeometry'
 
 import { documentOf, pageBreakNode, paragraphNode, prose } from '../helpers/lexicalContent'
-import { boxOf, expect, test, textOf } from './fixtures'
+import { boxOf, expect, test, textOf, type Account } from './fixtures'
 import {
   A4,
   caretTop,
@@ -23,6 +24,7 @@ import {
   sheetSelector,
   waitForEditor,
 } from './paginationHelpers'
+import { BOOK_VIEW_COOKIE } from '@front/_lib/preferences'
 
 async function toggleBookView(page: Page) {
   await page.getByRole('menubar').getByRole('menuitem', { name: 'View' }).click()
@@ -41,7 +43,119 @@ const fourBookPages = () =>
     paragraphNode('Fourth page'),
   ])
 
+const LONG_BOOK_TEXT =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Molestie praesent semper vivamus. '.repeat(
+    70,
+  )
+
+async function openLongBookParagraph(page: Page, account: Account) {
+  await page.setViewportSize({ width: 1600, height: 1100 })
+  await openDocument(page, account, documentOf([paragraphNode(LONG_BOOK_TEXT)]), { format: 'A5' })
+  await page.locator(editable).evaluate((editor) => {
+    ;(editor as HTMLElement).focus()
+    const first = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT).nextNode()
+    window.getSelection()?.collapse(first, 0)
+  })
+  await toggleBookView(page)
+}
+
+// Character rectangles provide expected offsets independently of browser caret hit testing.
+async function rightPageTextPoints(page: Page) {
+  return page.locator(editable).evaluate((editor, sheets) => {
+    const node = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT).nextNode()!
+    const range = document.createRange()
+    range.selectNodeContents(node)
+    const sheet = editor
+      .closest('[data-book=true]')!
+      .querySelectorAll(sheets)[1]
+      .getBoundingClientRect()
+    const right = [...range.getClientRects()].find((line) => line.left > sheet.left)!.left
+    const points = []
+    for (let offset = 0; offset < node.textContent!.length; offset++) {
+      range.setStart(node, offset)
+      range.setEnd(node, offset + 1)
+      const rect = range.getClientRects()[0]
+      if (rect?.left > right + 80 && rect.left < right + 100 && rect.top > 250 && rect.bottom < 650)
+        points.push({ x: rect.left + rect.width / 4, y: rect.top + rect.height / 2, offset })
+    }
+    return points
+  }, sheetSelector)
+}
+
+function changedPixelRatio(before: Buffer, after: Buffer): number {
+  let changed = 0
+  for (let index = 0; index < before.length; index += 3) {
+    const difference =
+      Math.abs(before[index] - after[index]) +
+      Math.abs(before[index + 1] - after[index + 1]) +
+      Math.abs(before[index + 2] - after[index + 2])
+    if (difference > 30) changed++
+  }
+  return changed / (before.length / 3)
+}
+
 test.describe('Book view', () => {
+  test.skip(
+    ({ browserName }) => browserName === 'webkit',
+    'Book view is disabled on Safari during the beta',
+  )
+  test('dragging upwards inside a long paragraph stays on the right page', async ({
+    page,
+    account,
+  }) => {
+    await openLongBookParagraph(page, account)
+    const points = await rightPageTextPoints(page)
+    expect(points.length).toBeGreaterThan(5)
+    const start = points.at(-1)!
+    const end = points[0]
+    const middle = points[Math.floor(points.length / 2)]
+    const clip = { x: middle.x, y: middle.y - 5, width: 40, height: 10 }
+    const before = await sharp(await page.screenshot({ clip }))
+      .removeAlpha()
+      .raw()
+      .toBuffer()
+    await page.mouse.move(start.x, start.y)
+    await page.mouse.down()
+    for (const point of [...points].reverse()) {
+      await page.mouse.move(point.x, point.y)
+      await selectionRead(page)
+      expect(await page.evaluate(() => window.getSelection()?.focusOffset)).toBe(point.offset)
+    }
+    expect(await page.evaluate(() => window.getSelection()?.anchorOffset)).toBe(start.offset)
+    expect(await page.evaluate(() => window.getSelection()?.toString())).toBe(
+      LONG_BOOK_TEXT.slice(end.offset, start.offset),
+    )
+    // Check actual paint while the button is still held, rather than only the final DOM selection.
+    const held = await sharp(await page.screenshot({ clip }))
+      .removeAlpha()
+      .raw()
+      .toBuffer()
+    expect(changedPixelRatio(before, held)).toBeGreaterThan(0.5)
+    await page.mouse.up()
+  })
+
+  test('an upward mouse selection keeps its right-page anchor while scrolling', async ({
+    page,
+    account,
+  }) => {
+    await openLongBookParagraph(page, account)
+    const points = await rightPageTextPoints(page)
+    const start = points.at(-1)!
+    const header = await boxOf(page.locator('[data-editor-header]'))
+    await page.evaluate(() => window.scrollTo(0, 200))
+    const scroll = await page.evaluate(() => window.scrollY)
+    expect(scroll).toBeGreaterThan(0)
+    await page.mouse.move(start.x, start.y - scroll)
+    await page.mouse.down()
+    await page.mouse.move(start.x, header.y + header.height + 8, { steps: 20 })
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
+    expect(await page.evaluate(() => window.getSelection()?.anchorOffset)).toBe(start.offset)
+    const focus = await page.evaluate(() => window.getSelection()?.focusOffset ?? -1)
+    expect(focus).toBeGreaterThanOrEqual(points[0].offset - 20)
+    expect(focus).toBeLessThan(points[0].offset + 20)
+    await page.mouse.up()
+  })
+
   test('consecutive breaks keep a blank page without printing the trailing empty sheet', async ({
     page,
     account,
@@ -381,6 +495,25 @@ test.describe('Book view', () => {
     const right = await boxOf(page.locator(sheetSelector).nth(1))
     expect(left.y).toBeCloseTo(right.y, 0)
   })
+})
+
+test('Safari beta keeps normal view despite a saved book preference', async ({
+  page,
+  account,
+  browserName,
+  baseURL,
+}) => {
+  test.skip(browserName !== 'webkit', 'Safari-specific beta restriction')
+  await page.context().addCookies([{ name: BOOK_VIEW_COOKIE, value: '1', url: baseURL! }])
+  await openDocument(page, account, prose(10))
+  await expect(page.locator('[data-book-viewport]')).toHaveCount(0)
+  const warning = page.getByRole('status').filter({ hasText: 'Safari has issues' })
+  await expect(warning).toBeVisible()
+  await page.getByRole('menubar').getByRole('menuitem', { name: 'View' }).click()
+  await expect(page.getByRole('menuitemcheckbox', { name: 'Book view' })).toBeDisabled()
+  await expect(page.getByRole('menuitemcheckbox', { name: 'Book view' })).not.toBeChecked()
+  await page.keyboard.press('Escape')
+  await expect(warning).toBeHidden({ timeout: 8000 })
 })
 
 test.describe('Pagination', () => {

@@ -33,6 +33,30 @@ export function caretTarget(
 }
 
 type BookColumn = { left: number; pitch: number; scale: number }
+type TextCaret = NonNullable<ReturnType<typeof caretFromPoint>>
+
+function caretBelongsToColumn(caret: TextCaret, column: BookColumn): boolean {
+  const range = document.createRange()
+  range.setStart(caret.node, caret.offset)
+  range.collapse(true)
+  return [...range.getClientRects()].some(
+    (rect) => rect.left >= column.left && rect.left < column.left + column.pitch,
+  )
+}
+
+/** Keep native line-end behavior, but reject hits that jump into a different book column. */
+export function bookCaretFromPoint(
+  editable: HTMLElement,
+  root: HTMLElement,
+  click: Point,
+  pages: PagesOnScreen,
+): TextCaret | null {
+  const caret = caretFromPoint(click)
+  const column = clickedBookColumn(root, click, pages)
+  if (caret && editable.contains(caret.node) && caretBelongsToColumn(caret, column)) return caret
+  const point = bookCaretTarget(editable, root, click, pages)
+  return point ? caretFromPoint(point) : null
+}
 
 /** Resolve the clicked column in viewport coordinates, accounting for zoom. */
 function clickedBookColumn(
@@ -72,6 +96,20 @@ function caretInColumn(
   }
 }
 
+type TextLine = { top: number; bottom: number; end: number }
+
+function lastTextLine(previous: TextLine | null, rect: DOMRect, scale: number): TextLine {
+  const end = rect.right - Math.min(LINE_INSET * scale, rect.width / 2)
+  if (previous && rect.bottom <= previous.top) return previous
+  if (previous && rect.top < previous.bottom)
+    return {
+      top: Math.min(previous.top, rect.top),
+      bottom: Math.max(previous.bottom, rect.bottom),
+      end: Math.max(previous.end, end),
+    }
+  return { top: rect.top, bottom: rect.bottom, end }
+}
+
 /** Find the nearest text point within the clicked book page, including a short final page. */
 export function bookCaretTarget(
   editable: HTMLElement,
@@ -81,15 +119,24 @@ export function bookCaretTarget(
 ): Point | null {
   const column = clickedBookColumn(root, click, pages)
   let nearest: Point | null = null
-  let distance = Infinity
+  let verticalDistance = Infinity
+  let horizontalDistance = Infinity
+  let lastLine: TextLine | null = null
   for (const rect of textRectangles(editable)) {
     const point = caretInColumn(rect, click, column)
     if (!point) continue
-    const nextDistance = Math.abs(click.y - point.y) + Math.abs(click.x - point.x)
-    if (nextDistance >= distance) continue
-    distance = nextDistance
+    lastLine = lastTextLine(lastLine, rect, column.scale)
+    const vertical = Math.abs(click.y - point.y)
+    const horizontal = Math.abs(click.x - point.x)
+    // Whitespace after a short line belongs to that line, rather than a longer adjacent one.
+    if (vertical > verticalDistance) continue
+    if (vertical === verticalDistance && horizontal >= horizontalDistance) continue
+    verticalDistance = vertical
+    horizontalDistance = horizontal
     nearest = point
   }
+  // Dragging below all text on a short page includes its last line in full.
+  if (nearest && lastLine && click.y > lastLine.bottom) nearest.x = lastLine.end
   return nearest
 }
 

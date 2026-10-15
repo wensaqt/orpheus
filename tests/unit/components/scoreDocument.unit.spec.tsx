@@ -14,6 +14,7 @@ const setTitle = vi.fn()
 const verify = vi.fn()
 const fetchDocument = vi.fn()
 const savers = new Map<string, SaveControls>()
+const confirm = vi.fn()
 let commands: import('@front/compositions/[id]/_components/score/ScoreCommands').ScoreCommands
 let renderer: ComponentProps<typeof ScoreRenderer>
 let generation = 0
@@ -40,6 +41,8 @@ vi.doMock('@front/compositions/[id]/_components/header/documentTitleSlot', () =>
   useDocumentTitleSlot: () => titleSlot,
 }))
 vi.doMock('@front/_components/i18n/I18nProvider', () => ({ useT: () => (key: string) => key }))
+vi.doMock('next/navigation', () => ({ usePathname: () => '/compositions/10/1' }))
+vi.doMock('@front/_components/ui/Feedback/ConfirmProvider', () => ({ useConfirm: () => confirm }))
 vi.doMock('@front/compositions/[id]/_components/score/ScoreCommands', () => ({
   useRegisterScoreCommands: (next: typeof commands) => {
     commands = next
@@ -70,6 +73,7 @@ const initial = {
 beforeEach(() => {
   vi.stubGlobal('crypto', webcrypto)
   vi.clearAllMocks()
+  confirm.mockResolvedValue(false)
   clearDocuments()
   fetchDocument.mockResolvedValue(null)
   saveScore.mockResolvedValue({
@@ -109,6 +113,55 @@ async function flushContent() {
     await savers.get('document:1')!.flush()
   })
 }
+
+it('keeps unsaved XML while signing in in another tab, then retries the pending score', async () => {
+  render(<ScoreDocumentLoader id="1" initial={initial} />)
+  const changed = SAMPLE_SCORE.replace('Piano', 'Violin')
+  await importXml(changed)
+  saveScore.mockResolvedValueOnce({ status: 'error', reason: 'session-expired' })
+  await flushContent()
+  expect(screen.getByRole('alert').textContent).toContain('score.sessionExpired')
+  const link = screen.getByRole('link', { name: 'score.logInNewTab' })
+  expect(link.getAttribute('target')).toBe('_blank')
+  expect(link.getAttribute('href')).toContain('/login')
+  expect(renderer.xml).toBe(changed)
+  fireEvent.click(screen.getByRole('button', { name: 'score.retrySave' }))
+  await act(async () => {})
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(saveScore).toHaveBeenLastCalledWith(expect.objectContaining({ scoreXml: changed }))
+})
+
+it('offers export and confirmed reload for a conflict without overwriting the saved score', async () => {
+  render(<ScoreDocumentLoader id="1" initial={initial} />)
+  await importXml(SAMPLE_SCORE.replace('Piano', 'Violin'))
+  saveScore.mockResolvedValueOnce({ status: 'error', reason: 'conflict' })
+  await flushContent()
+  expect(screen.getByRole('alert').textContent).toContain('score.saveConflict')
+  expect(screen.getByRole('button', { name: 'editor.downloadDraft' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'score.retrySave' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'editor.loadSavedVersion' }))
+  await act(async () => {})
+  expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: 'score.discardChanges' }))
+  expect(renderer.xml).toContain('Violin')
+  expect(saveScore).toHaveBeenCalledOnce()
+})
+
+it('reports a blocked title save and retries it after login without changing the score', async () => {
+  render(<ScoreDocumentLoader id="1" initial={initial} />)
+  rename.mockResolvedValueOnce({ status: 'error', reason: 'session-expired' })
+  fireEvent.change(screen.getByLabelText('editor.documentTitleLabel'), {
+    target: { value: 'Renamed' },
+  })
+  await act(async () => {
+    await savers.get('document-title:1')!.flush()
+  })
+  expect(screen.getByRole('alert').textContent).toContain('score.sessionExpired')
+  fireEvent.click(screen.getByRole('button', { name: 'score.retrySave' }))
+  await act(async () => {})
+  expect(rename).toHaveBeenLastCalledWith('1', 'Renamed')
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(saveScore).not.toHaveBeenCalled()
+})
 
 it('preserves ordered snapshots and saves the current XML after imports and undo', async () => {
   render(<ScoreDocumentLoader id="1" initial={initial} />)

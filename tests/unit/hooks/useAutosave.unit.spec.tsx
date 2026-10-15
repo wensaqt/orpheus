@@ -18,6 +18,33 @@ describe('useAutosave', () => {
     ...renderHook(({ run }) => useAutosave(run), { initialProps: { run: save } }),
   })
 
+  it('resumes pending edits after login but never retries a conflict automatically', async () => {
+    const save = vi
+      .fn(async (): Promise<ActionResult> => done())
+      .mockResolvedValueOnce({ status: 'error', reason: 'session-expired' })
+      .mockResolvedValueOnce(done())
+      .mockResolvedValueOnce({ status: 'error', reason: 'conflict' })
+    const { result } = setup(save)
+    act(() => result.current.queue())
+    await act(async () => {
+      await result.current.flush()
+    })
+    expect(result.current.failure).toBe('session-expired')
+    await act(async () => {
+      expect(await result.current.retryAfterLogin()).toBe(true)
+    })
+    expect(result.current.failure).toBeUndefined()
+    act(() => result.current.queue())
+    await act(async () => {
+      await result.current.flush()
+    })
+    await act(async () => {
+      expect(await result.current.retryAfterLogin()).toBe(false)
+    })
+    expect(save).toHaveBeenCalledTimes(3)
+    expect(result.current.failure).toBe('conflict')
+  })
+
   it.each(['session-expired', 'conflict'] as const)(
     'suspends automatic retries for %s while keeping changes pending',
     async (reason) => {

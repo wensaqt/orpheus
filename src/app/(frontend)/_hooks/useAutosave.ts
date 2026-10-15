@@ -141,6 +141,13 @@ export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
     if (!state.current.blocked) scheduleSave(AUTOSAVE_DELAY_MS, () => void flush())
   }, [flush, publish, scheduleSave])
 
+  const retryAfterLogin = useCallback(() => {
+    // Authentication can be restored in another tab without discarding the live draft.
+    // A conflict still requires loading or explicitly reconciling the saved version.
+    if (state.current.blocked === 'session-expired') state.current.blocked = undefined
+    return flush()
+  }, [flush])
+
   // Drops the changes not sent yet, e.g. for a document that was just deleted
   const cancel = useCallback(() => {
     clearTimer()
@@ -164,7 +171,7 @@ export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
     }
   }, [])
 
-  return { status, failure, queue, flush, cancel }
+  return { status, failure, queue, flush, cancel, retryAfterLogin }
 }
 
 // What a field or editor that saves on its own lets others do: save now, or drop its changes

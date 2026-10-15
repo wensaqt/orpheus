@@ -198,6 +198,8 @@ export const fr: Messages = {
     },
   },
   editor: {
+    safariWarning:
+      'Safari présente des problèmes de curseur et de sélection. Pour profiter de cette bêta, nous recommandons Google Chrome. La vue livre est temporairement désactivée sur Safari.',
     loading: 'Ouverture du document…',
     loadError: 'Impossible d’ouvrir ce document. Vérifiez votre connexion, puis réessayez.',
     retry: 'Réessayer',
@@ -302,6 +304,14 @@ export const fr: Messages = {
     },
   },
   score: {
+    sessionExpired:
+      'Votre session a expiré. Votre partition reste dans cet onglet. Exportez-la par précaution, reconnectez-vous dans un autre onglet, puis réessayez l’enregistrement ici.',
+    saveConflict:
+      'Une autre version a été enregistrée. Exportez vos modifications en MusicXML avant de charger la version enregistrée.',
+    logInNewTab: 'Se reconnecter dans un nouvel onglet',
+    retrySave: 'Réessayer l’enregistrement après connexion',
+    discardChanges:
+      'Abandonner les modifications non enregistrées et charger la version enregistrée ?',
     intervals: {
       none: 'Aucune',
       majorSecondUp: 'Seconde majeure ↑',

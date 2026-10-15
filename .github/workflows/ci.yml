@@ -63,7 +63,7 @@ jobs:
           tests/e2e/editorHistory.e2e.spec.ts tests/e2e/pagination.e2e.spec.ts
           tests/e2e/pageSettings.e2e.spec.ts tests/e2e/documentCache.e2e.spec.ts
           tests/e2e/editorReliability.e2e.spec.ts
-          --grep 'font changes only|font at a caret|margin drag|numeric margin undo|text undo reopens|typing fills the left page|writes on the right page|a long document flows|a format applies at once|dragging the left margin|a direct link and a reload|back stays put|opens the account menu|administrator can generate|account menu signs out|revoked session|failed saves block|expired session keeps|stale second tab'
+          --grep 'font changes only|font at a caret|margin drag|numeric margin undo|text undo reopens|typing fills the left page|writes on the right page|a long document flows|a format applies at once|dragging the left margin|a direct link and a reload|back stays put|opens the account menu|administrator can generate|account menu signs out|revoked session|failed saves block|expired session keeps|stale second tab|dragging upwards inside|upward mouse selection|native selection crosses|a mouse selection|Safari beta keeps normal view'
       - name: Production content transport boundary
         env:
           PLAYWRIGHT_SERVER_MODE: production
