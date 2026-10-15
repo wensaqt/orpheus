@@ -4,6 +4,31 @@
   flex-grow: 1;
 }
 
+.footer {
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  text-align: center;
+  font-size: var(--text-sm);
+}
+
+.footer a {
+  display: inline-block;
+  padding: var(--space-2);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  text-underline-offset: 0.25em;
+}
+
+.footer a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.footer a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
 .section,
 .sectionButton {
   flex: 1;
