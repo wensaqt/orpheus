@@ -12,6 +12,7 @@ export const AUTH_PAGES = { login: '/login', signup: '/signup' }
 // Frontend paths, so they are not hard-coded across components
 export const ROUTES = {
   home: '/',
+  about: '/about',
   compositions: '/compositions',
   betaInvitations: '/beta/invitations',
   composition: (id: Id) => `/compositions/${id}`,
