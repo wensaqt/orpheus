@@ -31,6 +31,7 @@ import { ScoreCommandProvider } from './score/ScoreCommands'
 
 type EditorShellProps = {
   fontClassName: string
+  ownerId: Id
   compositionId: Id
   title: string
   layout: Layout
@@ -52,6 +53,7 @@ type EditorShellProps = {
 export function EditorShell({
   fontClassName,
   compositionId,
+  ownerId,
   title,
   layout,
   entries,
@@ -68,7 +70,7 @@ export function EditorShell({
 
   return (
     <HistoryProvider>
-      <BinderProvider compositionId={compositionId} entries={entries}>
+      <BinderProvider ownerId={ownerId} compositionId={compositionId} entries={entries}>
         <LayoutProvider initial={layout}>
           <OpenEditorContext value={{ editor: openEditor, setEditor: setOpenEditor }}>
             <EditorViewProvider

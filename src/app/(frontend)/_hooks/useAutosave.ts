@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from 'react'
 
-import { type ActionResult, succeeded } from '@front/_lib/actionResult'
+import { type ActionResult, type ActionFailure, failed } from '@front/_lib/actionResult'
 
 import { SaveStatus } from './types'
 
@@ -14,6 +14,7 @@ type SaveState = {
   sending: boolean
   failures: number
   generation: number
+  blocked?: ActionFailure['reason']
 }
 
 function statusOf(state: SaveState): SaveStatus {
@@ -42,6 +43,7 @@ function dropChanges(state: SaveState): void {
   state.dirty = false
   state.sending = false
   state.failures = 0
+  state.blocked = undefined
 }
 
 /*
@@ -50,6 +52,7 @@ function dropChanges(state: SaveState): void {
  * chained to keep their order; a failed one is retried, sooner if the writer keeps typing.
  */
 export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
+  const [failure, setFailure] = useState<ActionFailure['reason']>()
   const [status, setStatus] = useState(SaveStatus.Saved)
   // Sending and dirty can coexist: edits made during a request need a later save.
   const state = useRef<SaveState>({ dirty: false, sending: false, failures: 0, generation: 0 })
@@ -65,7 +68,10 @@ export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
   })
 
   const publish = useCallback(() => {
-    if (mounted.current) setStatus(statusOf(state.current))
+    if (mounted.current) {
+      setStatus(statusOf(state.current))
+      setFailure(state.current.blocked)
+    }
   }, [])
 
   const clearTimer = useCallback(() => {
@@ -95,14 +101,19 @@ export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
   const attemptSave = useCallback(
     async (generation: number, retry: () => void): Promise<boolean> => {
       if (generation !== state.current.generation || !state.current.dirty) return true
+      if (state.current.blocked) return false
       beginSave(state.current)
       publish()
       // Includes throws that happen before save returns its promise.
-      const saved = await succeeded(Promise.resolve().then(() => latestSave.current()))
+      const result: ActionResult<unknown> = await Promise.resolve()
+        .then(() => latestSave.current())
+        .catch(() => failed)
+      const saved = result.status === 'done'
       if (generation !== state.current.generation) return true
+      state.current.blocked = result.status === 'error' ? result.reason : undefined
       const delay = completeSave(state.current, saved)
       publish()
-      if (delay !== undefined) scheduleRetry(delay, retry)
+      if (delay !== undefined && !state.current.blocked) scheduleRetry(delay, retry)
       return saved
     },
     [publish, scheduleRetry],
@@ -112,7 +123,13 @@ export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
     function flush(): Promise<boolean> {
       clearTimer()
       const generation = state.current.generation
-      chain.current = chain.current.then(() => attemptSave(generation, () => void flush()))
+      chain.current = chain.current.then(async () => {
+        // A navigation flush must include edits made while its first request was in flight.
+        do {
+          if (!(await attemptSave(generation, () => void flush()))) return false
+        } while (generation === state.current.generation && state.current.dirty)
+        return true
+      })
       return chain.current
     },
     [attemptSave, clearTimer],
@@ -121,7 +138,7 @@ export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
   const queue = useCallback(() => {
     state.current.dirty = true
     publish()
-    scheduleSave(AUTOSAVE_DELAY_MS, () => void flush())
+    if (!state.current.blocked) scheduleSave(AUTOSAVE_DELAY_MS, () => void flush())
   }, [flush, publish, scheduleSave])
 
   // Drops the changes not sent yet, e.g. for a document that was just deleted
@@ -147,7 +164,7 @@ export function useAutosave(save: () => Promise<ActionResult<unknown>>) {
     }
   }, [])
 
-  return { status, queue, flush, cancel }
+  return { status, failure, queue, flush, cancel }
 }
 
 // What a field or editor that saves on its own lets others do: save now, or drop its changes

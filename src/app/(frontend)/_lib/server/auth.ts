@@ -8,6 +8,7 @@ import { cache } from 'react'
 import config from '@/payload.config'
 
 import { ROUTES } from '../routes'
+import { type ActionResult, sessionExpired } from '../actionResult'
 
 export type Session = { payload: Payload; user: TypedUser }
 
@@ -55,4 +56,14 @@ export function authedAction<Args extends unknown[], Result>(
   handler: (session: Session, ...args: Args) => Promise<Result>,
 ) {
   return async (...args: Args): Promise<Result> => handler(await requireSession(), ...args)
+}
+
+// Persistence failures are recoverable UI states; never turn an expired session into a 500.
+export function authedSave<Args extends unknown[], Data>(
+  handler: (session: Session, ...args: Args) => Promise<ActionResult<Data>>,
+) {
+  return async (...args: Args): Promise<ActionResult<Data>> => {
+    const { payload, user } = await getSession()
+    return user ? handler({ payload, user }, ...args) : sessionExpired
+  }
 }

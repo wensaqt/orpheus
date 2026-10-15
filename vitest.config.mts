@@ -26,8 +26,9 @@ export default defineConfig({
       {
         extends: true,
         test: {
-          // Payload + Postgres (dev database, temporary data cleaned up)
+          // Payload + Postgres in an explicitly configured disposable local database.
           name: 'int',
+          setupFiles: ['./tests/setupDatabase.ts'],
           include: ['tests/int/**/*.int.spec.ts'],
           environment: 'node',
           testTimeout: 30_000,

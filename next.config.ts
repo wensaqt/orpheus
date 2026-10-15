@@ -9,6 +9,13 @@ const dirname = path.dirname(__filename)
 const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
+  experimental: {
+    serverActions: {
+      // A 2 MB MusicXML string can approach 4 MB when escaped in an action's envelope.
+      // Stay below Vercel's 4.5 MB request limit; production tests verify the actual transport.
+      bodySizeLimit: '4mb',
+    },
+  },
   async headers() {
     return [
       {

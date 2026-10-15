@@ -9,6 +9,8 @@ import type { MenuItem } from '@front/_components/ui/Menu/types'
 import { logOut } from '@front/_features/auth/actions'
 import { clearDocuments } from '@front/_features/binder/documentStore'
 import { useT } from '@front/_components/i18n/I18nProvider'
+import { savePendingChanges } from '@front/_lib/pendingChanges'
+import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 import { AUTH_PAGES, ROUTES } from '@front/_lib/routes'
 
 import styles from './AccountMenu.module.css'
@@ -32,6 +34,7 @@ type AccountMenuProps = { email: string | null; administrator?: boolean }
  */
 export function AccountMenu({ email, administrator = false }: AccountMenuProps) {
   const t = useT()
+  const toast = useToast()
   const pathname = usePathname()
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -56,7 +59,10 @@ export function AccountMenu({ email, administrator = false }: AccountMenuProps) 
       ? [
           {
             label: t('betaInvitations.heading'),
-            onSelect: () => router.push(ROUTES.betaInvitations),
+            onSelect: async () => {
+              if (await savePendingChanges()) router.push(ROUTES.betaInvitations)
+              else toast.error(t('binder.saveFirst'))
+            },
           },
         ]
       : []),
@@ -65,7 +71,11 @@ export function AccountMenu({ email, administrator = false }: AccountMenuProps) 
       label: t('account.logOut'),
       disabled: pending,
       onSelect: () =>
-        startTransition(() => {
+        startTransition(async () => {
+          if (!(await savePendingChanges())) {
+            toast.error(t('binder.saveFirst'))
+            return
+          }
           // Nothing of this account's writing stays in the tab's memory
           clearDocuments()
           return logOut()

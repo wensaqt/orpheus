@@ -205,6 +205,17 @@ export const fr: Messages = {
     titleLabel: 'Titre de la composition',
     documentTitleLabel: 'Titre du document',
     textLabel: 'Texte du document',
+    sessionExpiredSettings:
+      'Votre session a expiré. Reconnectez-vous ; les titres et réglages de page non enregistrés seront réinitialisés.',
+    sessionExpired:
+      'Votre session a expiré. Votre brouillon reste dans cet onglet : reconnectez-vous pour enregistrer.',
+    saveConflict:
+      'Une autre version a été enregistrée. Votre texte est conservé ici ; téléchargez-le avant de charger la version enregistrée.',
+    downloadDraft: 'Télécharger mon brouillon',
+    loadSavedVersion: 'Charger la version enregistrée',
+    discardDraft: 'Abandonner votre brouillon local et charger la version enregistrée ?',
+    draftUnavailable:
+      'Le navigateur ne peut pas conserver de brouillon. Gardez cet onglet ouvert jusqu’à confirmation de l’enregistrement.',
     saveError: 'Échec de l’enregistrement — nouvel essai…',
     historyError: 'Impossible d’annuler ou de rétablir cette modification. Réessayez.',
     toolbar: 'Barre d’outils de l’éditeur',

@@ -200,6 +200,16 @@ export const en = {
     titleLabel: 'Composition title',
     documentTitleLabel: 'Document title',
     textLabel: 'Document text',
+    sessionExpiredSettings:
+      'Your session expired. Sign in again; unsaved titles and page settings will be reset.',
+    sessionExpired: 'Your session expired. Your draft remains in this tab: sign in again to save.',
+    saveConflict:
+      'Another version was saved. Your writing is preserved here; download it before loading the saved version.',
+    downloadDraft: 'Download my draft',
+    loadSavedVersion: 'Load saved version',
+    discardDraft: 'Discard your local draft and load the saved version?',
+    draftUnavailable:
+      'Your browser cannot store a draft. Keep this tab open until saving is confirmed.',
     saveError: 'Could not save — trying again…',
     historyError: 'Could not undo or redo this change. Try again.',
     toolbar: 'Editor toolbar',

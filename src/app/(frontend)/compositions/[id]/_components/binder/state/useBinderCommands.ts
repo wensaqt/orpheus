@@ -157,7 +157,7 @@ export function useBinderCommands({
       async createScoreTransposition(sourceId: Id, xml: string, variant: ScoreVariant) {
         const createdItem: { entry: BinderEntry | null } = { entry: null }
         const accepted = await perform(async () => {
-          const result = await createTransposedScore(sourceId, xml, variant)
+          const result = await createTransposedScore({ sourceId, scoreXml: xml, variant })
           if (result.status !== 'done') return false
           const created = result.data
           history.discard((scope) => scope.kind === 'binder' && scope.operation === 'move')

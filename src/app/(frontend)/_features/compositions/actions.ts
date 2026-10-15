@@ -12,7 +12,7 @@ import { isId } from '@/lib/ids'
 
 import { type ActionResult, done, failed } from '@front/_lib/actionResult'
 import { ROUTES } from '@front/_lib/routes'
-import { authedAction, requireUser } from '@front/_lib/server/auth'
+import { authedAction, authedSave, requireUser } from '@front/_lib/server/auth'
 import { getT } from '@front/_lib/server/i18n'
 
 import type { CompositionPatch } from './types'
@@ -48,7 +48,7 @@ export async function createComposition() {
 }
 
 // Saves the composition's title (the text is saved per document); an empty one is refused
-export const saveComposition = authedAction(
+export const saveComposition = authedSave(
   async ({ payload, user }, id: Id, { title }: CompositionPatch): Promise<ActionResult> => {
     const cleaned = cleanTitle(title, MAX_COMPOSITION_TITLE_LENGTH)
     if (!isId(id) || !cleaned) return failed
@@ -69,7 +69,7 @@ export const saveComposition = authedAction(
 )
 
 // Saves the composition's layout (its pages, and how its text is set), checked whole
-export const saveLayout = authedAction(
+export const saveLayout = authedSave(
   async ({ payload, user }, id: Id, layout: Layout): Promise<ActionResult> => {
     const parsed = parseLayout(layout)
     if (!isId(id) || !parsed) return failed

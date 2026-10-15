@@ -1,6 +1,9 @@
 'use client'
 
 import type { Ref } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { ROUTES } from '@front/_lib/routes'
 
 import { MAX_COMPOSITION_TITLE_LENGTH } from '@/lib/compositions'
 
@@ -33,17 +36,19 @@ type EditorHeaderProps = {
  */
 export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
   const t = useT()
+  const pathname = usePathname()
   const { compositionId, entries, activeDocumentId } = useBinder()
   const scoreOpen = entries.some(
     (entry) => entry.id === activeDocumentId && entry.documentType === 'score',
   )
-  const { status: layoutStatus } = useLayout()
+  const { status: layoutStatus, failure: layoutFailure } = useLayout()
   const field = useTitleField({
     title,
     maxLength: MAX_COMPOSITION_TITLE_LENGTH,
     save: (next) => saveComposition(compositionId, { title: next }),
   })
   useRegisterSaver(SAVERS.compositionTitle, field)
+  const sessionExpired = field.failure === 'session-expired' || layoutFailure === 'session-expired'
   const toolbarState = useToolbarState(useOpenEditor())
 
   return (
@@ -62,7 +67,12 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
         {/* Only save failures are reported; everything else happens silently */}
         {field.status === SaveStatus.Error || layoutStatus === SaveStatus.Error ? (
           <p className={styles.saveError} role="alert">
-            {t('editor.saveError')}
+            {t(sessionExpired ? 'editor.sessionExpiredSettings' : 'editor.saveError')}
+            {sessionExpired && (
+              <Link data-reconnect href={ROUTES.login(pathname)}>
+                {t('account.logIn')}
+              </Link>
+            )}
           </p>
         ) : null}
       </div>

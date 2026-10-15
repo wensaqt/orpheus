@@ -6,6 +6,7 @@ import {
   MAX_BINDER_TITLE_LENGTH,
 } from '@/lib/binder/constants'
 import { LEXICAL_STATE_JSON_SCHEMA } from '@/lib/lexical'
+import { MAX_SCORE_BYTES } from '@/lib/scores/validation'
 
 import { validateTitle } from '../validators'
 import { ownedByUser } from '@/access/ownedByUser'
@@ -85,7 +86,9 @@ export const BinderItems: CollectionConfig = {
     // Documents only: serialized Lexical state, validated by its JSON schema
     { name: 'content', type: 'json', jsonSchema: LEXICAL_STATE_JSON_SCHEMA },
     // Partition documents only. The prototype stores MusicXML directly until a score model is chosen.
-    { name: 'scoreXml', type: 'textarea' },
+    // Payload defaults to 40,000 UTF-16 code units. Allow every XML within our 2 MB budget;
+    // maxLength counts code units, while validateDocumentBody enforces the UTF-8 byte limit.
+    { name: 'scoreXml', type: 'textarea', maxLength: MAX_SCORE_BYTES },
   ],
   timestamps: true,
 }

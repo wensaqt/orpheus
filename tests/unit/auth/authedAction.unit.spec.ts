@@ -8,7 +8,8 @@ vi.mock('next/headers', () => ({ headers: requestHeaders, cookies: sessionCookie
 vi.mock('@/payload.config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: async () => ({ auth }) }))
 
-const { authedAction, getSession, UnauthorizedError } = await import('@front/_lib/server/auth')
+const { authedAction, authedSave, getSession, UnauthorizedError } =
+  await import('@front/_lib/server/auth')
 
 describe('authedAction', () => {
   beforeEach(() => {
@@ -40,6 +41,16 @@ describe('authedAction', () => {
     auth.mockResolvedValue({ user: null })
     const handler = vi.fn()
     await expect(authedAction(handler)('arg')).rejects.toBeInstanceOf(UnauthorizedError)
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('returns an actionable expired-session result for persistence without running the handler', async () => {
+    auth.mockResolvedValue({ user: null })
+    const handler = vi.fn()
+    await expect(authedSave(handler)('arg')).resolves.toEqual({
+      status: 'error',
+      reason: 'session-expired',
+    })
     expect(handler).not.toHaveBeenCalled()
   })
 

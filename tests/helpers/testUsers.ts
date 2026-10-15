@@ -1,14 +1,18 @@
 import { getPayload, type Payload } from 'payload'
 
-import config from '@payload-config'
 import type { UserRole } from '@/lib/users'
+import { configureTestDatabase } from './testDatabase'
 
 // All test accounts share this prefix so they can always be found and deleted
 export const TEST_EMAIL_PREFIX = 'orpheus-test-'
 // Must pass the password rules: long enough, without the app's name
 export const TEST_PASSWORD = 'lyre-of-thrace-42'
 
-export const getTestPayload = () => getPayload({ config })
+export async function getTestPayload() {
+  configureTestDatabase()
+  const { default: config } = await import('@payload-config')
+  return getPayload({ config })
+}
 
 /*
  * A temporary account with the given role, explicitly granted through the trusted Local API.

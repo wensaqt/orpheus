@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 
+import { relationId } from '@/lib/relationId'
 import { toLayout } from '@/lib/layout'
 
 import { getBinder } from '@front/_features/binder/queries'
@@ -41,6 +42,7 @@ export default async function CompositionLayout({
     <EditorShell
       fontClassName={documentFontClasses}
       compositionId={binder.composition.id}
+      ownerId={relationId(binder.composition.owner)}
       title={binder.composition.title}
       layout={toLayout(binder.composition)}
       entries={binder.entries}

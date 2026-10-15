@@ -15,8 +15,10 @@ import { useCollapsedFolders } from './useCollapsedFolders'
 import { type BinderCommands, useBinderCommands } from './useBinderCommands'
 import { useOpenDocument } from './useOpenDocument'
 import { useSaveRegistry } from './useSaveRegistry'
+import { useCompositionLeaveGuard } from './useCompositionLeaveGuard'
 
 type BinderContextValue = {
+  ownerId: Id
   compositionId: Id
   // The binder as shown: saved entries plus the changes still being saved
   entries: BinderEntry[]
@@ -34,6 +36,7 @@ type BinderContextValue = {
 const BinderContext = createContext<BinderContextValue | null>(null)
 
 type BinderProviderProps = {
+  ownerId: Id
   compositionId: Id
   entries: BinderEntry[]
   children: ReactNode
@@ -46,6 +49,7 @@ type BinderProviderProps = {
  */
 export function BinderProvider({
   compositionId,
+  ownerId,
   entries: serverEntries,
   children,
 }: BinderProviderProps) {
@@ -59,6 +63,7 @@ export function BinderProvider({
 
   const [renamingId, setRenamingId] = useState<Id | null>(null)
   const { register, flushAll, cancelDocuments } = useSaveRegistry()
+  useCompositionLeaveGuard(compositionId, flushAll)
   const { activeDocumentId, navigate } = useOpenDocument(compositionId, flushAll)
 
   useEffect(() => {
@@ -83,6 +88,7 @@ export function BinderProvider({
   const value = useMemo(
     () => ({
       compositionId,
+      ownerId,
       entries,
       activeDocumentId,
       collapsed,
@@ -94,6 +100,7 @@ export function BinderProvider({
     }),
     [
       compositionId,
+      ownerId,
       entries,
       activeDocumentId,
       collapsed,

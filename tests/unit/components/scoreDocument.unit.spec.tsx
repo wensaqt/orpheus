@@ -1,3 +1,4 @@
+import { webcrypto } from 'node:crypto'
 import { act, cleanup, fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { ComponentProps } from 'react'
@@ -67,10 +68,14 @@ const initial = {
   checkedAt: Date.now(),
 }
 beforeEach(() => {
+  vi.stubGlobal('crypto', webcrypto)
   vi.clearAllMocks()
   clearDocuments()
   fetchDocument.mockResolvedValue(null)
-  saveScore.mockResolvedValue({ status: 'done', data: { updatedAt: '2026-10-10T10:00:00.000Z' } })
+  saveScore.mockResolvedValue({
+    status: 'done',
+    data: { updatedAt: '2026-10-10T10:00:00.000Z', revision: 'a'.repeat(64) },
+  })
   rename.mockResolvedValue({ status: 'done', data: {} })
   verify.mockResolvedValue(undefined)
   createVariant.mockResolvedValue({})
@@ -112,14 +117,22 @@ it('preserves ordered snapshots and saves the current XML after imports and undo
   await importXml(first)
   await importXml(second)
   await flushContent()
-  expect(saveScore).toHaveBeenLastCalledWith('1', second)
+  expect(saveScore).toHaveBeenLastCalledWith({
+    id: '1',
+    scoreXml: second,
+    expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
+  })
   act(() => commands.setPanel('transpose'))
   fireEvent.click(screen.getByRole('button', { name: 'score.preview' }))
   expect(renderer.xml).not.toBe(second)
   act(() => commands.undo())
   await flushContent()
   expect(renderer.xml).toBe(first)
-  expect(saveScore).toHaveBeenLastCalledWith('1', first)
+  expect(saveScore).toHaveBeenLastCalledWith({
+    id: '1',
+    scoreXml: first,
+    expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
+  })
   act(() => commands.undo())
   expect(renderer.xml).toBe(SAMPLE_SCORE)
   expect(commands.canUndo).toBe(false)
@@ -189,10 +202,18 @@ it('rejects an invalid pitch without a snapshot, then saves and undoes a valid c
   expect(result.current.error).toBeNull()
   expect(commands.canUndo).toBe(true)
   await flushContent()
-  expect(saveScore).toHaveBeenLastCalledWith('1', corrected)
+  expect(saveScore).toHaveBeenLastCalledWith({
+    id: '1',
+    scoreXml: corrected,
+    expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
+  })
   act(() => commands.undo())
   await flushContent()
-  expect(saveScore).toHaveBeenLastCalledWith('1', SAMPLE_SCORE)
+  expect(saveScore).toHaveBeenLastCalledWith({
+    id: '1',
+    scoreXml: SAMPLE_SCORE,
+    expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
+  })
 })
 
 it('reopens the saved score instead of its stale server snapshot', async () => {
@@ -227,13 +248,13 @@ it('keeps native undo in the title and numeric drafts', () => {
   expect(pitchUndo.defaultPrevented).toBe(false)
 })
 
-it('caches the XML sent by a save, even if another edit happens during the request', async () => {
+it('drains later edits before a navigation flush completes', async () => {
   render(<ScoreDocumentLoader id="1" initial={initial} />)
   const { result: cached } = renderHook(() => useDocumentSlot('1'))
   const first = SAMPLE_SCORE.replace('Piano', 'Violin')
   const second = SAMPLE_SCORE.replace('Piano', 'Cello')
   await importXml(first)
-  let finish!: (value: { status: 'done'; data: { updatedAt: string } }) => void
+  let finish!: (value: { status: 'done'; data: { updatedAt: string; revision: string } }) => void
   saveScore.mockImplementationOnce(
     () =>
       new Promise((resolve) => {
@@ -246,10 +267,23 @@ it('caches the XML sent by a save, even if another edit happens during the reque
   })
   await importXml(second)
   await act(async () => {
-    finish({ status: 'done', data: { updatedAt: '2026-10-10T10:00:00.000Z' } })
+    finish({
+      status: 'done',
+      data: { updatedAt: '2026-10-10T10:00:00.000Z', revision: 'a'.repeat(64) },
+    })
     await saving
   })
-  expect(cached.current).toMatchObject({ status: 'ready', document: { scoreXml: first } })
+  expect(saveScore).toHaveBeenNthCalledWith(1, {
+    id: '1',
+    scoreXml: first,
+    expectedRevision: expect.any(String),
+  })
+  expect(saveScore).toHaveBeenNthCalledWith(2, {
+    id: '1',
+    scoreXml: second,
+    expectedRevision: expect.any(String),
+  })
+  expect(cached.current).toMatchObject({ status: 'ready', document: { scoreXml: second } })
   expect(renderer.xml).toBe(second)
 })
 

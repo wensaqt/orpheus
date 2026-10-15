@@ -1,5 +1,6 @@
 import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
 
+import { contentRevision } from '@/lib/contentRevision'
 import { MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
 import type { Id } from '@/lib/ids'
 import {
@@ -11,7 +12,7 @@ import {
 } from '@/lib/scores'
 import type { ScoreVariant } from '@/lib/scores/variantTitle'
 import { renameBinderItem, saveScoreDocument } from '@front/_features/binder/actions'
-import { rememberScore } from '@front/_features/binder/documentStore'
+import { documentCacheGeneration, rememberScore } from '@front/_features/binder/documentStore'
 import { SaveStatus } from '@front/_hooks/types'
 import { useAutosave } from '@front/_hooks/useAutosave'
 import { useTitleField } from '@front/_hooks/useTitleField'
@@ -73,7 +74,9 @@ function useScoreTitle(id: Id, title: string) {
 
 export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions) {
   const t = useT()
+  const cacheGeneration = useRef(documentCacheGeneration()).current
   const { commands: binderCommands } = useBinder()
+  const revision = useRef<Promise<string> | null>(null)
   const content = useScoreXml(initialXml)
   const [error, setError] = useState<string | null>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -113,9 +116,15 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
   }
   async function persistCurrentXml() {
     const sentXml = content.xmlRef.current
-    const result = await saveScoreDocument(id, sentXml)
-    if (result.status === 'done')
-      rememberScore(id, { scoreXml: sentXml, updatedAt: result.data.updatedAt })
+    const result = await saveScoreDocument({
+      id,
+      scoreXml: sentXml,
+      expectedRevision: await (revision.current ??= contentRevision(initialXml)),
+    })
+    if (result.status === 'done') {
+      revision.current = Promise.resolve(result.data.revision)
+      rememberScore(id, { scoreXml: sentXml, updatedAt: result.data.updatedAt }, cacheGeneration)
+    }
     return result
   }
   function changeXml(next: string) {
