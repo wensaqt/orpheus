@@ -91,8 +91,39 @@ export const en = {
     },
   },
   home: {
+    about: 'About Orpheus',
     create: { title: 'New composition', subtitle: 'Start a new piece' },
     browse: { title: 'All compositions', subtitle: 'Revisit your pieces' },
+  },
+  about: {
+    pageTitle: 'About Orpheus',
+    description: 'A text and sheet music editor born from two passions: music and writing.',
+    heading: 'Words and notes, from the same impulse.',
+    scroll: 'Follow the story',
+    signature: 'Imagined and developed by Guilhem',
+    introduction:
+      'Orpheus is a text and sheet music editor for writers and musicians. A space to write and compose, with simple tools and a clean, intuitive interface.',
+    author: {
+      heading: 'Behind Orpheus, Guilhem',
+      role: 'Fullstack developer',
+      fields: 'Web & software',
+      interests: 'Also curious about AI and embedded systems',
+      curiosity:
+        'Beyond web and software development, I have a strong interest in artificial intelligence and embedded systems. I enjoy exploring these fields and taking on new technical challenges.',
+      background:
+        'My name is Guilhem. Having recently graduated with a master’s degree, I am looking for my first role as a fullstack developer, in web or software development. While looking for that first opportunity, I decided to challenge myself: design and develop my own product, a project that reflects who I am.',
+      writing:
+        'I have been writing for fifteen years. It is my first passion, and it gave Orpheus its starting point: the desire to create a space for writing.',
+    },
+    origin: {
+      heading: 'Two passions, one project',
+      text: 'Music also plays an important part in my life. I am, above all, a music lover from a family of musicians. Conversations with them sparked the idea of adding a sheet music editor alongside the text editor. Orpheus became a way to bring these two passions together in one project.',
+    },
+    intention: {
+      heading: 'Making room for creativity',
+      text: 'My aim is to offer a tool that feels easy to find your way around, so you can focus on what you want to express. Whether you are writing text or a score, the tools should support your ideas and give creativity centre stage.',
+    },
+    backHome: 'Back to home',
   },
   compositions: {
     opening: 'Opening a blank page…',
