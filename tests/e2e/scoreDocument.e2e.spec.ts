@@ -1,5 +1,73 @@
 import { seed } from './binderHelpers'
-import { expect, test } from './fixtures'
+import { expect, test, type Account } from './fixtures'
+import { signIn } from './authHelpers'
+import { TEST_PASSWORD } from '../helpers/testUsers'
+
+async function savedFirstPitch(account: Account, id: string) {
+  const { scoreXml } = await account.payload.findByID({ collection: 'binder-items', id })
+  return scoreXml?.match(/<pitch>\s*<step>([A-G])<\/step>/)?.[1]
+}
+
+test('an expired score session can reconnect without losing pitch corrections', async ({
+  page,
+  account,
+}) => {
+  const { composition } = await seed(account)
+  await page.goto(`/compositions/${composition.id}`)
+  await page.getByRole('button', { name: 'New score' }).click()
+  await page.locator('.vf-notehead').first().click()
+  const id = page.url().split('/').at(-1)!
+  await account.payload.update({ collection: 'users', id: account.user.id, data: { sessions: [] } })
+  await page.getByLabel('Measure 1 · note 1 · note name').selectOption('A')
+  await expect(page.getByRole('main').getByRole('alert')).toContainText('Your session expired')
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download my draft' }).click()
+  expect((await download).suggestedFilename()).toMatch(/\.musicxml$/)
+  const popup = page.waitForEvent('popup')
+  await page.getByRole('link', { name: 'Sign in in a new tab' }).click()
+  const login = await popup
+  await signIn(login, account.user.email, TEST_PASSWORD)
+  await expect(login).toHaveURL(page.url())
+  await login.close()
+  await page.getByRole('button', { name: 'Retry saving after signing in' }).click()
+  await expect(page.getByRole('main').getByRole('alert')).toHaveCount(0)
+  await expect.poll(() => savedFirstPitch(account, id)).toBe('A')
+  await page.reload()
+  await page.locator('.vf-notehead').first().click()
+  await expect(page.getByLabel('Measure 1 · note 1 · note name')).toHaveValue('A')
+})
+
+test('a conflicting score offers export and reload without overwriting the first tab', async ({
+  page,
+  account,
+}) => {
+  const { composition } = await seed(account)
+  await page.goto(`/compositions/${composition.id}`)
+  await page.getByRole('button', { name: 'New score' }).click()
+  await page.locator('.vf-notehead').first().click()
+  const id = page.url().split('/').at(-1)!
+  const other = await page.context().newPage()
+  try {
+    await other.goto(page.url())
+    await other.locator('.vf-notehead').first().click()
+    await page.getByLabel('Measure 1 · note 1 · note name').selectOption('A')
+    await expect.poll(() => savedFirstPitch(account, id)).toBe('A')
+    await other.getByLabel('Measure 1 · note 1 · note name').selectOption('B')
+    await expect(other.getByRole('main').getByRole('alert')).toContainText(
+      'Another version was saved',
+    )
+    await expect(other.getByRole('button', { name: 'Download my draft' })).toBeVisible()
+    await expect(other.getByRole('button', { name: 'Retry saving after signing in' })).toHaveCount(
+      0,
+    )
+    await other.getByRole('button', { name: 'Load saved version' }).click()
+    await other.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click()
+    await other.locator('.vf-notehead').first().click()
+    await expect(other.getByLabel('Measure 1 · note 1 · note name')).toHaveValue('A')
+  } finally {
+    await other.close()
+  }
+})
 
 test('keeps corrections when reopening the score initially rendered by the server', async ({
   page,

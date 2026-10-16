@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   clearDocuments,
+  documentCacheGeneration,
   forgetDocuments,
   loadDocument,
   rememberDocument,
@@ -28,6 +29,17 @@ const respond = (status: number, body: unknown = null) =>
   Promise.resolve(new Response(JSON.stringify(body), { status }))
 
 describe('documentStore', () => {
+  it('does not resurrect writing from saves completed after sign-out', () => {
+    const generation = documentCacheGeneration()
+    clearDocuments()
+    const { result } = renderHook(() => useDocumentSlot(id))
+    act(() => {
+      rememberDocument(id, { content: null, updatedAt: '2026-10-13T12:00:00.000Z' }, generation)
+      rememberScore(id, { scoreXml: '<old-account/>', updatedAt: '2026-10-13T12:00:00.000Z' }, generation)
+    })
+    expect(result.current).toBeUndefined()
+  })
+
   const fetchMock = vi.fn<typeof fetch>()
   beforeEach(() => {
     clearDocuments()

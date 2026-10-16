@@ -1,16 +1,15 @@
-import { expect as baseExpect, test as base, type Page } from '@playwright/test'
+import { expect as baseExpect, test as base } from '@playwright/test'
 
-import { createTestUser, getTestPayload, TEST_EMAIL_PREFIX, TEST_PASSWORD } from '../helpers/testUsers'
+import {
+  createTestUser,
+  getTestPayload,
+  TEST_EMAIL_PREFIX,
+  TEST_PASSWORD,
+} from '../helpers/testUsers'
 
 import { expect, test } from './fixtures'
 import { SESSION_COOKIE } from '@front/_lib/auth'
-
-// Signs in through the form, as a visitor would
-async function signIn(page: Page, email: string, password: string) {
-  await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password').fill(password)
-  await page.getByRole('button', { name: 'Sign in' }).click()
-}
+import { signIn } from './authHelpers'
 
 base.describe('Login', () => {
   // A fresh, signed-out account per test
@@ -44,7 +43,7 @@ base.describe('Login', () => {
   anonymous('ignores a return address on another site', async ({ page, email }) => {
     await page.goto(`/login?redirect=${encodeURIComponent('//evil.example/phish')}`)
     await signIn(page, email, TEST_PASSWORD)
-    await baseExpect(page).toHaveURL(/^http:\/\/localhost:3000\/$/)
+    await baseExpect(page).toHaveURL('/')
   })
 
   anonymous(
@@ -53,7 +52,7 @@ base.describe('Login', () => {
       await page.goto('/')
       await page.getByRole('link', { name: 'Sign in', exact: true }).click()
       await signIn(page, email, TEST_PASSWORD)
-      await baseExpect(page).toHaveURL(/^http:\/\/localhost:3000\/$/)
+      await baseExpect(page).toHaveURL('/')
       await page.getByRole('button', { name: 'Account', exact: true }).click()
       await baseExpect(page.getByRole('menu', { name: 'Account', exact: true })).toBeVisible()
       await baseExpect(page.getByRole('menu', { name: 'Account', exact: true })).toContainText(
@@ -76,6 +75,15 @@ base.describe('Login', () => {
         await page.goto('/')
         await page.getByRole('link', { name: 'Sign in', exact: true }).click()
         await signIn(page, email, TEST_PASSWORD)
+        await baseExpect(page).toHaveURL('/')
+        if (process.env.PLAYWRIGHT_SERVER_MODE === 'production') {
+          const cookies = await page.context().cookies()
+          baseExpect(
+            cookies.some(
+              (cookie) => cookie.name === SESSION_COOKIE && cookie.secure && cookie.httpOnly,
+            ),
+          ).toBe(true)
+        }
         await page.getByRole('button', { name: 'Account', exact: true }).click()
         await page.getByRole('menuitem', { name: 'Beta invitations' }).click()
         await page.getByLabel('Email').fill(recipient)
@@ -110,7 +118,7 @@ test.describe('Signed in', () => {
     await expect(menu.getByRole('menuitem', { name: 'Profile' })).toBeDisabled()
 
     await menu.getByRole('menuitem', { name: 'Sign out' }).click()
-    await expect(page).toHaveURL(/localhost:3000\/$/)
+    await expect(page).toHaveURL('/')
     await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
     await page.goto('/compositions')
     await expect(page).toHaveURL(/\/login\?redirect=%2Fcompositions$/)
@@ -132,7 +140,7 @@ test.describe('Signed in', () => {
     })
 
     await menu.getByRole('menuitem', { name: 'Sign out' }).click()
-    await expect(page).toHaveURL(/localhost:3000\/$/)
+    await expect(page).toHaveURL('/')
     await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
     expect((await context.cookies()).some(({ name }) => name === SESSION_COOKIE)).toBe(false)
     await page.goto('/compositions')

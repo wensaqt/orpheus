@@ -5,6 +5,7 @@ import { createContext, type ReactNode, use, useRef, useState } from 'react'
 import type { Layout } from '@/lib/layout'
 
 import { saveLayout } from '@front/_features/compositions/actions'
+import type { ActionFailure } from '@front/_lib/actionResult'
 import type { SaveStatus } from '@front/_hooks/types'
 import { useAutosave } from '@front/_hooks/useAutosave'
 
@@ -18,6 +19,7 @@ type LayoutValue = {
   // From the latest layout, so that quick changes (a drag) never start from a stale one
   change: (update: (layout: Layout) => Layout, group?: object) => void
   status: SaveStatus
+  failure: ActionFailure['reason']
 }
 
 const LayoutContext = createContext<LayoutValue | null>(null)
@@ -75,7 +77,9 @@ export function LayoutProvider({ initial, children }: { initial: Layout; childre
   }
 
   return (
-    <LayoutContext value={{ layout, change, status: autosave.status }}>{children}</LayoutContext>
+    <LayoutContext value={{ layout, change, status: autosave.status, failure: autosave.failure }}>
+      {children}
+    </LayoutContext>
   )
 }
 

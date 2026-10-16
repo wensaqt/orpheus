@@ -3,6 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { descriptionOf } from '../../helpers/dom'
 
+const toastError = vi.fn()
+vi.mock('@front/_components/ui/Feedback/ToastProvider', () => ({
+  useToast: () => ({ error: toastError }),
+}))
 const logOut = vi.fn()
 vi.mock('@front/_features/auth/actions', () => ({ logOut }))
 const pathname = vi.fn()
@@ -57,9 +61,11 @@ describe('AccountMenu', () => {
   })
 })
 
-it('offers invitation management only to administrators', () => {
+it('offers invitation management only to administrators', async () => {
   const view = render(<AccountMenu email="admin@example.test" administrator />)
-  fireEvent.click(screen.getByRole('menuitem', { name: 'Beta invitations', hidden: true }))
+  await act(async () => {
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Beta invitations', hidden: true }))
+  })
   expect(push).toHaveBeenCalledWith('/beta/invitations')
   view.rerender(<AccountMenu email="user@example.test" />)
   expect(screen.queryByRole('menuitem', { name: 'Beta invitations', hidden: true })).toBeNull()

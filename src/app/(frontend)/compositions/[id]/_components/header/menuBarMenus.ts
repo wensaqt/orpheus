@@ -89,6 +89,7 @@ const viewMenu = ({ t, view }: MenuContext): MenuDefinition => ({
       label: t('editor.actions.bookView'),
       kind: 'checkbox',
       checked: view.bookView,
+      disabled: !view.bookViewAvailable,
       onSelect: view.toggleBookView,
     },
   ],

@@ -10,6 +10,7 @@ import type { Id } from '@/lib/ids'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { classNames } from '@front/_lib/classNames'
 import { IconButton } from '@front/_components/ui/IconButton/IconButton'
+import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 import type { BinderEntry } from '@front/_features/binder/types'
 import { toGeometry } from '@front/_components/editor/pagination/pageGeometry'
 import { BINDER_HIDDEN_COOKIE, setPreferenceCookie } from '@front/_lib/preferences'
@@ -31,12 +32,14 @@ import { ScoreCommandProvider } from './score/ScoreCommands'
 
 type EditorShellProps = {
   fontClassName: string
+  ownerId: Id
   compositionId: Id
   title: string
   layout: Layout
   entries: BinderEntry[]
   // Remembered in cookies, so the page renders with the side panels as the writer left them
   bookView: boolean
+  bookViewAvailable: boolean
   rulerHidden: boolean
   binderHidden: boolean
   synonymsHidden: boolean
@@ -52,6 +55,7 @@ type EditorShellProps = {
 export function EditorShell({
   fontClassName,
   compositionId,
+  ownerId,
   title,
   layout,
   entries,
@@ -59,20 +63,31 @@ export function EditorShell({
   synonymsHidden,
   rulerHidden,
   bookView,
+  bookViewAvailable,
   children,
 }: EditorShellProps) {
   // Set once the header is mounted: the open document puts its title there
   const [documentTitleSlot, setDocumentTitleSlot] = useState<HTMLDivElement | null>(null)
   // The open document's editor, for the header's tools
   const [openEditor, setOpenEditor] = useState<LexicalEditor | null>(null)
+  const t = useT()
+  const toast = useToast()
+  const warnedComposition = useRef<Id | null>(null)
+  useEffect(() => {
+    if (bookViewAvailable || warnedComposition.current === compositionId) return
+    // Show once per composition opening, including Strict Mode's effect replay.
+    warnedComposition.current = compositionId
+    toast.show(t('editor.safariWarning'))
+  }, [bookViewAvailable, compositionId, t, toast])
 
   return (
     <HistoryProvider>
-      <BinderProvider compositionId={compositionId} entries={entries}>
+      <BinderProvider ownerId={ownerId} compositionId={compositionId} entries={entries}>
         <LayoutProvider initial={layout}>
           <OpenEditorContext value={{ editor: openEditor, setEditor: setOpenEditor }}>
             <EditorViewProvider
               bookView={bookView}
+              bookViewAvailable={bookViewAvailable}
               rulerHidden={rulerHidden}
               synonymsHidden={synonymsHidden}
             >

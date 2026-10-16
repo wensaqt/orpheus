@@ -224,6 +224,8 @@ export const en = {
     },
   },
   editor: {
+    safariWarning:
+      'Safari has issues with the caret and text selection. We recommend Google Chrome for this beta. Book view is temporarily disabled in Safari.',
     loading: 'Opening the document…',
     loadError: 'This document could not be opened. Check your connection, then try again.',
     retry: 'Try again',
@@ -231,6 +233,16 @@ export const en = {
     titleLabel: 'Composition title',
     documentTitleLabel: 'Document title',
     textLabel: 'Document text',
+    sessionExpiredSettings:
+      'Your session expired. Sign in again; unsaved titles and page settings will be reset.',
+    sessionExpired: 'Your session expired. Your draft remains in this tab: sign in again to save.',
+    saveConflict:
+      'Another version was saved. Your writing is preserved here; download it before loading the saved version.',
+    downloadDraft: 'Download my draft',
+    loadSavedVersion: 'Load saved version',
+    discardDraft: 'Discard your local draft and load the saved version?',
+    draftUnavailable:
+      'Your browser cannot store a draft. Keep this tab open until saving is confirmed.',
     saveError: 'Could not save — trying again…',
     historyError: 'Could not undo or redo this change. Try again.',
     toolbar: 'Editor toolbar',
@@ -318,6 +330,13 @@ export const en = {
     },
   },
   score: {
+    sessionExpired:
+      'Your session expired. Your score remains in this tab. Export it as a precaution, sign in in another tab, then retry saving here.',
+    saveConflict:
+      'Another version was saved. Export your changes as MusicXML before loading the saved version.',
+    logInNewTab: 'Sign in in a new tab',
+    retrySave: 'Retry saving after signing in',
+    discardChanges: 'Discard your unsaved changes and load the saved version?',
     intervals: {
       none: 'None',
       majorSecondUp: 'Major second ↑',

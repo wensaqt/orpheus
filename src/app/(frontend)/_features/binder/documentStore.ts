@@ -24,6 +24,7 @@ const listeners = new Set<() => void>()
 const inFlight = new Map<Id, Promise<void>>()
 // Bumped when the store is emptied: answers to loads started before are then dropped
 let generation = 0
+export const documentCacheGeneration = () => generation
 
 const notify = () => listeners.forEach((listener) => listener())
 
@@ -57,14 +58,21 @@ function rememberSnapshot(id: Id, document: DocumentSnapshot) {
   })
 }
 
-export function rememberDocument(id: Id, { content, updatedAt }: DocumentText) {
+export function rememberDocument(
+  id: Id,
+  { content, updatedAt }: DocumentText,
+  expectedGeneration = generation,
+) {
+  if (expectedGeneration !== generation) return
   rememberSnapshot(id, { documentType: 'text', content, updatedAt })
 }
 
 export function rememberScore(
   id: Id,
   { scoreXml, updatedAt }: Pick<EditorDocument, 'scoreXml' | 'updatedAt'>,
+  expectedGeneration = generation,
 ) {
+  if (expectedGeneration !== generation) return
   rememberSnapshot(id, { documentType: 'score', content: null, scoreXml, updatedAt })
 }
 

@@ -230,6 +230,8 @@ export const fr: Messages = {
     },
   },
   editor: {
+    safariWarning:
+      'Safari présente des problèmes de curseur et de sélection. Pour profiter de cette bêta, nous recommandons Google Chrome. La vue livre est temporairement désactivée sur Safari.',
     loading: 'Ouverture du document…',
     loadError: 'Impossible d’ouvrir ce document. Vérifiez votre connexion, puis réessayez.',
     retry: 'Réessayer',
@@ -237,6 +239,17 @@ export const fr: Messages = {
     titleLabel: 'Titre de la composition',
     documentTitleLabel: 'Titre du document',
     textLabel: 'Texte du document',
+    sessionExpiredSettings:
+      'Votre session a expiré. Reconnectez-vous ; les titres et réglages de page non enregistrés seront réinitialisés.',
+    sessionExpired:
+      'Votre session a expiré. Votre brouillon reste dans cet onglet : reconnectez-vous pour enregistrer.',
+    saveConflict:
+      'Une autre version a été enregistrée. Votre texte est conservé ici ; téléchargez-le avant de charger la version enregistrée.',
+    downloadDraft: 'Télécharger mon brouillon',
+    loadSavedVersion: 'Charger la version enregistrée',
+    discardDraft: 'Abandonner votre brouillon local et charger la version enregistrée ?',
+    draftUnavailable:
+      'Le navigateur ne peut pas conserver de brouillon. Gardez cet onglet ouvert jusqu’à confirmation de l’enregistrement.',
     saveError: 'Échec de l’enregistrement — nouvel essai…',
     historyError: 'Impossible d’annuler ou de rétablir cette modification. Réessayez.',
     toolbar: 'Barre d’outils de l’éditeur',
@@ -323,6 +336,14 @@ export const fr: Messages = {
     },
   },
   score: {
+    sessionExpired:
+      'Votre session a expiré. Votre partition reste dans cet onglet. Exportez-la par précaution, reconnectez-vous dans un autre onglet, puis réessayez l’enregistrement ici.',
+    saveConflict:
+      'Une autre version a été enregistrée. Exportez vos modifications en MusicXML avant de charger la version enregistrée.',
+    logInNewTab: 'Se reconnecter dans un nouvel onglet',
+    retrySave: 'Réessayer l’enregistrement après connexion',
+    discardChanges:
+      'Abandonner les modifications non enregistrées et charger la version enregistrée ?',
     intervals: {
       none: 'Aucune',
       majorSecondUp: 'Seconde majeure ↑',

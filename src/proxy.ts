@@ -11,9 +11,18 @@ import { ROUTES } from '@front/_lib/routes'
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
-  if (isProtectedPath(pathname) && !request.cookies.has(SESSION_COOKIE))
+  if (shouldRedirectToLogin(request))
     return NextResponse.redirect(new URL(ROUTES.login(`${pathname}${search}`), request.url))
   return securedPageResponse(request)
+}
+
+function shouldRedirectToLogin(request: NextRequest): boolean {
+  // Server Actions report expired sessions themselves so the editor can preserve its draft.
+  return (
+    request.method !== 'POST' &&
+    isProtectedPath(request.nextUrl.pathname) &&
+    !request.cookies.has(SESSION_COOKIE)
+  )
 }
 
 function securedPageResponse(request: NextRequest) {

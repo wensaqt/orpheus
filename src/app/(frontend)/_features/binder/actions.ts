@@ -9,14 +9,16 @@ import type { Id } from '@/lib/ids'
 import type { BinderItem } from '@/payload-types'
 import { isId } from '@/lib/ids'
 import { validateScoreImport } from '@/lib/scores/validation'
+import { ScoreError } from '@/lib/scores/errors'
 import { SAMPLE_SCORE } from '@/lib/scores/sample'
 import type { ScoreVariant } from '@/lib/scores/variantTitle'
 
 import { type ActionResult, done, failed } from '@front/_lib/actionResult'
-import { authedAction } from '@front/_lib/server/auth'
+import { authedAction, authedSave } from '@front/_lib/server/auth'
 import { getT } from '@front/_lib/server/i18n'
 
 import { binderEntries, toEntry } from './queries'
+import { persistDocumentBody } from './saveDocument'
 import {
   createScoreVariant,
   inBinderTransaction,
@@ -45,67 +47,37 @@ export const loadBinderEntries = authedAction(
   },
 )
 
-// Saves the text of a document (its shape is checked by the collection), returning its version
-export const saveDocument = authedAction(
-  async (
-    { payload, user },
-    id: Id,
-    content: LexicalContent,
-  ): Promise<ActionResult<{ updatedAt: string }>> => {
+// Saves compare the body revision under a row lock, independently of title and placement.
+export const saveDocument = authedSave(
+  async (session, id: Id, content: LexicalContent, revision: string) => {
     if (!isId(id)) return failed
-    try {
-      const item = await payload.findByID({
-        collection: 'binder-items',
-        id,
-        user,
-        overrideAccess: false,
-        depth: 0,
-      })
-      if (item.kind !== 'document' || item.documentType !== 'text') return failed
-      const { updatedAt } = await payload.update({
-        collection: 'binder-items',
-        id,
-        data: { content },
-        user,
-        overrideAccess: false,
-        depth: 0,
-      })
-      return done({ updatedAt })
-    } catch {
-      return failed
-    }
+    return persistDocumentBody(session, id, { content }, revision)
   },
 )
 
-export const saveScoreDocument = authedAction(
-  async (
-    { payload, user },
-    id: Id,
-    scoreXml: string,
-  ): Promise<ActionResult<{ updatedAt: string }>> => {
-    if (!isId(id)) return failed
-    try {
-      validateScoreImport(scoreXml)
-      const item = await payload.findByID({
-        collection: 'binder-items',
-        id,
-        user,
-        overrideAccess: false,
-        depth: 0,
-      })
-      if (item.kind !== 'document' || item.documentType !== 'score') return failed
-      const { updatedAt } = await payload.update({
-        collection: 'binder-items',
-        id,
-        data: { scoreXml },
-        user,
-        overrideAccess: false,
-        depth: 0,
-      })
-      return done({ updatedAt })
-    } catch {
+export const saveScoreDocument = authedSave(
+  // A single object keeps large XML out of React Flight's argument-array size guard.
+  async (session, request: { id: Id; scoreXml: string; expectedRevision: string }) => {
+    if (!request || typeof request !== 'object') {
+      session.payload.logger.warn({ msg: 'Score document save refused: invalid request' })
       return failed
     }
+    const { id, scoreXml, expectedRevision } = request
+    if (!isId(id)) {
+      session.payload.logger.warn({ msg: 'Score document save refused: invalid document ID' })
+      return failed
+    }
+    try {
+      validateScoreImport(scoreXml)
+    } catch (error) {
+      session.payload.logger.warn({
+        msg: 'Score document validation failed',
+        documentId: id,
+        code: error instanceof ScoreError ? error.code : 'unexpected-validation-error',
+      })
+      return failed
+    }
+    return persistDocumentBody(session, id, { scoreXml }, expectedRevision)
   },
 )
 
@@ -160,10 +132,10 @@ export const createBinderItem = authedAction(
 export const createTransposedScore = authedAction(
   async (
     session,
-    sourceId: Id,
-    scoreXml: string,
-    variant: ScoreVariant,
+    request: { sourceId: Id; scoreXml: string; variant: ScoreVariant },
   ): Promise<ActionResult<BinderEntry & Pick<BinderItem, 'updatedAt'>>> => {
+    if (!request) return failed
+    const { sourceId, scoreXml, variant } = request
     if (!isId(sourceId)) return failed
     return inBinderTransaction(session, (req) =>
       createScoreVariant(req, sourceId, scoreXml, variant),
@@ -172,7 +144,7 @@ export const createTransposedScore = authedAction(
 )
 
 // Renames an item; an empty or overlong title is refused
-export const renameBinderItem = authedAction(
+export const renameBinderItem = authedSave(
   async ({ payload, user }, id: Id, title: string, expected?: string): Promise<ActionResult> => {
     const cleaned = cleanTitle(title, MAX_BINDER_TITLE_LENGTH)
     if (!isId(id) || !cleaned || (expected !== undefined && typeof expected !== 'string'))

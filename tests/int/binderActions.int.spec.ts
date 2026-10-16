@@ -1,3 +1,4 @@
+import { contentRevision } from '@/lib/contentRevision'
 import type { Payload } from 'payload'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -14,6 +15,10 @@ const session = vi.hoisted((): { current: { payload: Payload; user: User } | nul
   current: null,
 }))
 vi.mock('@front/_lib/server/auth', () => ({
+  authedSave:
+    <Args extends unknown[], Result>(handler: (s: unknown, ...args: Args) => Promise<Result>) =>
+    (...args: Args) =>
+      handler(session.current, ...args),
   authedAction:
     <Args extends unknown[], Result>(handler: (s: unknown, ...args: Args) => Promise<Result>) =>
     (...args: Args) =>
@@ -71,11 +76,20 @@ describe('binder actions', () => {
     if (score.status !== 'done') throw new Error('Score creation failed')
     const before = await itemsOf(composition)
     const brokenXml = '<score-partwise><broken>'
-    expect(await actions.saveScoreDocument(score.data.id, brokenXml)).toEqual({ status: 'error' })
     expect(
-      await actions.createTransposedScore(score.data.id, brokenXml, {
-        mode: 'key',
-        intervalIndex: 1,
+      await actions.saveScoreDocument({
+        id: score.data.id,
+        scoreXml: brokenXml,
+        expectedRevision: 'a'.repeat(64),
+      }),
+    ).toEqual({
+      status: 'error',
+    })
+    expect(
+      await actions.createTransposedScore({
+        sourceId: score.data.id,
+        scoreXml: brokenXml,
+        variant: { mode: 'key', intervalIndex: 1 },
       }),
     ).toEqual({ status: 'error' })
     expect(await itemsOf(composition)).toEqual(before)
@@ -169,7 +183,11 @@ describe('binder actions', () => {
     for (const result of await Promise.all([
       actions.createBinderItem(composition.id, 'document', null),
       actions.renameBinderItem(first.id, 'Stolen'),
-      actions.saveDocument(first.id, { root: { type: 'root', children: [] } }),
+      actions.saveDocument(
+        first.id,
+        { root: { type: 'root', children: [] } },
+        await contentRevision(first.content),
+      ),
       actions.moveBinderItem(first.id, { parent: null, index: 0 }),
       actions.deleteBinderItem(first.id),
       actions.loadBinderEntries(composition.id),
@@ -213,11 +231,92 @@ describe('binder actions', () => {
   it('saves a document and returns its version stamp', async () => {
     const composition = await newComposition(alice)
     const [first] = await itemsOf(composition)
-    const result = await actions.saveDocument(first.id, {
-      root: { type: 'root', children: [{ type: 'paragraph', version: 1, children: [] }] },
-    })
+    const result = await actions.saveDocument(
+      first.id,
+      {
+        root: { type: 'root', children: [{ type: 'paragraph', version: 1, children: [] }] },
+      },
+      await contentRevision(first.content),
+    )
     expect(result.status).toBe('done')
     if (result.status === 'done') expect(typeof result.data.updatedAt).toBe('string')
+  })
+
+  it('serializes competing saves and refuses the stale body without losing the winner', async () => {
+    const composition = await newComposition(alice)
+    const [document] = await itemsOf(composition)
+    const revision = await contentRevision(document.content)
+    const first = {
+      root: {
+        type: 'root' as const,
+        children: [
+          {
+            type: 'paragraph',
+            version: 1,
+            children: [{ type: 'text', version: 1, text: 'First' }],
+          },
+        ],
+      },
+    }
+    const second = {
+      root: {
+        type: 'root' as const,
+        children: [
+          {
+            type: 'paragraph',
+            version: 1,
+            children: [{ type: 'text', version: 1, text: 'Second' }],
+          },
+        ],
+      },
+    }
+    const results = await Promise.all([
+      actions.saveDocument(document.id, first, revision),
+      actions.saveDocument(document.id, second, revision),
+    ])
+    expect(results.filter((result) => result.status === 'done')).toHaveLength(1)
+    expect(results.filter((result) => result.status === 'error')).toEqual([
+      { status: 'error', reason: 'conflict' },
+    ])
+    const saved = await payload.findByID({ collection: 'binder-items', id: document.id, depth: 0 })
+    expect(saved.content).toEqual(results[0].status === 'done' ? first : second)
+  })
+
+  it('acknowledges an already committed save when retrying after a lost response', async () => {
+    const composition = await newComposition(alice)
+    const [document] = await itemsOf(composition)
+    const previousRevision = await contentRevision(document.content)
+    const content = {
+      root: { type: 'root' as const, children: [{ type: 'paragraph', version: 1, children: [] }] },
+    }
+    const committed = await actions.saveDocument(document.id, content, previousRevision)
+    expect(committed.status).toBe('done')
+    // The caller never received committed.data, so it retries with its original revision.
+    const retry = await actions.saveDocument(document.id, content, previousRevision)
+    expect(retry).toEqual(committed)
+    const saved = await payload.findByID({ collection: 'binder-items', id: document.id })
+    expect(saved.content).toEqual(content)
+    if (committed.status !== 'done') throw new Error('Save failed')
+    expect(saved.updatedAt).toBe(committed.data.updatedAt)
+  })
+
+  it('accepts repeated saves after title changes using the content revision', async () => {
+    const composition = await newComposition(alice)
+    const [document] = await itemsOf(composition)
+    await actions.renameBinderItem(document.id, 'Renamed')
+    const content = {
+      root: { type: 'root' as const, children: [{ type: 'paragraph', version: 1, children: [] }] },
+    }
+    const first = await actions.saveDocument(
+      document.id,
+      content,
+      await contentRevision(document.content),
+    )
+    expect(first.status).toBe('done')
+    if (first.status !== 'done') throw new Error('Save failed')
+    expect((await actions.saveDocument(document.id, content, first.data.revision)).status).toBe(
+      'done',
+    )
   })
 
   it('preserves text font styles in storage and removes them when saving inherited text', async () => {
@@ -236,7 +335,10 @@ describe('binder actions', () => {
     const content = {
       root: { type: 'root' as const, children: [{ type: 'paragraph', version: 1, children }] },
     }
-    expect((await actions.saveDocument(document.id, content)).status).toBe('done')
+    expect(
+      (await actions.saveDocument(document.id, content, await contentRevision(document.content)))
+        .status,
+    ).toBe('done')
     const saved = await payload.findByID({ collection: 'binder-items', id: document.id, depth: 0 })
     expect(saved.content).toEqual(content)
     const inherited = {
@@ -251,7 +353,10 @@ describe('binder actions', () => {
         ],
       },
     }
-    expect((await actions.saveDocument(document.id, inherited)).status).toBe('done')
+    expect(
+      (await actions.saveDocument(document.id, inherited, await contentRevision(saved.content)))
+        .status,
+    ).toBe('done')
     const reset = await payload.findByID({ collection: 'binder-items', id: document.id, depth: 0 })
     expect(reset.content).toEqual(inherited)
   })

@@ -33,6 +33,22 @@ describe('users', () => {
     expect(user).toMatchObject({ role: 'user', plan: 'free' })
   })
 
+  it('recognizes a cookie on navigation and same-origin POSTs, but rejects another origin', async () => {
+    const { token } = await payload.login({
+      collection: 'users',
+      data: { email: user.email, password: TEST_PASSWORD },
+    })
+    const headers = new Headers({
+      cookie: `${payload.config.cookiePrefix}-token=${token}`,
+      'sec-fetch-site': 'same-origin',
+    })
+    expect((await payload.auth({ headers })).user?.id).toBe(user.id)
+    headers.set('origin', payload.config.serverURL)
+    expect((await payload.auth({ headers })).user?.id).toBe(user.id)
+    headers.set('origin', 'https://untrusted.example')
+    expect((await payload.auth({ headers })).user).toBeNull()
+  })
+
   it('cannot grant itself a role or a plan', async () => {
     const updated = await payload.update({
       collection: 'users',
