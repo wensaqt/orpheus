@@ -47,6 +47,12 @@ export default async function AboutPage() {
           <p className={styles.interests}>
             <q>{t('about.author.curiosity')}</q>
           </p>
+          <p className={styles.cvCallout}>
+            {t('about.cvInterest')}{' '}
+            <a className={styles.link} href="/cv_guilhem_final.pdf" download>
+              {t('about.downloadCv')}
+            </a>
+          </p>
         </aside>
       </header>
 
@@ -128,9 +134,6 @@ export default async function AboutPage() {
       </section>
 
       <footer className={styles.footer}>
-        <a className={styles.link} href="/cv_guilhem_final.pdf" download>
-          {t('about.downloadCv')}
-        </a>
         <Link className={styles.link} href={ROUTES.home}>
           {t('about.backHome')} <span aria-hidden="true">↗</span>
         </Link>

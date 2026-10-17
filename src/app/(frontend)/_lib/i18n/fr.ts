@@ -103,7 +103,8 @@ export const fr: Messages = {
       'Guilhem, développeur fullstack passionné d’écriture et de musique, présente son parcours et Orpheus, son éditeur de texte et de partitions.',
     heading: 'Orpheus, des mots et des notes.',
     scroll: 'Découvrir mon projet',
-    downloadCv: 'Télécharger mon CV',
+    cvInterest: 'Intéressé(e) ?',
+    downloadCv: 'Téléchargez mon CV !',
     beta: {
       heading: 'Envie d’essayer Orpheus ?',
       description:

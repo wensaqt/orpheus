@@ -153,6 +153,16 @@
   text-align: start;
   font-style: italic;
 }
+
+.cvCallout {
+  margin-block-start: var(--space-3);
+  text-align: start;
+}
+
+.cvCallout a {
+  font-weight: 600;
+}
+
 .interlude {
   margin-block: var(--space-4);
 }

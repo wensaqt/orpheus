@@ -101,7 +101,8 @@ export const en = {
       'Meet Guilhem, a fullstack developer with a passion for writing and music, and discover Orpheus, his text and sheet music editor.',
     heading: 'Orpheus, words and notes.',
     scroll: 'Discover my project',
-    downloadCv: 'Download my CV',
+    cvInterest: 'Interested?',
+    downloadCv: 'Download my CV!',
     beta: {
       heading: 'Want to try Orpheus?',
       description:
