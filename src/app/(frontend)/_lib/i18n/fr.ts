@@ -104,6 +104,16 @@ export const fr: Messages = {
     heading: 'Orpheus, des mots et des notes.',
     scroll: 'Découvrir mon projet',
     downloadCv: 'Télécharger mon CV',
+    beta: {
+      heading: 'Envie d’essayer Orpheus ?',
+      description:
+        'La bêta accueille un petit nombre de testeurs, sur invitation. Envoyez une demande par e-mail pour recevoir un accès et partager vos retours.',
+      requestAccess: 'Demander un accès bêta',
+      emailHint: 'Le bouton ouvre votre messagerie. Vous pouvez aussi écrire à',
+      emailSubject: 'Demande d’accès à la bêta Orpheus',
+      emailBody:
+        'Bonjour,\n\nJe souhaiterais participer à la bêta d’Orpheus et recevoir un lien d’invitation.\n\nMerci !',
+    },
     introduction:
       'Orpheus est un éditeur de texte et de partitions pour les écrivains et les musiciens. Un espace pour écrire et composer, avec des outils simples et une interface épurée et intuitive.',
     author: {

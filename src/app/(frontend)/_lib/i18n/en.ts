@@ -102,6 +102,16 @@ export const en = {
     heading: 'Orpheus, words and notes.',
     scroll: 'Discover my project',
     downloadCv: 'Download my CV',
+    beta: {
+      heading: 'Want to try Orpheus?',
+      description:
+        'The beta welcomes a small group of testers by invitation. Send a request by email to get access and share your feedback.',
+      requestAccess: 'Request beta access',
+      emailHint: 'The button opens your email app. You can also write to',
+      emailSubject: 'Orpheus beta access request',
+      emailBody:
+        'Hello,\n\nI would like to join the Orpheus beta and receive an invitation link.\n\nThank you!',
+    },
     introduction:
       'Orpheus is a text and sheet music editor for writers and musicians. A space to write and compose, with simple tools and a clean, intuitive interface.',
     author: {

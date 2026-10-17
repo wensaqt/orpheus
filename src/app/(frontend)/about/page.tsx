@@ -4,11 +4,14 @@ import Image from 'next/image'
 import creatorPortrait from '../../../../public/guilhem-coding-perspective.png'
 
 import { Heading } from '@front/_components/ui/Heading/Heading'
+import buttonStyles from '@front/_components/ui/Button/Button.module.css'
 import { ROUTES } from '@front/_lib/routes'
 import { getT } from '@front/_lib/server/i18n'
 
 import { MusicalThread, StoryIllustration } from './StoryIllustration'
 import styles from './page.module.css'
+
+const BETA_CONTACT_EMAIL = 'guilhemclarisse.pro@gmail.com'
 
 export async function generateMetadata() {
   const t = await getT()
@@ -17,6 +20,7 @@ export async function generateMetadata() {
 
 export default async function AboutPage() {
   const t = await getT()
+  const betaRequestHref = `mailto:${BETA_CONTACT_EMAIL}?subject=${encodeURIComponent(t('about.beta.emailSubject'))}&body=${encodeURIComponent(t('about.beta.emailBody'))}`
 
   return (
     <article className={styles.page}>
@@ -101,6 +105,26 @@ export default async function AboutPage() {
           </Heading>
         </div>
         <p className={styles.prose}>{t('about.intention.text')}</p>
+      </section>
+
+      <section className={styles.betaAccess} aria-labelledby="about-beta">
+        <Heading level={2} variant="panel" id="about-beta">
+          {t('about.beta.heading')}
+        </Heading>
+        <p>{t('about.beta.description')}</p>
+        <a
+          className={`${buttonStyles.button} ${styles.betaLink}`}
+          data-variant="primary"
+          href={betaRequestHref}
+        >
+          {t('about.beta.requestAccess')}
+        </a>
+        <p className={styles.betaContact}>
+          {t('about.beta.emailHint')}{' '}
+          <a className={styles.link} href={betaRequestHref}>
+            {BETA_CONTACT_EMAIL}
+          </a>
+        </p>
       </section>
 
       <footer className={styles.footer}>
