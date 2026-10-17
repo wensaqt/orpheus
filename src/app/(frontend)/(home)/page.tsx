@@ -8,16 +8,16 @@ import { ROUTES } from '@front/_lib/routes'
 import { LyreButton } from './_components/LyreButton/LyreButton'
 import { LyreSide } from './_components/LyreButton/types'
 import { NewCompositionButton } from './_components/NewCompositionButton'
-import styles from './page.module.css'
+import styles from './home.module.css'
 
 export default async function HomePage() {
   const t = await getT()
   return (
     <>
-      <header className={styles.mobileIntroduction}>
+      <header className={styles.introduction}>
         <p className={styles.wordmark}>{t('app.name')}</p>
-        <h1>{t('home.mobile.heading')}</h1>
-        <p className={styles.mobileSubtitle}>{t('home.mobile.subtitle')}</p>
+        <h1>{t('home.introduction.heading')}</h1>
+        <p className={styles.introductionSubtitle}>{t('home.introduction.subtitle')}</p>
       </header>
       <div className={styles.container}>
         {/* Created via POST (server action): a link would be prefetched and create documents */}

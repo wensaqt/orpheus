@@ -91,7 +91,7 @@ export const en = {
     },
   },
   home: {
-    mobile: {
+    introduction: {
       heading: 'A page of your own.',
       subtitle: 'For words, for notes, for whatever inspires you.',
     },

@@ -1,6 +1,6 @@
 import { LyreSide } from './types'
 
-// Small decorative drawings replace the interactive lyre on narrow screens.
+// Small decorative drawings replace the interactive lyre in the card layout.
 export function ChoiceIllustration({ side }: { side: LyreSide }) {
   return (
     <svg

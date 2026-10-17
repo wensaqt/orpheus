@@ -59,7 +59,7 @@ export function useLyreInput({ side, pluck, handlers }: Options) {
   // Pointer coordinates in the viewBox (the right side is drawn mirrored); none before it is drawn
   function toLyre(e: React.PointerEvent) {
     rect.current ??= svgRef.current?.getBoundingClientRect() ?? null
-    // The mobile layout hides the lyre; a zero-size viewBox cannot receive pointer input.
+    // The card layout hides the lyre; a zero-size viewBox cannot receive pointer input.
     if (!rect.current?.width || !rect.current.height) return null
     const { left, top, width, height } = rect.current
     const x = ((e.clientX - left) / width) * W

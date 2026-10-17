@@ -93,7 +93,7 @@ export const fr: Messages = {
     },
   },
   home: {
-    mobile: {
+    introduction: {
       heading: 'Une page à vous.',
       subtitle: 'Pour les mots, pour les notes, pour ce qui vous inspire.',
     },
