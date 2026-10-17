@@ -109,7 +109,7 @@
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 1100px), (hover: none), (pointer: coarse) {
   .label {
     align-items: flex-start;
     gap: var(--space-3);
@@ -148,5 +148,17 @@
     color: inherit;
     font-weight: 400;
     letter-spacing: 0;
+  }
+}
+
+@media (max-width: 1100px), (hover: none), (pointer: coarse) {
+  @media (min-width: 701px) {
+    .title {
+      font-size: 1.75rem;
+    }
+
+    .subtitle {
+      font-size: var(--text-base);
+    }
   }
 }
