@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 
-import creatorPortrait from '../../../../public/guilhem-coding-complete.png'
+import creatorPortrait from '../../../../public/guilhem-coding-perspective.png'
 
 import { Heading } from '@front/_components/ui/Heading/Heading'
 import { ROUTES } from '@front/_lib/routes'
