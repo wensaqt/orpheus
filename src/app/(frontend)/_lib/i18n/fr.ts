@@ -102,33 +102,46 @@ export const fr: Messages = {
     browse: { title: 'Toutes les compositions', subtitle: 'Retrouver vos pièces' },
   },
   about: {
-    pageTitle: 'À propos d’Orpheus',
+    pageTitle: 'À propos',
     description:
-      'Un éditeur de texte et de partitions né de deux passions : la musique et l’écriture.',
-    heading: 'Des mots, des notes, un même élan.',
-    scroll: 'Au fil du projet',
-    signature: 'Un projet imaginé et développé par Guilhem',
+      'Guilhem, développeur fullstack passionné d’écriture et de musique, présente son parcours et Orpheus, son éditeur de texte et de partitions.',
+    heading: 'Orpheus, des mots et des notes.',
+    scroll: 'Découvrir mon projet',
+    cvInterest: 'Intéressé(e) ?',
+    downloadCv: 'Téléchargez mon CV !',
+    beta: {
+      heading: 'Envie d’essayer Orpheus ?',
+      description:
+        'La bêta accueille un petit nombre de testeurs, sur invitation. Envoyez une demande par e-mail pour recevoir un accès et partager vos retours.',
+      requestAccess: 'Demander un accès bêta',
+      emailHint: 'Le bouton ouvre votre messagerie. Vous pouvez aussi écrire à',
+      emailSubject: 'Demande d’accès à la bêta Orpheus',
+      emailBody:
+        'Bonjour,\n\nJe souhaiterais participer à la bêta d’Orpheus et recevoir un lien d’invitation.\n\nMerci !',
+    },
     introduction:
       'Orpheus est un éditeur de texte et de partitions pour les écrivains et les musiciens. Un espace pour écrire et composer, avec des outils simples et une interface épurée et intuitive.',
     author: {
-      heading: 'Derrière Orpheus, Guilhem',
+      title: 'Le créateur',
+      heading: 'Écrire, explorer, créer',
+      portraitAlt:
+        'Illustration de Guilhem codant sur son Mac, avec un petit compagnon IA sur l’épaule.',
       role: 'Développeur fullstack',
       fields: 'Web & logiciel',
-      interests: 'Curieux aussi d’IA et de systèmes embarqués',
       curiosity:
-        'Au-delà du développement web et logiciel, je m’intéresse beaucoup à l’intelligence artificielle et aux systèmes embarqués. J’aime explorer ces domaines et relever de nouveaux défis techniques.',
+        'En ce moment, je cherche à aller au-delà du développement web et à explorer des domaines plus complexes : l’intelligence artificielle, la sécurité et les systèmes embarqués. J’apprends Rust et C++ et je me fais la main sur Qt et Embassy.',
       background:
-        'Je m’appelle Guilhem. Fraîchement diplômé d’un master, je recherche mon premier emploi en tant que développeur fullstack, dans le web ou le logiciel. En attendant cette première opportunité, j’ai décidé de me mettre au défi : concevoir et développer mon propre produit, un projet qui me ressemble.',
+        'Je m’appelle Guilhem. Fraîchement diplômé d’un master, je recherche mon premier emploi en tant que développeur fullstack, dans le web ou le logiciel.',
       writing:
         'J’écris depuis quinze ans. C’est ma première passion, et c’est elle qui a donné son point de départ à Orpheus : l’envie de créer un espace pour écrire.',
     },
     origin: {
       heading: 'Deux passions, un projet',
-      text: 'La musique a aussi une place importante dans ma vie. Je suis avant tout un mélomane, issu d’une famille de musiciens. C’est en discutant avec eux qu’est née l’idée d’ajouter un éditeur de partitions à l’éditeur de texte. Orpheus est ainsi devenu une façon de réunir ces deux passions dans un même projet.',
+      text: 'D’abord pensé pour l’écriture, Orpheus s’est ouvert à la musique au fil d’échanges avec des musiciens. L’éditeur de partitions est venu compléter l’éditeur de texte, pour réunir les mots et les notes dans un même espace de création.',
     },
     intention: {
       heading: 'Faire de la place à la création',
-      text: 'Mon intention est de proposer un outil dans lequel on trouve facilement ses repères, pour se consacrer à ce que l’on souhaite exprimer. Que l’on écrive un texte ou une partition, les outils doivent accompagner l’idée et laisser la création au premier plan.',
+      text: 'Orpheus propose un espace dans lequel on trouve facilement ses repères, pour se consacrer à ce que l’on souhaite exprimer. Que l’on écrive un texte ou une partition, les outils accompagnent l’idée et laissent la création au premier plan.',
     },
     backHome: 'Revenir à l’accueil',
   },
