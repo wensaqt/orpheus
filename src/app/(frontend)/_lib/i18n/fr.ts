@@ -93,6 +93,10 @@ export const fr: Messages = {
     },
   },
   home: {
+    introduction: {
+      heading: 'Une page à vous.',
+      subtitle: 'Pour les mots, pour les notes, pour ce qui vous inspire.',
+    },
     about: 'À propos d’Orpheus',
     create: { title: 'Nouvelle composition', subtitle: 'Commencer une nouvelle pièce' },
     browse: { title: 'Toutes les compositions', subtitle: 'Retrouver vos pièces' },

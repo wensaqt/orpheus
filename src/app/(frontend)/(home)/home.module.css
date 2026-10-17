@@ -1,0 +1,512 @@
+.container {
+  position: relative;
+  display: flex;
+  flex-grow: 1;
+}
+
+.footer {
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  text-align: center;
+  font-size: var(--text-sm);
+}
+
+.footer a {
+  display: inline-block;
+  padding: var(--space-2);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  text-underline-offset: 0.25em;
+}
+
+.footer a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.footer a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.section,
+.sectionButton {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The form takes the button's place and lets it fill the whole section */
+.section {
+  display: flex;
+}
+
+/* Separator between the two choices */
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.introduction {
+  display: none;
+}
+
+.button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  /* On touch, a horizontal swipe plays the strings instead of being captured by the browser */
+  touch-action: pan-y;
+  transition: background-color var(--duration);
+}
+
+.button:hover {
+  background-color: var(--color-surface-raised);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: calc(-1 * var(--space-3));
+}
+
+.illustration,
+.arrow {
+  display: none;
+}
+
+.label {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  /* Serves as the halo's unit */
+  font-size: var(--text-xl);
+}
+
+/*
+ * Halo in the parent's background colour that hides the lyre behind the text. The gradient uses
+ * currentColor so it animates in step with the parent's background.
+ */
+.label::before {
+  content: '';
+  position: absolute;
+  inset: -2.5em -3.5em;
+  z-index: -1;
+  color: var(--color-bg);
+  background: radial-gradient(closest-side, currentColor 40%, transparent);
+  opacity: 0.5;
+  transition: color var(--duration);
+}
+
+:hover > .label::before {
+  color: var(--color-surface-raised);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  color: var(--color-primary);
+  transition:
+    color var(--duration-slow),
+    font-weight var(--duration-slow),
+    letter-spacing var(--duration-slow);
+}
+
+/* Nunito Sans is a variable font, so the weight animates smoothly */
+:is(:hover, :focus-visible) > .label .title {
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--color-primary-hover);
+}
+
+/*
+ * Rule and subtitle share width, duration and easing: the tip of the rule reveals the
+ * subtitle as it advances. Both start from the lyre's axis and go outwards.
+ */
+.line,
+.subtitle {
+  align-self: stretch;
+  transition-duration: var(--duration-slowest);
+  transition-timing-function: var(--ease-out);
+}
+
+.line {
+  height: var(--rule-thickness);
+  /* Colour of the hovered title (the rule is only visible on hover), like the Divider */
+  background-color: var(--color-divider);
+  scale: 0 1;
+  transition-property: scale;
+}
+
+.label[data-side='left'] .line {
+  transform-origin: right;
+}
+
+.label[data-side='right'] .line {
+  transform-origin: left;
+}
+
+.subtitle {
+  font-size: var(--text-base);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--color-text-muted);
+  transition-property: clip-path;
+}
+
+.label[data-side='left'] .subtitle {
+  clip-path: inset(0 0 0 100%);
+}
+
+.label[data-side='right'] .subtitle {
+  clip-path: inset(0 100% 0 0);
+}
+
+:is(:hover, :focus-visible) > .label .line {
+  scale: 1 1;
+}
+
+:is(:hover, :focus-visible) > .label .subtitle {
+  clip-path: inset(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .label::before,
+  .title,
+  .line,
+  .subtitle,
+  .lyre {
+    transition: none;
+  }
+}
+/*
+ * Half-lyre pinned to the inner edge: the two halves form a lyre in the centre of the page.
+ * It overflows the section vertically (clipped by the parent); width follows the ratio.
+ */
+.lyre {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  height: 180%;
+  aspect-ratio: 120 / 300;
+  color: var(--color-ornament-active);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-slower);
+}
+
+.lyre[data-side='left'] {
+  right: 0;
+}
+
+.lyre[data-side='right'] {
+  left: 0;
+  scale: -1 1;
+}
+
+/* Only the active parent's half is shown */
+:is(:hover, :focus-visible) > .lyre {
+  opacity: 1;
+}
+
+.frame {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 36;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* vector-effect isn't inherited: it must be set on each path */
+.frame path {
+  vector-effect: non-scaling-stroke;
+}
+
+.string {
+  fill: none;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  /* At rest, the strings are paler than the frame (value mirrored in useLyrePluck) */
+  --string-rest-opacity: 0.65;
+  opacity: var(--string-rest-opacity);
+}
+
+/* Keep the page, labels and illustrations in the same layout mode. */
+@media (max-width: 1100px), (hover: none), (pointer: coarse) {
+  .introduction {
+    display: block;
+    width: min(100%, 32rem);
+    margin-inline: auto;
+    padding: 5.5rem var(--space-4) var(--space-5);
+  }
+
+  .wordmark {
+    margin-block-end: var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .introduction h1 {
+    color: var(--color-primary);
+    font-size: clamp(2rem, 8vw, 2.75rem);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .introductionSubtitle {
+    max-width: 30ch;
+    margin-block-start: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.7;
+  }
+
+  .container {
+    flex-direction: column;
+    flex-grow: 0;
+    width: min(100%, 32rem);
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .section,
+  .sectionButton {
+    flex: auto;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .footer {
+    margin-block-start: auto;
+    padding-block-start: var(--space-5);
+  }
+
+  .button {
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 10rem;
+    padding: var(--space-4) 6rem var(--space-4) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-raised);
+    color: var(--color-primary);
+    text-align: start;
+    touch-action: auto;
+    box-shadow: var(--shadow-sheet);
+  }
+
+  .button[data-side='left'] {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
+  .button[data-side='left']:hover {
+    background: var(--color-primary-hover);
+  }
+
+  .button:focus-visible {
+    outline-offset: var(--space-1);
+  }
+
+  .button:disabled {
+    cursor: progress;
+    opacity: 0.8;
+  }
+
+  .illustration {
+    position: absolute;
+    display: block;
+    width: 6rem;
+    inset-inline-end: var(--space-2);
+    top: var(--space-2);
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .arrow {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    inset-inline-end: var(--space-4);
+    bottom: var(--space-4);
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-size: var(--text-base);
+    opacity: 0.75;
+  }
+
+  .label {
+    align-items: flex-start;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .label::before,
+  .line {
+    display: none;
+  }
+
+  .title {
+    color: inherit;
+    font-size: clamp(1.25rem, 5vw, 1.5rem);
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  .subtitle {
+    color: inherit;
+    font-size: var(--text-sm);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
+    text-align: start;
+    opacity: 0.85;
+  }
+
+  .label[data-side] .subtitle {
+    clip-path: none;
+  }
+
+  :is(:hover, :focus-visible) > .label .title {
+    color: inherit;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .lyre {
+    display: none;
+  }
+
+  @media (max-width: 700px) and (max-height: 700px) {
+    .introduction {
+      padding-block: 4.5rem var(--space-4);
+    }
+
+    .wordmark {
+      margin-block-end: var(--space-2);
+    }
+
+    .introductionSubtitle {
+      margin-block-start: var(--space-2);
+    }
+
+    .button {
+      min-height: 9rem;
+      padding-block: 1.25rem;
+    }
+  }
+
+  @media (min-width: 701px) {
+    .introduction,
+    .container {
+      width: min(100%, 42rem);
+    }
+
+    .introduction {
+      padding-block: clamp(6rem, 12vh, 9rem) var(--space-6);
+    }
+
+    .introduction h1 {
+      font-size: 3.5rem;
+    }
+
+    .introductionSubtitle {
+      max-width: 42ch;
+      font-size: var(--text-base);
+    }
+
+    .container {
+      gap: var(--space-4);
+    }
+
+    .button {
+      min-height: 14rem;
+      padding: var(--space-5) 9rem var(--space-5) var(--space-5);
+    }
+
+    .illustration {
+      width: 8rem;
+      inset-inline-end: var(--space-3);
+      top: var(--space-3);
+    }
+
+    .arrow {
+      inset-inline-end: var(--space-5);
+      bottom: var(--space-5);
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .title {
+      font-size: var(--text-xl);
+    }
+
+    .subtitle {
+      font-size: var(--text-base);
+    }
+  }
+
+  @media (min-width: 760px) and (orientation: landscape) {
+    .introduction,
+    .container {
+      width: min(100%, 64rem);
+    }
+
+    .introduction {
+      padding-block: 5.5rem var(--space-5);
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+    }
+
+    .section,
+    .sectionButton {
+      flex: 1;
+    }
+
+    .button {
+      align-items: flex-end;
+      min-height: 20rem;
+      padding: 10rem var(--space-5) var(--space-6);
+    }
+
+    .illustration {
+      inset-inline-end: var(--space-5);
+    }
+
+    .arrow {
+      bottom: var(--space-3);
+    }
+  }
+}

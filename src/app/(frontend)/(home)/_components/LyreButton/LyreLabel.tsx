@@ -1,4 +1,4 @@
-import styles from './LyreLabel.module.css'
+import styles from '../../home.module.css'
 import { LyreSide } from './types'
 
 type LyreLabelProps = {

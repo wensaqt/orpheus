@@ -1,7 +1,7 @@
 import React, { useId } from 'react'
 
 import { FRAME_PATHS, H, restPath, STRINGS, W } from './geometry'
-import styles from './LyreHalf.module.css'
+import styles from '../../home.module.css'
 import { LyreSide } from './types'
 
 type LyreHalfProps = {
