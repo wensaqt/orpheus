@@ -67,6 +67,11 @@ export function ScoreMenuBar() {
             onSelect: commands?.undo,
             disabled: !commands?.canUndo,
           },
+          {
+            label: t('editor.actions.redo'),
+            onSelect: commands?.redo,
+            disabled: !commands?.canRedo,
+          },
           MENU_SEPARATOR,
           {
             label: t('score.correctPitch'),

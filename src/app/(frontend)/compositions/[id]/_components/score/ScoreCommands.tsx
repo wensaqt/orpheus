@@ -7,6 +7,8 @@ export type ScoreCommands = {
   setPanel: (panel: ScorePanel) => void
   undo: () => void
   canUndo: boolean
+  redo: () => void
+  canRedo: boolean
   download: () => void
   print: () => void
 }

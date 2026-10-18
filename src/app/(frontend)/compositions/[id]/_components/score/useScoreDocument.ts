@@ -1,4 +1,5 @@
 import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
+import { IS_APPLE } from 'lexical'
 
 import { contentRevision } from '@/lib/contentRevision'
 import { MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
@@ -28,7 +29,7 @@ import { useScoreImport } from './useScoreImport'
 import { useScoreTransposition } from './useScoreTransposition'
 import { useScoreXml } from './useScoreXml'
 import { useScorePanel } from './useScorePanel'
-import { isModShortcut } from '@front/_components/ui/shortcuts'
+import { isModShortcut, isModShiftShortcut } from '@front/_components/ui/shortcuts'
 
 type ScoreDocumentOptions = { id: Id; title: string; initialXml: string }
 
@@ -141,7 +142,7 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
   function correctNote(index: number, pitch: Pitch) {
     if (importInProgress.current) return
     try {
-      changeXml(correctPitch(content.xml, index, pitch))
+      changeXml(correctPitch(content.xmlRef.current, index, pitch))
     } catch (cause) {
       setError(scoreErrorMessage(cause, t, 'correctionFailed'))
     }
@@ -159,16 +160,35 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
     resetPreview()
     queueSave()
   }, [restorePreviousXml, resetPreview, queueSave, importInProgress])
+  const restoreNextXml = content.restoreNextXml
+  const redoXml = useCallback(() => {
+    if (importInProgress.current) return
+    if (!restoreNextXml()) return
+    resetPreview()
+    queueSave()
+  }, [restoreNextXml, resetPreview, queueSave, importInProgress])
   const actions: ScoreCommands = useMemo(
     () => ({
       openImport: () => fileInput.current?.click(),
       setPanel: openPanel,
       undo: undoXml,
       canUndo: content.canUndo && !isImporting,
+      redo: redoXml,
+      canRedo: content.canRedo && !isImporting,
       download: () => downloadXml(content.xml, title),
       print: () => window.print(),
     }),
-    [fileInput, openPanel, undoXml, content.canUndo, content.xml, title, isImporting],
+    [
+      fileInput,
+      openPanel,
+      undoXml,
+      redoXml,
+      content.canUndo,
+      content.canRedo,
+      content.xml,
+      title,
+      isImporting,
+    ],
   )
   useRegisterScoreCommands(actions)
 
@@ -177,14 +197,16 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
       closePanel()
       return
     }
-    if (!isModShortcut(event, 'z')) return
+    const redo = isModShiftShortcut(event, 'z') || (!IS_APPLE && isModShortcut(event, 'y'))
+    if (!redo && !isModShortcut(event, 'z')) return
     if (
       event.target instanceof HTMLElement &&
-      event.target.closest('input, textarea, [contenteditable=true]')
+      event.target.closest('input, textarea, select, [contenteditable=true]')
     )
       return
     event.preventDefault()
-    undoXml()
+    if (redo) redoXml()
+    else undoXml()
   }
   return {
     sheetRef,

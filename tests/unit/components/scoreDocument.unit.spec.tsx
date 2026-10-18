@@ -186,6 +186,16 @@ it('preserves ordered snapshots and saves the current XML after imports and undo
     scoreXml: first,
     expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
   })
+  expect(commands.canRedo).toBe(true)
+  act(() => commands.redo())
+  await flushContent()
+  expect(renderer.xml).toBe(second)
+  expect(saveScore).toHaveBeenLastCalledWith({
+    id: '1',
+    scoreXml: second,
+    expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
+  })
+  act(() => commands.undo())
   act(() => commands.undo())
   expect(renderer.xml).toBe(SAMPLE_SCORE)
   expect(commands.canUndo).toBe(false)
@@ -267,6 +277,40 @@ it('rejects an invalid pitch without a snapshot, then saves and undoes a valid c
     scoreXml: SAMPLE_SCORE,
     expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
   })
+})
+
+it('keeps both pitch corrections made before React rerenders', () => {
+  const { result } = renderHook(() =>
+    useScoreDocument({ id: '1', title: 'Study', initialXml: SAMPLE_SCORE }),
+  )
+  act(() => {
+    result.current.panelProps.correction.onEdit(0, { step: 'D', alter: 0, octave: 5 })
+    result.current.panelProps.correction.onEdit(1, { step: 'E', alter: 0, octave: 5 })
+  })
+  const xml = new DOMParser().parseFromString(result.current.rendererProps.xml, 'application/xml')
+  expect(
+    Array.from(xml.querySelectorAll('part > measure > note > pitch > step'))
+      .slice(0, 2)
+      .map((step) => step.textContent),
+  ).toEqual(['D', 'E'])
+  act(() => commands.undo())
+  expect(result.current.rendererProps.xml).toContain('<step>D</step>')
+  act(() => commands.undo())
+  expect(result.current.rendererProps.xml).toBe(SAMPLE_SCORE)
+})
+
+it('handles undo and redo shortcuts outside editable fields', async () => {
+  render(<ScoreDocumentLoader id="1" initial={initial} />)
+  const changed = SAMPLE_SCORE.replace('Piano', 'Violin')
+  await importXml(changed)
+  const score = screen.getByText('Pick note')
+  fireEvent.keyDown(score, { key: 'z', ctrlKey: true })
+  expect(renderer.xml).toBe(SAMPLE_SCORE)
+  fireEvent.keyDown(score, { key: 'Z', ctrlKey: true, shiftKey: true })
+  expect(renderer.xml).toBe(changed)
+  act(() => commands.setPanel('correct'))
+  fireEvent.keyDown(screen.getAllByRole('combobox')[0], { key: 'z', ctrlKey: true })
+  expect(renderer.xml).toBe(changed)
 })
 
 it('reopens the saved score instead of its stale server snapshot', async () => {
