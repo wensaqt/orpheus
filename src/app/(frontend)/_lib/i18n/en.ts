@@ -198,6 +198,9 @@ export const en = {
     },
   },
   binder: {
+    previousDocument: 'Previous document',
+    nextDocument: 'Next document',
+    openCurrentDocument: 'Open binder — current document: {title}',
     label: 'Binder',
     toolbar: 'Binder actions',
     treeLabel: 'Documents and folders',
@@ -242,6 +245,7 @@ export const en = {
     },
   },
   editor: {
+    actionsMenu: 'Actions',
     safariWarning:
       'Safari has issues with the caret and text selection. We recommend Google Chrome for this beta. Book view is temporarily disabled in Safari.',
     loading: 'Opening the document…',
@@ -330,6 +334,8 @@ export const en = {
       other: 'Other style',
     },
     pageSetup: {
+      continuousHint:
+        'These settings apply to printed pages. Your writing space still fits the screen.',
       open: 'Page setup',
       format: 'Format',
       margins: 'Margins',

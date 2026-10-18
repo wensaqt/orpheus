@@ -214,19 +214,19 @@ test.describe('Book view', () => {
     ).toBeInViewport()
   })
 
-  test('fits two A5 pages on a narrow screen and places the caret from the right margin', async ({
+  test('fits two A4 pages on a narrow desktop and places the caret from the right margin', async ({
     page,
     account,
   }) => {
-    await page.setViewportSize({ width: 700, height: 900 })
-    await openDocument(page, account, fourBookPages(), { format: 'A5' })
+    await page.setViewportSize({ width: 1200, height: 900 })
+    await openDocument(page, account, fourBookPages(), { format: 'A4' })
     await toggleBookView(page)
     const left = await boxOf(page.locator(sheetSelector).nth(0))
     const right = await boxOf(page.locator(sheetSelector).nth(1))
     const ruler = await boxOf(page.getByRole('group', { name: 'Ruler' }))
     expect(ruler.x).toBeCloseTo(left.x, 0)
     expect(ruler.width).toBeCloseTo(left.width, 0)
-    expect(right.x + right.width).toBeLessThanOrEqual(700)
+    expect(right.x + right.width).toBeLessThanOrEqual(1200)
     expect(right.height).toBeGreaterThan(right.width)
     const text = await boxOf(page.locator(editable).getByText('Right page', { exact: true }))
     await page.mouse.click(right.x + 5, text.y + text.height / 2)
@@ -730,7 +730,7 @@ test.describe('Pagination', () => {
   test('resizing the window changes nothing in the pages', async ({ page, account }) => {
     await openDocument(page, account, prose(30))
     const wide = await readLayout(page)
-    await page.setViewportSize({ width: 900, height: 700 })
+    await page.setViewportSize({ width: 1200, height: 700 })
     await settle(page)
     const narrow = await readLayout(page)
     expect(narrow.linesPerPage).toEqual(wide.linesPerPage)

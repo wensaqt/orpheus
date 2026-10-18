@@ -1,0 +1,70 @@
+.bar {
+  display: grid;
+  position: fixed;
+  inset-inline: 0;
+  /* Follow the visual viewport so the on-screen keyboard does not cover navigation. */
+  top: calc(
+    var(--visible-viewport-height, 100dvh) + var(--visible-viewport-offset-top, 0px) -
+      var(--mobile-document-bar-height)
+  );
+  z-index: var(--layer-drawer);
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--mobile-document-bar-height);
+  padding: var(--space-1) max(var(--space-3), env(safe-area-inset-left))
+    max(var(--space-1), env(safe-area-inset-bottom)) max(var(--space-3), env(safe-area-inset-right));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sheet);
+}
+
+.bar > :global(button):first-child,
+.bar > :global(button):last-child {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.bar > :global(button:disabled):first-child,
+.bar > :global(button:disabled):last-child {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.title {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  overflow: hidden;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.title:is(:hover, :focus-visible) {
+  background: var(--color-surface-accent);
+  color: var(--color-primary-hover);
+}
+
+.title:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.previousIcon {
+  display: grid;
+  rotate: 180deg;
+}
+
+@media print {
+  .bar {
+    display: none;
+  }
+}

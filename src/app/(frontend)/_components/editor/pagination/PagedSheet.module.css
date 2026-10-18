@@ -179,3 +179,36 @@
     width: var(--page-w);
   }
 }
+
+/* Paper layout is restored by print media or synchronous beforeprint preparation. */
+@media screen {
+  .paged[data-continuous='true']:not([data-print-layout]) {
+    width: 100%;
+    height: auto;
+    min-height: calc(100svh - var(--editor-header-height));
+  }
+
+  .paged[data-continuous='true']:not([data-print-layout]) .flow {
+    padding: var(--writing-padding, var(--space-4));
+  }
+
+  .paged[data-continuous='true']:not([data-print-layout]) :is(.sheets, .bands) {
+    display: none;
+  }
+
+  .paged[data-continuous='true']:not([data-print-layout]) [contenteditable='true'] {
+    min-height: calc(
+      var(--visible-viewport-height, 100svh) - var(--editor-header-height) - 2 *
+        var(--writing-padding, var(--space-4))
+    );
+  }
+
+  .paged[data-continuous='true']:not([data-print-layout]) .text {
+    overflow-wrap: anywhere;
+  }
+
+  .paged[data-continuous='true']:not([data-print-layout]) [data-page-break] {
+    height: var(--space-4);
+    margin-block: var(--space-2);
+  }
+}

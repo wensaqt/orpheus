@@ -9,6 +9,7 @@ import type { Id } from '@/lib/ids'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { classNames } from '@front/_lib/classNames'
+import { Dialog, DialogTitle } from '@front/_components/ui/Dialog/Dialog'
 import { IconButton } from '@front/_components/ui/IconButton/IconButton'
 import { useToast } from '@front/_components/ui/Feedback/ToastProvider'
 import type { BinderEntry } from '@front/_features/binder/types'
@@ -24,11 +25,13 @@ import { EditorHeader } from './header/EditorHeader'
 import { OpenEditorContext } from './editorFocus'
 import { LayoutProvider, useLayout } from './page/LayoutProvider'
 import { Ruler } from './page/Ruler'
+import { useEditorDisplay } from './editorDisplay'
 import { useSideRoom } from './sideRoom'
 import { HistoryProvider, historyShortcut, useEditorHistory } from './history/HistoryProvider'
 import { EditorViewProvider, useEditorView } from './editorView'
 import { SynonymsPanel } from './SynonymsPanel'
 import { ScoreCommandProvider } from './score/ScoreCommands'
+import { MobileDocumentNavigator } from './document/MobileDocumentNavigator'
 
 type EditorShellProps = {
   fontClassName: string
@@ -70,15 +73,22 @@ export function EditorShell({
   const [documentTitleSlot, setDocumentTitleSlot] = useState<HTMLDivElement | null>(null)
   // The open document's editor, for the header's tools
   const [openEditor, setOpenEditor] = useState<LexicalEditor | null>(null)
+  const display = useEditorDisplay()
   const t = useT()
   const toast = useToast()
   const warnedComposition = useRef<Id | null>(null)
   useEffect(() => {
-    if (bookViewAvailable || warnedComposition.current === compositionId) return
+    if (
+      !display.ready ||
+      display.continuous ||
+      bookViewAvailable ||
+      warnedComposition.current === compositionId
+    )
+      return
     // Show once per composition opening, including Strict Mode's effect replay.
     warnedComposition.current = compositionId
     toast.show(t('editor.safariWarning'))
-  }, [bookViewAvailable, compositionId, t, toast])
+  }, [display.ready, display.continuous, bookViewAvailable, compositionId, t, toast])
 
   return (
     <HistoryProvider>
@@ -86,6 +96,8 @@ export function EditorShell({
         <LayoutProvider initial={layout}>
           <OpenEditorContext value={{ editor: openEditor, setEditor: setOpenEditor }}>
             <EditorViewProvider
+              continuous={display.continuous}
+              sidebarAvailable={display.sidebar}
               bookView={bookView}
               bookViewAvailable={bookViewAvailable}
               rulerHidden={rulerHidden}
@@ -116,17 +128,27 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   const t = useT()
   const { layout } = useLayout()
   const [binderFolded, setBinderFolded] = useState(binderHidden)
+  const [binderOver, setBinderOver] = useState(false)
   const view = useEditorView()
   const { entries, activeDocumentId } = useBinder()
   const scoreOpen = entries.some(
     (entry) => entry.id === activeDocumentId && entry.documentType === 'score',
   )
+  const lastDocument = useRef(activeDocumentId)
+  useEffect(() => {
+    if (lastDocument.current === activeDocumentId) return
+    lastDocument.current = activeDocumentId
+    setBinderOver(false)
+  }, [activeDocumentId])
+  const continuous = view.continuous && !scoreOpen
+  const binderDrawer = view.continuous && !view.sidebarAvailable
   const desk = useRef<HTMLDivElement>(null)
   const binderCell = useRef<HTMLDivElement>(null)
   const panelProbe = useRef<HTMLDivElement>(null)
   const column = useRef<HTMLDivElement>(null)
   const surface = useRef<HTMLDivElement>(null)
   const showSynonyms = useRef<HTMLButtonElement>(null)
+  const binderTrigger = useRef<HTMLButtonElement>(null)
   const pageWidth = toGeometry(layout.page).width
   useSideRoom(desk, binderCell, panelProbe, view.bookView ? pageWidth * 2 : pageWidth, view.setRoom)
   useEffect(() => {
@@ -161,8 +183,20 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   }
   const over = view.synonymsOver
 
-  const showBinder = () => foldBinder(false)
-  const hideBinder = () => foldBinder(true)
+  const showBinder = () => {
+    if (binderDrawer) {
+      view.hideSynonyms()
+      setBinderOver(true)
+    } else foldBinder(false)
+  }
+  const hideBinder = () => {
+    if (binderDrawer) setBinderOver(false)
+    else foldBinder(true)
+  }
+  const openSynonyms = () => {
+    setBinderOver(false)
+    view.showSynonyms()
+  }
 
   function handleSynonymsKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (over && event.key === 'Escape') hideSynonyms()
@@ -172,12 +206,16 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
     <div
       ref={desk}
       className={styles.desk}
+      data-continuous={continuous}
+      data-sidebar={continuous && view.sidebarAvailable}
       data-book={!scoreOpen && view.bookView}
       data-score={scoreOpen}
+      data-mobile-navigation={binderDrawer}
     >
       <div ref={binderCell} className={styles.binder}>
-        {binderFolded ? (
+        {binderDrawer ? null : binderFolded ? (
           <IconButton
+            ref={binderTrigger}
             label={t('binder.show')}
             icon={<BinderIcon />}
             className={styles.show}
@@ -187,6 +225,18 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
           <BinderPanel onHide={hideBinder} />
         )}
       </div>
+      {binderDrawer ? (
+        <Dialog
+          open={binderOver}
+          onClose={() => setBinderOver(false)}
+          labelledBy="editor-binder-title"
+          className={styles.drawer}
+        >
+          <DialogTitle id="editor-binder-title">{t('binder.label')}</DialogTitle>
+          <BinderPanel onHide={hideBinder} />
+        </Dialog>
+      ) : null}
+      {binderDrawer ? <MobileDocumentNavigator onOpenBinder={showBinder} /> : null}
       <div ref={column} className={styles.column}>
         <div ref={surface} className={styles.pageSurface}>
           {!scoreOpen && view.rulerVisible && <Ruler />}
@@ -204,8 +254,20 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
               tooltipAlign="end"
               icon={<SynonymsIcon />}
               className={styles.show}
-              onClick={view.showSynonyms}
+              onClick={openSynonyms}
             />
+          ) : continuous ? (
+            <Dialog
+              open={view.synonymsVisible}
+              onClose={hideSynonyms}
+              labelledBy="editor-synonyms-title"
+              className={styles.drawer}
+            >
+              <span id="editor-synonyms-title" className="visually-hidden">
+                {t('synonyms.title')}
+              </span>
+              <SynonymsPanel onHide={hideSynonyms} />
+            </Dialog>
           ) : (
             <div className={styles.synonyms} data-over={over} onKeyDown={handleSynonymsKeyDown}>
               <SynonymsPanel onHide={hideSynonyms} />
@@ -226,8 +288,11 @@ function HistoryScreen({
   const scoreOpen = entries.some(
     (entry) => entry.id === activeDocumentId && entry.documentType === 'score',
   )
+  const view = useEditorView()
   return (
     <div
+      data-editor-screen=""
+      data-continuous={view.continuous && !scoreOpen}
       className={classNames(styles.screen, fontClassName)}
       onKeyDownCapture={scoreOpen ? undefined : (event) => historyShortcut(history, event)}
     >

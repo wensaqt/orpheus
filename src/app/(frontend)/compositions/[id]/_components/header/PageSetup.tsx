@@ -24,6 +24,7 @@ import { useT } from '@front/_components/i18n/I18nProvider'
 import { Popover, type PopoverHandle } from '@front/_components/ui/Popover/Popover'
 
 import { useHistoryState } from '../history/HistoryProvider'
+import { useEditorView } from '../editorView'
 import { useLayout } from '../page/LayoutProvider'
 import styles from './PageSetup.module.css'
 
@@ -45,6 +46,7 @@ type PageSetupProps = {
  */
 export function PageSetup({ ref, anchor, onClose }: PageSetupProps) {
   const t = useT()
+  const { continuous } = useEditorView()
   const id = useId()
   const { layout, change } = useLayout()
   const { page } = layout
@@ -55,6 +57,7 @@ export function PageSetup({ ref, anchor, onClose }: PageSetupProps) {
   return (
     <Popover ref={ref} anchor={anchor} label={t('editor.pageSetup.open')} onCloseInPlace={onClose}>
       <div className={styles.panel}>
+        {continuous && <p>{t('editor.pageSetup.continuousHint')}</p>}
         <fieldset className={styles.group}>
           <legend className={styles.legend}>{t('editor.pageSetup.format')}</legend>
           <div className={styles.choices}>

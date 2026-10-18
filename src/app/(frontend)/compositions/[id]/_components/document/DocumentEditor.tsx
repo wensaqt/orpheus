@@ -56,7 +56,7 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
   const [editor] = useLexicalComposerContext()
   const { commands, ownerId } = useBinder()
   const { layout } = useLayout()
-  const { bookView } = useEditorView()
+  const { bookView, continuous } = useEditorView()
   const titleSlot = useDocumentTitleSlot()
   useRegisterOpenEditor(editor)
   const autosave = useDocumentText(id, text)
@@ -90,7 +90,12 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
         />
       ) : null}
       {autosave.draftUnavailable && <p role="alert">{t('editor.draftUnavailable')}</p>}
-      <PagedSheet bookView={bookView} settings={layout.page} typography={layout.typography}>
+      <PagedSheet
+        continuous={continuous}
+        bookView={bookView}
+        settings={layout.page}
+        typography={layout.typography}
+      >
         <EditorContent
           historyPlugin={<CompositionHistoryPlugin id={id} />}
           label={t('editor.textLabel')}
