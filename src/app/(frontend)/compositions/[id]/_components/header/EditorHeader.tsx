@@ -16,6 +16,7 @@ import { useTitleField } from '@front/_hooks/useTitleField'
 import { useBinder, useRegisterSaver } from '../binder/state/BinderProvider'
 import { SAVERS } from '../binder/state/saverKeys'
 import { useOpenEditor } from '../editorFocus'
+import { useEditorView } from '../editorView'
 import { useLayout } from '../page/LayoutProvider'
 import styles from './EditorHeader.module.css'
 import { MenuBar } from './MenuBar'
@@ -35,6 +36,7 @@ type EditorHeaderProps = {
  * document's selection. The ruler stays right under it, over the sheet
  */
 export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
+  const view = useEditorView()
   const t = useT()
   const pathname = usePathname()
   const { compositionId, entries, activeDocumentId } = useBinder()
@@ -52,8 +54,13 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
   const toolbarState = useToolbarState(useOpenEditor())
 
   return (
-    <header className={styles.header} data-editor-header="" data-score={scoreOpen}>
-      <div className={styles.titles}>
+    <header
+      className={styles.header}
+      data-editor-header=""
+      data-score={scoreOpen}
+      data-continuous={view.continuous && !scoreOpen}
+    >
+      <div className={styles.titles} data-editor-titles="">
         <TitleInput
           size="md"
           className={styles.compositionTitle}

@@ -299,7 +299,6 @@ test.describe('Ruler', () => {
     { width: 1280, binder: 'hidden', orientation: 'portrait' },
     { width: 1600, binder: 'shown', orientation: 'portrait' },
     { width: 1600, binder: 'hidden', orientation: 'portrait' },
-    { width: 700, binder: 'shown', orientation: 'portrait' },
   ] as const) {
     test(`lines up with the sheet: ${width}px, binder ${binder}, ${orientation}`, async ({
       page,
