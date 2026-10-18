@@ -9,6 +9,7 @@ import { Menu } from '@front/_components/ui/Menu/Menu'
 import { ROVING_PROPS, useRovingFocus } from '@front/_components/ui/rovingFocus'
 import type { MessageKey } from '@front/_lib/i18n'
 
+import { useEditorView } from '../editorView'
 import { useFocusReturn, useOpenEditor } from '../editorFocus'
 import styles from './StyleToolbar.module.css'
 import { useToolbarActions } from './toolbarActions'
@@ -89,6 +90,7 @@ function BlockTypeMenu({ blockType }: { blockType: BlockType | null }) {
  * selected); the history stays at hand.
  */
 export function StyleToolbar({ state }: { state: ToolbarState }) {
+  const { continuous } = useEditorView()
   const t = useT()
   const editor = useOpenEditor()
   const actions = useToolbarActions()
@@ -120,55 +122,65 @@ export function StyleToolbar({ state }: { state: ToolbarState }) {
         disabled={!state.canRedo}
         onPress={actions.redo}
       />
-      <SoonButton label="editor.actions.zoom" icon="zoom" />
-      <Divider />
-      <BlockTypeMenu blockType={off ? null : state.blockType} />
-      <Divider />
-      <FontMenu font={off ? null : state.font} />
-      <SoonButton label="editor.actions.fontSize" icon="fontSize" />
-      <Divider />
-      {TEXT_FORMATS.map((format) => (
-        <ToolButton
-          key={format}
-          label={t(TEXT_FORMAT_LABELS[format])}
-          icon={format}
-          shortcut={TEXT_FORMAT_SHORTCUTS[format]}
-          disabled={off}
-          pressed={!off && state.formats[format]}
-          onPress={(control) => actions.formatText(format, control)}
-        />
-      ))}
-      <SoonButton label="editor.actions.textColor" icon="textColor" />
-      <SoonButton label="editor.actions.highlight" icon="highlight" />
-      <Divider soon />
-      <SoonButton label="editor.actions.link" icon="link" />
-      <SoonButton label="editor.actions.comment" icon="comment" />
-      <Divider />
-      {ALIGNMENTS.map((align) => (
-        <ToolButton
-          key={align}
-          label={t(ALIGNMENT_LABELS[align])}
-          icon={align}
-          disabled={off}
-          pressed={!off && state.align === align}
-          onPress={(control) => actions.align(align, control)}
-        />
-      ))}
-      <SoonButton label="editor.actions.lineSpacing" icon="lineSpacing" />
-      <Divider />
-      {LISTS.map(({ type, label }) => (
-        <ToolButton
-          key={type}
-          label={t(label)}
-          icon={type}
-          tooltipAlign="end"
-          disabled={off}
-          pressed={!off && state.blockType === type}
-          onPress={(control) => actions.list(type, control)}
-        />
-      ))}
-      <SoonButton label="editor.actions.indent" icon="indent" />
-      <SoonButton label="editor.actions.clearFormatting" icon="clearFormatting" />
+      {!continuous && (
+        <>
+          <SoonButton label="editor.actions.zoom" icon="zoom" />
+          <Divider />
+          <BlockTypeMenu blockType={off ? null : state.blockType} />
+          <Divider />
+          <FontMenu font={off ? null : state.font} />
+          <SoonButton label="editor.actions.fontSize" icon="fontSize" />
+          <Divider />
+        </>
+      )}
+      {TEXT_FORMATS.filter((format) => !continuous || format === 'bold' || format === 'italic').map(
+        (format) => (
+          <ToolButton
+            key={format}
+            label={t(TEXT_FORMAT_LABELS[format])}
+            icon={format}
+            shortcut={TEXT_FORMAT_SHORTCUTS[format]}
+            disabled={off}
+            pressed={!off && state.formats[format]}
+            onPress={(control) => actions.formatText(format, control)}
+          />
+        ),
+      )}
+      {!continuous && (
+        <>
+          <SoonButton label="editor.actions.textColor" icon="textColor" />
+          <SoonButton label="editor.actions.highlight" icon="highlight" />
+          <Divider soon />
+          <SoonButton label="editor.actions.link" icon="link" />
+          <SoonButton label="editor.actions.comment" icon="comment" />
+          <Divider />
+          {ALIGNMENTS.map((align) => (
+            <ToolButton
+              key={align}
+              label={t(ALIGNMENT_LABELS[align])}
+              icon={align}
+              disabled={off}
+              pressed={!off && state.align === align}
+              onPress={(control) => actions.align(align, control)}
+            />
+          ))}
+          <SoonButton label="editor.actions.lineSpacing" icon="lineSpacing" />
+          <Divider />
+          {LISTS.map(({ type, label }) => (
+            <ToolButton
+              key={type}
+              label={t(label)}
+              icon={type}
+              tooltipAlign="end"
+              disabled={off}
+              pressed={!off && state.blockType === type}
+              onPress={(control) => actions.list(type, control)}
+            />
+          ))}
+          <SoonButton label="editor.actions.indent" icon="indent" />
+          <SoonButton label="editor.actions.clearFormatting" icon="clearFormatting" />
+        </>
+      )}
     </div>
   )
 }

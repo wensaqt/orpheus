@@ -157,3 +157,120 @@
    * narrower than the page scrolls sideways, as a whole, so the ruler stays over the sheet
    */
 }
+
+/* Local touch sizes leave the score editor and the rest of the application unchanged. */
+.screen[data-continuous='true'] {
+  --control-size: 2.75rem;
+  --menubar-height: var(--control-size);
+  --toolbar-height: calc(var(--control-size) + 2 * var(--space-1));
+  --editor-header-height: calc(
+    3.75rem + var(--control-size) + var(--space-1) + var(--toolbar-height) + var(--space-2) + 1px
+  );
+  --writing-padding: var(--space-3);
+  --writing-max-width: 48rem;
+}
+
+@media screen {
+  .desk[data-continuous='true'] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 0 0 max(var(--space-6), env(safe-area-inset-bottom));
+  }
+
+  .desk[data-continuous='true'] .column {
+    grid-column: 1;
+    width: min(100%, var(--writing-max-width));
+    justify-self: center;
+  }
+
+  .desk[data-continuous='true'] .binder {
+    position: fixed;
+    top: 0.5rem;
+    left: 3.75rem;
+    z-index: var(--layer-corner);
+  }
+
+  .desk[data-continuous='true'] .aside {
+    position: fixed;
+    right: var(--space-3);
+    bottom: max(var(--space-3), env(safe-area-inset-bottom));
+    z-index: var(--layer-drawer);
+  }
+
+  .desk[data-continuous='true'] .show {
+    position: static;
+    background: var(--color-surface-raised);
+    box-shadow: var(--shadow-sheet);
+  }
+
+  .desk[data-continuous='true'][data-sidebar='true'] {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-inline: var(--space-4);
+  }
+
+  .desk[data-continuous='true'][data-sidebar='true'] .column {
+    grid-column: 2;
+  }
+
+  .desk[data-continuous='true'][data-sidebar='true'] .binder {
+    position: static;
+    grid-column: 1;
+    padding-block-start: var(--space-4);
+  }
+
+  .desk[data-continuous='true'][data-sidebar='true'] .binder nav {
+    position: sticky;
+    width: var(--binder-width);
+    max-height: calc(100dvh - var(--editor-header-height) - var(--space-5));
+  }
+}
+
+.drawer {
+  width: min(100% - 2 * var(--space-3), 24rem);
+  max-height: calc(var(--visible-viewport-height, 100dvh) - 2 * var(--space-3));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  --control-size: 2.75rem;
+}
+
+@media screen {
+  .desk[data-mobile-navigation='true'] {
+    --mobile-document-bar-height: calc(
+      2.75rem + var(--space-1) + max(var(--space-1), env(safe-area-inset-bottom)) + 1px
+    );
+    padding-bottom: calc(var(--mobile-document-bar-height) + var(--space-4));
+  }
+
+  .desk[data-mobile-navigation='true'] .aside {
+    bottom: calc(var(--mobile-document-bar-height) + var(--space-3));
+  }
+}
+
+.drawer :is(nav, aside) {
+  position: static;
+  width: 100%;
+  max-height: none;
+}
+
+@media (min-width: 701px) {
+  .screen[data-continuous='true'] {
+    --writing-padding: var(--space-5);
+  }
+}
+
+.drawer button {
+  min-height: var(--control-size);
+}
+
+@media print {
+  .drawer {
+    display: none;
+  }
+}
+
+.screen[data-continuous='true'][data-compact-writing]:not(
+  :has([data-editor-titles]:focus-within, [data-editor-titles] [role='alert'])
+) {
+  --editor-header-height: calc(3.75rem + var(--toolbar-height) + var(--space-2) + 1px);
+}

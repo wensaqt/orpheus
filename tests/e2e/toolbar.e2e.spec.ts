@@ -680,6 +680,8 @@ test.describe('Menu bar', () => {
     const wordCount = page.getByRole('menuitem', { name: 'Word count' })
     await expect(wordCount).toHaveAttribute('aria-disabled', 'true')
     await expect(wordCount).toHaveAttribute('title', 'Coming soon')
+    // The native popover toggle moves focus after the click has completed.
+    await expect(page.getByRole('menuitemcheckbox', { name: 'Synonyms' })).toBeFocused()
     await page.keyboard.press('ArrowDown')
     await expect(wordCount).toBeFocused()
     await page.keyboard.press('Enter')

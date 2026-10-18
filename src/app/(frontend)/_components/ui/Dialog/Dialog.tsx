@@ -1,4 +1,5 @@
 // Used inside client boundaries; callback props never cross the server boundary.
+import { classNames } from '@front/_lib/classNames'
 import React, { useEffect, useRef } from 'react'
 import { Heading } from '@front/_components/ui/Heading/Heading'
 
@@ -6,6 +7,7 @@ import styles from './Dialog.module.css'
 
 type DialogProps = {
   open: boolean
+  className?: string
   onClose: () => void
   // id of the dialog title, for screen readers
   labelledBy: string
@@ -16,7 +18,7 @@ type DialogProps = {
  * Modal built on the native <dialog> element: the browser handles the focus trap, closing on
  * Escape and the backdrop. Clicking the backdrop also closes the dialog.
  */
-export function Dialog({ open, onClose, labelledBy, children }: DialogProps) {
+export function Dialog({ open, onClose, labelledBy, children, className }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export function Dialog({ open, onClose, labelledBy, children }: DialogProps) {
   return (
     <dialog
       ref={ref}
-      className={styles.dialog}
+      className={classNames(styles.dialog, className)}
       aria-labelledby={labelledBy}
       onClose={onClose}
       onClick={handleClick}

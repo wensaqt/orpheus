@@ -15,6 +15,7 @@ import type { PageGeometry } from './types'
 import { useCaretOnSheetClick } from './useCaretOnSheetClick'
 import { usePageLayout } from './usePageLayout'
 import { flowTopOnScreen } from './pageLayout'
+import { useWritingViewport } from './useWritingViewport'
 import { useBookFlow } from './useBookFlow'
 
 const BOOK_SELECTION_STYLE =
@@ -25,6 +26,7 @@ type PagedSheetProps = {
   // How the text is set on the pages (the first-line indent)
   typography: Typography
   bookView: boolean
+  continuous?: boolean
   children: ReactNode
 }
 
@@ -34,7 +36,14 @@ type PagedSheetProps = {
  * pages' text areas, so every line that reaches the end of a page continues on the next one.
  * Sheets are drawn behind. Print uses the same layout with no gap between pages.
  */
-export function PagedSheet({ settings, typography, bookView, children }: PagedSheetProps) {
+export function PagedSheet({
+  settings,
+  typography,
+  bookView,
+  continuous = false,
+  children,
+}: PagedSheetProps) {
+  useWritingViewport(continuous)
   const page = toGeometry(settings)
   const root = useRef<HTMLDivElement>(null)
   const gapProbe = useRef<HTMLDivElement>(null)
@@ -43,7 +52,7 @@ export function PagedSheet({ settings, typography, bookView, children }: PagedSh
     const probe = gapProbe.current
     return probe ? parseFloat(getComputedStyle(probe).height) : 0
   }, [])
-  const pages = usePageLayout(root, measureGap, page, bookView)
+  const pages = usePageLayout(root, measureGap, page, bookView, continuous)
   const { stack, viewport, active, startSelection, handleCopyMouseDown } = useBookFlow(
     root,
     page,
@@ -85,8 +94,9 @@ export function PagedSheet({ settings, typography, bookView, children }: PagedSh
           <div
             ref={root}
             className={styles.paged}
+            data-continuous={continuous}
             {...{ [PAGES_ATTRIBUTE]: pages }}
-            onMouseDown={handleMouseDown}
+            onMouseDown={continuous ? undefined : handleMouseDown}
           >
             <PrintedPageSize settings={settings} />
             {bookView && <style>{BOOK_SELECTION_STYLE}</style>}

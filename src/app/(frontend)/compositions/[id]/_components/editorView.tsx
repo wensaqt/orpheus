@@ -10,6 +10,8 @@ import {
 import { useOpenEditor } from './editorFocus'
 
 type EditorView = {
+  continuous: boolean
+  sidebarAvailable: boolean
   bookView: boolean
   bookViewAvailable: boolean
   toggleBookView: () => void
@@ -30,12 +32,16 @@ export function EditorViewProvider({
   synonymsHidden,
   bookView: initialBookView,
   bookViewAvailable,
+  continuous = false,
+  sidebarAvailable = true,
   children,
 }: {
   rulerHidden: boolean
   synonymsHidden: boolean
   bookView: boolean
   bookViewAvailable: boolean
+  continuous?: boolean
+  sidebarAvailable?: boolean
   children: ReactNode
 }) {
   const editor = useOpenEditor()
@@ -44,21 +50,23 @@ export function EditorViewProvider({
   const [folded, setFolded] = useState(synonymsHidden)
   const [over, setOver] = useState(false)
   const [room, setRoom] = useState(true)
-  const synonymsVisible = room ? !folded : over
+  const hasRoom = !continuous && room
+  const synonymsVisible = hasRoom ? !folded : over
   const showSynonyms = () => {
-    if (room) {
+    if (hasRoom) {
       setFolded(false)
       setPreferenceCookie(SYNONYMS_HIDDEN_COOKIE, false)
     } else setOver(true)
   }
   const hideSynonyms = () => {
     setOver(false)
-    if (room) {
+    if (hasRoom) {
       setFolded(true)
       setPreferenceCookie(SYNONYMS_HIDDEN_COOKIE, true)
     }
   }
   const toggleRuler = () => {
+    if (continuous) return
     if (rulerVisible && document.activeElement?.closest('[data-editor-ruler]')) editor?.focus()
     setRulerVisible(!rulerVisible)
     setPreferenceCookie(RULER_HIDDEN_COOKIE, rulerVisible)
@@ -66,17 +74,19 @@ export function EditorViewProvider({
   return (
     <ViewContext
       value={{
-        bookView: bookViewAvailable && bookView,
-        bookViewAvailable,
+        continuous,
+        sidebarAvailable,
+        bookView: !continuous && bookViewAvailable && bookView,
+        bookViewAvailable: !continuous && bookViewAvailable,
         toggleBookView: () => {
-          if (!bookViewAvailable) return
+          if (continuous || !bookViewAvailable) return
           setBookView(!bookView)
           setPreferenceCookie(BOOK_VIEW_COOKIE, !bookView)
         },
-        rulerVisible,
+        rulerVisible: !continuous && rulerVisible,
         toggleRuler,
         synonymsVisible,
-        synonymsOver: !room && over,
+        synonymsOver: !hasRoom && over,
         setRoom,
         showSynonyms,
         hideSynonyms,

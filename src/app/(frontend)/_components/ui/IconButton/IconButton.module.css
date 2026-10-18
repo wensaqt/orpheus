@@ -94,3 +94,11 @@
     transition: none;
   }
 }
+
+/* A touch tap must not leave a hover tooltip covering the writing surface. */
+@media (hover: none) {
+  .button:hover:not(:focus-visible) .tooltip {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
