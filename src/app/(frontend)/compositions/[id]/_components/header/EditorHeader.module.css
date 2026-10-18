@@ -60,3 +60,48 @@
     display: none;
   }
 }
+
+@media screen {
+  .header[data-continuous='true'] {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    height: auto;
+    min-height: var(--editor-header-height);
+    padding: 3.75rem var(--space-3) var(--space-2);
+    gap: var(--space-1);
+  }
+
+  .header[data-continuous='true'] .titles {
+    grid-column: 1 / -1;
+    min-height: var(--control-size);
+  }
+
+  .header[data-continuous='true'] :is(.compositionTitle, .documentTitle) {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .header[data-continuous='true'] .documentTitle input {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .header[data-continuous='true'] input {
+    font-size: var(--text-base);
+    min-height: var(--control-size);
+  }
+
+  .header[data-continuous='true'] .saveError {
+    flex-basis: 100%;
+  }
+
+  .header[data-continuous='true'] .titles:has(.saveError) {
+    flex-wrap: wrap;
+  }
+  [data-compact-writing] .header[data-continuous='true'] .titles {
+    display: none;
+  }
+}

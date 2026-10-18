@@ -76,6 +76,14 @@ export function useBookFlow(
   const [active, setActive] = useState(0)
   const lastSpread = Math.ceil(pages / 2) - 1
 
+  useEffect(() => {
+    if (enabled) return
+    dragAnchor.current = null
+    dragPoint.current = null
+    viewport.current?.style.removeProperty('--row')
+    if (viewport.current) viewport.current.scrollLeft = 0
+  }, [enabled])
+
   const showSpread = (index: number) => {
     const element = viewport.current
     if (!element) return

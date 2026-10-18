@@ -247,6 +247,7 @@ export const fr: Messages = {
     },
   },
   editor: {
+    actionsMenu: 'Actions',
     safariWarning:
       'Safari présente des problèmes de curseur et de sélection. Pour profiter de cette bêta, nous recommandons Google Chrome. La vue livre est temporairement désactivée sur Safari.',
     loading: 'Ouverture du document…',
@@ -335,6 +336,8 @@ export const fr: Messages = {
       other: 'Autre style',
     },
     pageSetup: {
+      continuousHint:
+        'Ces réglages s’appliquent aux pages imprimées. Votre espace d’écriture reste adapté à l’écran.',
       open: 'Mise en page',
       format: 'Format',
       margins: 'Marges',

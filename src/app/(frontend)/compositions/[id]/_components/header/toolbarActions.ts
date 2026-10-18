@@ -67,8 +67,28 @@ function onText(
   )
 }
 
+function waitForComposition(editor: LexicalEditor | null): Promise<boolean> {
+  if (!editor?.isComposing()) return Promise.resolve(true)
+  const root = editor.getRootElement()
+  if (!root) return Promise.resolve(false)
+  return new Promise((resolve) => {
+    let unregister = () => {}
+    const finish = (ready: boolean) => {
+      root.removeEventListener('compositionend', end)
+      unregister()
+      resolve(ready)
+    }
+    const end = () => finish(true)
+    root.addEventListener('compositionend', end, { once: true })
+    unregister = editor.registerRootListener((next) => {
+      if (next !== root) finish(false)
+    })
+  })
+}
+
 // Wait for fonts, then give the pagination's frame scheduler time to measure the text.
-async function printDocument() {
+async function printDocument(editor: LexicalEditor | null) {
+  if (!(await waitForComposition(editor))) return
   await document.fonts.ready
   await new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
@@ -93,7 +113,7 @@ export function useToolbarActions() {
       void history.redo().then(() => keepFocusOn?.focus())
     },
     selectAll: () => run((editor) => editor.update(() => void $selectAll())),
-    print: () => void printDocument(),
+    print: () => void printDocument(editor),
     pageBreak: () => run((editor) => onText(editor, undefined, $insertPageBreak)),
     formatText: (format: TextFormat, keepFocusOn?: HTMLElement) =>
       run((editor) =>

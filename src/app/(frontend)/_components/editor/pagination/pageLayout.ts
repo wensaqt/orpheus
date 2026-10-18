@@ -128,3 +128,10 @@ export function layoutPages(
   fitPageBreaks(text, offsetOf, page, gap)
   return pagesFor(offsetOf(text.getBoundingClientRect().bottom), page, gap)
 }
+
+// Page-break nodes remain in Lexical; only their computed paper heights are discarded.
+export function clearPageBreakHeights(text: HTMLElement) {
+  for (const pageBreak of text.querySelectorAll<HTMLElement>(`[${PAGE_BREAK_ATTRIBUTE}]`)) {
+    pageBreak.style.removeProperty('height')
+  }
+}
