@@ -101,7 +101,10 @@
   .header[data-continuous='true'] .titles:has(.saveError) {
     flex-wrap: wrap;
   }
-  [data-compact-writing] .header[data-continuous='true'] .titles {
+  /* Keep renaming and save failures accessible when the keyboard reduces the viewport. */
+  [data-compact-writing]
+    .header[data-continuous='true']
+    .titles:not(:focus-within):not(:has(.saveError)) {
     display: none;
   }
 }

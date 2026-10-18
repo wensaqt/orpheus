@@ -1,9 +1,45 @@
 'use client'
 
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
+import type { LexicalEditor } from 'lexical'
 import { useEffect } from 'react'
 
 const CARET_CLEARANCE = 16
+const COMPACT_VIEWPORT_HEIGHT = 400
+
+function syncViewportAppearance(
+  screen: HTMLElement | null | undefined,
+  viewport?: VisualViewport | null,
+) {
+  const height = viewport?.height ?? window.innerHeight
+  screen?.toggleAttribute('data-compact-writing', height < COMPACT_VIEWPORT_HEIGHT)
+  screen?.style.setProperty('--visible-viewport-height', `${height}px`)
+  screen?.style.setProperty('--visible-viewport-offset-top', `${viewport?.offsetTop ?? 0}px`)
+}
+
+function focusedCaretRect(editor: LexicalEditor) {
+  if (editor.isComposing() || window.matchMedia('print').matches) return
+  const root = editor.getRootElement()
+  if (!root || document.activeElement !== root) return
+  const selection = window.getSelection()
+  if (!selection?.isCollapsed || !selection.focusNode || !selection.rangeCount) return
+  if (!root.contains(selection.focusNode)) return
+  const caret = selection.getRangeAt(0).getClientRects()[0]
+  return caret?.height ? caret : undefined
+}
+
+function scrollCaretIntoView(caret: DOMRect, viewport?: VisualViewport | null) {
+  const header = document.querySelector('[data-editor-header]')?.getBoundingClientRect().bottom ?? 0
+  const top = Math.max(viewport?.offsetTop ?? 0, header) + CARET_CLEARANCE
+  const viewportBottom = (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight)
+  const navigationTop = document
+    .querySelector('[data-mobile-document-navigator]')
+    ?.getBoundingClientRect().top
+  const bottom = Math.min(viewportBottom, navigationTop ?? viewportBottom) - CARET_CLEARANCE
+  if (bottom <= top) return
+  if (caret.bottom > bottom) window.scrollBy(0, caret.bottom - bottom)
+  else if (caret.top < top) window.scrollBy(0, caret.top - top)
+}
 
 // Native scrolling remains in charge unless the keyboard or sticky header obscures the caret.
 export function useWritingViewport(enabled: boolean) {
@@ -12,43 +48,15 @@ export function useWritingViewport(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return
     const viewport = window.visualViewport
+    const screen = editor.getRootElement()?.closest<HTMLElement>('[data-editor-screen]')
     let frame = 0
     let pointerDown = false
-    const screen = editor.getRootElement()?.closest<HTMLElement>('[data-editor-screen]')
     const reveal = () => {
       frame = 0
-      screen?.toggleAttribute(
-        'data-compact-writing',
-        (viewport?.height ?? window.innerHeight) < 400,
-      )
-      screen?.style.setProperty(
-        '--visible-viewport-height',
-        `${viewport?.height ?? window.innerHeight}px`,
-      )
-      const root = editor.getRootElement()
-      const selection = window.getSelection()
-      if (
-        pointerDown ||
-        editor.isComposing() ||
-        !root ||
-        document.activeElement !== root ||
-        !selection?.isCollapsed ||
-        !selection.focusNode ||
-        !root.contains(selection.focusNode) ||
-        !selection.rangeCount ||
-        window.matchMedia('print').matches
-      )
-        return
-      const caret = selection.getRangeAt(0).getClientRects()[0]
-      if (!caret?.height) return
-      const header =
-        document.querySelector('[data-editor-header]')?.getBoundingClientRect().bottom ?? 0
-      const top = Math.max(viewport?.offsetTop ?? 0, header) + CARET_CLEARANCE
-      const bottom =
-        (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight) - CARET_CLEARANCE
-      if (bottom <= top) return
-      if (caret.bottom > bottom) window.scrollBy(0, caret.bottom - bottom)
-      else if (caret.top < top) window.scrollBy(0, caret.top - top)
+      syncViewportAppearance(screen, viewport)
+      if (pointerDown) return
+      const caret = focusedCaretRect(editor)
+      if (caret) scrollCaretIntoView(caret, viewport)
     }
     const schedule = () => {
       cancelAnimationFrame(frame)
@@ -71,6 +79,7 @@ export function useWritingViewport(enabled: boolean) {
     return () => {
       cancelAnimationFrame(frame)
       screen?.style.removeProperty('--visible-viewport-height')
+      screen?.style.removeProperty('--visible-viewport-offset-top')
       screen?.removeAttribute('data-compact-writing')
       unregister()
       viewport?.removeEventListener('resize', schedule)

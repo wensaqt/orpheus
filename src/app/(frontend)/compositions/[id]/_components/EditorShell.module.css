@@ -234,6 +234,19 @@
   --control-size: 2.75rem;
 }
 
+@media screen {
+  .desk[data-mobile-navigation='true'] {
+    --mobile-document-bar-height: calc(
+      2.75rem + var(--space-1) + max(var(--space-1), env(safe-area-inset-bottom)) + 1px
+    );
+    padding-bottom: calc(var(--mobile-document-bar-height) + var(--space-4));
+  }
+
+  .desk[data-mobile-navigation='true'] .aside {
+    bottom: calc(var(--mobile-document-bar-height) + var(--space-3));
+  }
+}
+
 .drawer :is(nav, aside) {
   position: static;
   width: 100%;
@@ -256,6 +269,8 @@
   }
 }
 
-.screen[data-continuous='true'][data-compact-writing] {
+.screen[data-continuous='true'][data-compact-writing]:not(
+  :has([data-editor-titles]:focus-within, [data-editor-titles] [role='alert'])
+) {
   --editor-header-height: calc(3.75rem + var(--toolbar-height) + var(--space-2) + 1px);
 }

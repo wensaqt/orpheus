@@ -198,6 +198,9 @@ export const en = {
     },
   },
   binder: {
+    previousDocument: 'Previous document',
+    nextDocument: 'Next document',
+    openCurrentDocument: 'Open binder — current document: {title}',
     label: 'Binder',
     toolbar: 'Binder actions',
     treeLabel: 'Documents and folders',

@@ -31,6 +31,7 @@ import { HistoryProvider, historyShortcut, useEditorHistory } from './history/Hi
 import { EditorViewProvider, useEditorView } from './editorView'
 import { SynonymsPanel } from './SynonymsPanel'
 import { ScoreCommandProvider } from './score/ScoreCommands'
+import { MobileDocumentNavigator } from './document/MobileDocumentNavigator'
 
 type EditorShellProps = {
   fontClassName: string
@@ -140,7 +141,7 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
     setBinderOver(false)
   }, [activeDocumentId])
   const continuous = view.continuous && !scoreOpen
-  const binderDrawer = continuous && !view.sidebarAvailable
+  const binderDrawer = view.continuous && !view.sidebarAvailable
   const desk = useRef<HTMLDivElement>(null)
   const binderCell = useRef<HTMLDivElement>(null)
   const panelProbe = useRef<HTMLDivElement>(null)
@@ -209,9 +210,10 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
       data-sidebar={continuous && view.sidebarAvailable}
       data-book={!scoreOpen && view.bookView}
       data-score={scoreOpen}
+      data-mobile-navigation={binderDrawer}
     >
       <div ref={binderCell} className={styles.binder}>
-        {binderDrawer || binderFolded ? (
+        {binderDrawer ? null : binderFolded ? (
           <IconButton
             ref={binderTrigger}
             label={t('binder.show')}
@@ -223,7 +225,7 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
           <BinderPanel onHide={hideBinder} />
         )}
       </div>
-      {binderDrawer && (
+      {binderDrawer ? (
         <Dialog
           open={binderOver}
           onClose={() => setBinderOver(false)}
@@ -233,7 +235,8 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
           <DialogTitle id="editor-binder-title">{t('binder.label')}</DialogTitle>
           <BinderPanel onHide={hideBinder} />
         </Dialog>
-      )}
+      ) : null}
+      {binderDrawer ? <MobileDocumentNavigator onOpenBinder={showBinder} /> : null}
       <div ref={column} className={styles.column}>
         <div ref={surface} className={styles.pageSurface}>
           {!scoreOpen && view.rulerVisible && <Ruler />}

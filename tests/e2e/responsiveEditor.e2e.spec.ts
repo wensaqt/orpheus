@@ -80,7 +80,9 @@ test('saved desktop book and binder preferences survive the mobile view', async 
   await page.setViewportSize({ width: 390, height: 844 })
   await expect(page.locator('[data-book-viewport]')).toHaveCount(0)
   await expect(page.getByRole('group', { name: 'Ruler' })).toHaveCount(0)
-  await page.getByRole('button', { name: 'Show binder', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Open binder — current document: Untitled document', exact: true })
+    .click()
   await expect(page.getByRole('dialog', { name: 'Binder', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Hide binder', exact: true }).click()
   expect(
@@ -205,12 +207,20 @@ test('mobile drawers close after navigation and keep text free of horizontal scr
     overrideAccess: false,
   })
   await page.reload()
-  await page.getByRole('button', { name: 'Show binder', exact: true }).click()
+  // Next's development badge overlaps navigation; it is absent in production.
+  await page.addStyleTag({ content: 'nextjs-portal { display: none; }' })
+  await page
+    .getByRole('button', { name: 'Open binder — current document: Untitled document', exact: true })
+    .click()
   const binder = page.getByRole('dialog', { name: 'Binder', exact: true })
   await expect(binder).toBeVisible()
   await binder.getByRole('treeitem', { name: 'Second', exact: true }).click()
   await expect(page.locator(editable)).toHaveText('Second document')
   await expect(binder).toBeHidden()
+  await page.getByRole('button', { name: 'Previous document', exact: true }).click()
+  await expect(page.locator(editable)).toHaveText('First document')
+  await page.getByRole('button', { name: 'Next document', exact: true }).click()
+  await expect(page.locator(editable)).toHaveText('Second document')
   await page.getByRole('button', { name: 'Show synonyms', exact: true }).click()
   const synonyms = page.getByRole('dialog', { name: 'Synonyms', exact: true })
   await expect(synonyms).toBeVisible()
@@ -234,12 +244,15 @@ test.describe('touch tablet', () => {
   }, testInfo) => {
     await page.setViewportSize({ width: 834, height: 1194 })
     await openDocument(page, account, prose(8))
+    const binderPanel = page.getByRole('navigation', { name: 'Binder' }).filter({
+      has: page.getByRole('tree'),
+    })
     await expect(page.locator(surface)).toHaveAttribute('data-continuous', 'true')
-    await expect(page.getByRole('navigation', { name: 'Binder' })).toBeHidden()
+    await expect(binderPanel).toBeHidden()
     await expectNoOverflow(page)
     await page.setViewportSize({ width: 1194, height: 834 })
     await expect(page.locator(surface)).toHaveAttribute('data-continuous', 'true')
-    await expect(page.getByRole('navigation', { name: 'Binder' })).toBeVisible()
+    await expect(binderPanel).toBeVisible()
     await expectNoOverflow(page)
     await expect(page.getByRole('region', { name: 'Notifications' })).not.toContainText(
       'Safari has issues',

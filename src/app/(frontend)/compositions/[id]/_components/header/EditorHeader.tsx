@@ -60,7 +60,7 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
       data-score={scoreOpen}
       data-continuous={view.continuous && !scoreOpen}
     >
-      <div className={styles.titles}>
+      <div className={styles.titles} data-editor-titles="">
         <TitleInput
           size="md"
           className={styles.compositionTitle}

@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react'
 
 // Width chooses the writing space; large touch screens also start with continuous text.
-const CONTINUOUS_QUERY = '(max-width: 1100px), (hover: none), (pointer: coarse)'
+const CONTINUOUS_QUERY = '(max-width: 1100px), (pointer: coarse)'
 const SIDEBAR_QUERY = '(min-width: 64rem)'
 const CONTINUOUS = 1
 const SIDEBAR = 2

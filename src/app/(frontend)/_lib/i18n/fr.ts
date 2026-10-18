@@ -200,6 +200,9 @@ export const fr: Messages = {
     },
   },
   binder: {
+    previousDocument: 'Document précédent',
+    nextDocument: 'Document suivant',
+    openCurrentDocument: 'Ouvrir le chutier — document actuel : {title}',
     label: 'Chutier',
     toolbar: 'Actions du chutier',
     treeLabel: 'Documents et dossiers',
