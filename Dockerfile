@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:24.21.0-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS base
+FROM node:24.22.0-bookworm-slim@sha256:a5f4366e834695d5f363b920c104953a535d3a9864d1bdf74566a0ebe01daee5 AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm install --global pnpm@11.24.0
@@ -16,7 +16,7 @@ RUN PAYLOAD_SECRET=build-only-placeholder-never-use-in-production \
     DATABASE_URL=postgres://build:build@127.0.0.1:1/build \
     APP_URL=http://localhost:3000 pnpm build
 
-FROM node:24.21.0-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS runtime
+FROM node:24.22.0-bookworm-slim@sha256:a5f4366e834695d5f363b920c104953a535d3a9864d1bdf74566a0ebe01daee5 AS runtime
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 RUN apt-get update && apt-get install --yes --no-install-recommends perl-base=5.36.0-7+deb12u4 \
