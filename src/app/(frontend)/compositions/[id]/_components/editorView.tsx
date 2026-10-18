@@ -11,6 +11,7 @@ import { useOpenEditor } from './editorFocus'
 
 type EditorView = {
   bookView: boolean
+  bookViewAvailable: boolean
   toggleBookView: () => void
   rulerVisible: boolean
   toggleRuler: () => void
@@ -28,11 +29,13 @@ export function EditorViewProvider({
   rulerHidden,
   synonymsHidden,
   bookView: initialBookView,
+  bookViewAvailable,
   children,
 }: {
   rulerHidden: boolean
   synonymsHidden: boolean
   bookView: boolean
+  bookViewAvailable: boolean
   children: ReactNode
 }) {
   const editor = useOpenEditor()
@@ -63,8 +66,10 @@ export function EditorViewProvider({
   return (
     <ViewContext
       value={{
-        bookView,
+        bookView: bookViewAvailable && bookView,
+        bookViewAvailable,
         toggleBookView: () => {
+          if (!bookViewAvailable) return
           setBookView(!bookView)
           setPreferenceCookie(BOOK_VIEW_COOKIE, !bookView)
         },

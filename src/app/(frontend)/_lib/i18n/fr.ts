@@ -87,12 +87,63 @@ export const fr: Messages = {
       invalidEmail: 'Saisissez une adresse e-mail valide.',
       taken: 'Cette adresse possède déjà un compte.',
       forbidden: 'Seuls les administrateurs peuvent générer des invitations.',
+      unauthenticated:
+        'Votre session n’a pas pu être vérifiée. Reconnectez-vous pour générer une invitation.',
       unavailable: 'Impossible de générer l’invitation. Réessayez.',
     },
   },
   home: {
+    introduction: {
+      heading: 'Une page à vous.',
+      subtitle: 'Pour les mots, pour les notes, pour ce qui vous inspire.',
+    },
+    about: 'À propos d’Orpheus',
     create: { title: 'Nouvelle composition', subtitle: 'Commencer une nouvelle pièce' },
     browse: { title: 'Toutes les compositions', subtitle: 'Retrouver vos pièces' },
+  },
+  about: {
+    pageTitle: 'À propos',
+    description:
+      'Guilhem, développeur fullstack passionné d’écriture et de musique, présente son parcours et Orpheus, son éditeur de texte et de partitions.',
+    heading: 'Orpheus, des mots et des notes.',
+    scroll: 'Découvrir mon projet',
+    cvInterest: 'Intéressé(e) ?',
+    downloadCv: 'Téléchargez mon CV !',
+    beta: {
+      heading: 'Envie d’essayer Orpheus ?',
+      description:
+        'La bêta accueille un petit nombre de testeurs, sur invitation. Envoyez une demande par e-mail pour recevoir un accès et partager vos retours.',
+      requestAccess: 'Demander un accès bêta',
+      emailHint: 'Le bouton ouvre votre messagerie. Vous pouvez aussi écrire à',
+      emailSubject: 'Demande d’accès à la bêta Orpheus',
+      emailBody:
+        'Bonjour,\n\nJe souhaiterais participer à la bêta d’Orpheus et recevoir un lien d’invitation.\n\nMerci !',
+    },
+    introduction:
+      'Orpheus est un éditeur de texte et de partitions pour les écrivains et les musiciens. Un espace pour écrire et composer, avec des outils simples et une interface épurée et intuitive.',
+    author: {
+      title: 'Le créateur',
+      heading: 'Écrire, explorer, créer',
+      portraitAlt:
+        'Illustration de Guilhem codant sur son Mac, avec un petit compagnon IA sur l’épaule.',
+      role: 'Développeur fullstack',
+      fields: 'Web & logiciel',
+      curiosity:
+        'En ce moment, je cherche à aller au-delà du développement web et à explorer des domaines plus complexes : l’intelligence artificielle, la sécurité et les systèmes embarqués. J’apprends Rust et C++ et je me fais la main sur Qt et Embassy.',
+      background:
+        'Je m’appelle Guilhem. Fraîchement diplômé d’un master, je recherche mon premier emploi en tant que développeur fullstack, dans le web ou le logiciel.',
+      writing:
+        'J’écris depuis quinze ans. C’est ma première passion, et c’est elle qui a donné son point de départ à Orpheus : l’envie de créer un espace pour écrire.',
+    },
+    origin: {
+      heading: 'Deux passions, un projet',
+      text: 'D’abord pensé pour l’écriture, Orpheus s’est ouvert à la musique au fil d’échanges avec des musiciens. L’éditeur de partitions est venu compléter l’éditeur de texte, pour réunir les mots et les notes dans un même espace de création.',
+    },
+    intention: {
+      heading: 'Faire de la place à la création',
+      text: 'Orpheus propose un espace dans lequel on trouve facilement ses repères, pour se consacrer à ce que l’on souhaite exprimer. Que l’on écrive un texte ou une partition, les outils accompagnent l’idée et laissent la création au premier plan.',
+    },
+    backHome: 'Revenir à l’accueil',
   },
   compositions: {
     opening: 'Ouverture d’une page blanche…',
@@ -196,6 +247,8 @@ export const fr: Messages = {
     },
   },
   editor: {
+    safariWarning:
+      'Safari présente des problèmes de curseur et de sélection. Pour profiter de cette bêta, nous recommandons Google Chrome. La vue livre est temporairement désactivée sur Safari.',
     loading: 'Ouverture du document…',
     loadError: 'Impossible d’ouvrir ce document. Vérifiez votre connexion, puis réessayez.',
     retry: 'Réessayer',
@@ -203,6 +256,17 @@ export const fr: Messages = {
     titleLabel: 'Titre de la composition',
     documentTitleLabel: 'Titre du document',
     textLabel: 'Texte du document',
+    sessionExpiredSettings:
+      'Votre session a expiré. Reconnectez-vous ; les titres et réglages de page non enregistrés seront réinitialisés.',
+    sessionExpired:
+      'Votre session a expiré. Votre brouillon reste dans cet onglet : reconnectez-vous pour enregistrer.',
+    saveConflict:
+      'Une autre version a été enregistrée. Votre texte est conservé ici ; téléchargez-le avant de charger la version enregistrée.',
+    downloadDraft: 'Télécharger mon brouillon',
+    loadSavedVersion: 'Charger la version enregistrée',
+    discardDraft: 'Abandonner votre brouillon local et charger la version enregistrée ?',
+    draftUnavailable:
+      'Le navigateur ne peut pas conserver de brouillon. Gardez cet onglet ouvert jusqu’à confirmation de l’enregistrement.',
     saveError: 'Échec de l’enregistrement — nouvel essai…',
     historyError: 'Impossible d’annuler ou de rétablir cette modification. Réessayez.',
     toolbar: 'Barre d’outils de l’éditeur',
@@ -289,6 +353,14 @@ export const fr: Messages = {
     },
   },
   score: {
+    sessionExpired:
+      'Votre session a expiré. Votre partition reste dans cet onglet. Exportez-la par précaution, reconnectez-vous dans un autre onglet, puis réessayez l’enregistrement ici.',
+    saveConflict:
+      'Une autre version a été enregistrée. Exportez vos modifications en MusicXML avant de charger la version enregistrée.',
+    logInNewTab: 'Se reconnecter dans un nouvel onglet',
+    retrySave: 'Réessayer l’enregistrement après connexion',
+    discardChanges:
+      'Abandonner les modifications non enregistrées et charger la version enregistrée ?',
     intervals: {
       none: 'Aucune',
       majorSecondUp: 'Seconde majeure ↑',

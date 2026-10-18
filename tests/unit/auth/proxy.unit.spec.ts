@@ -26,6 +26,13 @@ describe('proxy', () => {
     expect(response.headers.get('x-middleware-next')).toBe('1')
   })
 
+  it('lets Server Actions validate an absent session without redirecting away from unsaved writing', () => {
+    const request = new NextRequest('http://localhost:3000/compositions/document', {
+      method: 'POST',
+    })
+    expect(proxy(request).headers.get('location')).toBeNull()
+  })
+
   it('leaves public routes alone', () => {
     for (const path of ['/', '/compositionsfoo', '/login', '/admin/login']) {
       expect(proxy(request(path)).headers.get('location')).toBeNull()

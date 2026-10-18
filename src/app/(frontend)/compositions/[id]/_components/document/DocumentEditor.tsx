@@ -23,7 +23,7 @@ import { CompositionHistoryPlugin } from '../history/CompositionHistoryPlugin'
 import { useHistoryState } from '../history/HistoryProvider'
 import { useEditorView } from '../editorView'
 import { useLayout } from '../page/LayoutProvider'
-import styles from './DocumentEditor.module.css'
+import { DocumentSaveAlert } from './DocumentSaveAlert'
 import { DocumentTitle } from './DocumentTitle'
 import { useDocumentText } from './useDocumentText'
 
@@ -54,7 +54,7 @@ export function DocumentEditor({ id, title, text }: DocumentEditorProps) {
 function DocumentPage({ id, title, text }: DocumentEditorProps) {
   const t = useT()
   const [editor] = useLexicalComposerContext()
-  const { commands } = useBinder()
+  const { commands, ownerId } = useBinder()
   const { layout } = useLayout()
   const { bookView } = useEditorView()
   const titleSlot = useDocumentTitleSlot()
@@ -79,10 +79,17 @@ function DocumentPage({ id, title, text }: DocumentEditorProps) {
         createPortal(<DocumentTitle {...titleField.inputProps} disabled={busy} />, titleSlot)}
       {/* Only save failures are reported; everything else happens silently */}
       {titleField.status === SaveStatus.Error || autosave.status === SaveStatus.Error ? (
-        <p className={styles.saveError} role="alert">
-          {t('editor.saveError')}
-        </p>
+        <DocumentSaveAlert
+          reason={autosave.failure ?? titleField.failure}
+          settingsOnly={!autosave.failure && titleField.failure === 'session-expired'}
+          editor={editor}
+          title={title}
+          ownerId={ownerId}
+          id={id}
+          cancel={autosave.cancel}
+        />
       ) : null}
+      {autosave.draftUnavailable && <p role="alert">{t('editor.draftUnavailable')}</p>}
       <PagedSheet bookView={bookView} settings={layout.page} typography={layout.typography}>
         <EditorContent
           historyPlugin={<CompositionHistoryPlugin id={id} />}

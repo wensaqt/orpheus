@@ -25,3 +25,29 @@ it('uses an explicit origin or the Vercel deployment hostname', () => {
     deploymentConfig({ ...production, APP_URL: '', VERCEL_URL: 'beta.vercel.app' }).origin,
   ).toBe('https://beta.vercel.app')
 })
+
+it('uses the stable production domain when APP_URL is absent on Vercel', () => {
+  const vercel = {
+    ...production,
+    APP_URL: '',
+    VERCEL_ENV: 'production',
+    VERCEL_PROJECT_PRODUCTION_URL: 'orpheus-azure.vercel.app',
+    VERCEL_URL: 'orpheus-unique-deployment.vercel.app',
+  }
+  expect(deploymentConfig(vercel).origin).toBe('https://orpheus-azure.vercel.app')
+  expect(deploymentConfig({ ...vercel, APP_URL: 'https://custom.example/' }).origin).toBe(
+    'https://custom.example',
+  )
+})
+
+it('keeps preview deployments on their own domain when APP_URL is absent', () => {
+  expect(
+    deploymentConfig({
+      ...production,
+      APP_URL: '',
+      VERCEL_ENV: 'preview',
+      VERCEL_PROJECT_PRODUCTION_URL: 'orpheus-azure.vercel.app',
+      VERCEL_URL: 'orpheus-preview.vercel.app',
+    }).origin,
+  ).toBe('https://orpheus-preview.vercel.app')
+})

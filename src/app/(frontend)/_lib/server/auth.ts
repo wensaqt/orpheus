@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload, type Payload, type TypedUser } from 'payload'
 import { cache } from 'react'
@@ -8,6 +8,7 @@ import { cache } from 'react'
 import config from '@/payload.config'
 
 import { ROUTES } from '../routes'
+import { type ActionResult, sessionExpired } from '../actionResult'
 
 export type Session = { payload: Payload; user: TypedUser }
 
@@ -24,7 +25,9 @@ export class UnauthorizedError extends Error {
  * without re-reading the session.
  */
 export const getSession = cache(async () => {
-  const requestHeaders = await headers()
+  const requestHeaders = new Headers(await headers())
+  // cookies() includes Server Action writes; the incoming Cookie header can still be stale.
+  requestHeaders.set('cookie', (await cookies()).toString())
   const payload = await getPayload({ config })
   const { user } = await payload.auth({ headers: requestHeaders })
   return { payload, user }
@@ -53,4 +56,14 @@ export function authedAction<Args extends unknown[], Result>(
   handler: (session: Session, ...args: Args) => Promise<Result>,
 ) {
   return async (...args: Args): Promise<Result> => handler(await requireSession(), ...args)
+}
+
+// Persistence failures are recoverable UI states; never turn an expired session into a 500.
+export function authedSave<Args extends unknown[], Data>(
+  handler: (session: Session, ...args: Args) => Promise<ActionResult<Data>>,
+) {
+  return async (...args: Args): Promise<ActionResult<Data>> => {
+    const { payload, user } = await getSession()
+    return user ? handler({ payload, user }, ...args) : sessionExpired
+  }
 }

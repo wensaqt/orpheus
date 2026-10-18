@@ -7,6 +7,7 @@ const { issueInvitation } = await import('@front/beta/invitations/actions')
 const count = vi.fn()
 const create = vi.fn()
 const user = { id: 'admin', role: 'admin' }
+const config = { serverURL: 'https://beta.example' }
 const previous = { email: '', url: null, error: null }
 function form(email: string) {
   const data = new FormData()
@@ -18,22 +19,23 @@ beforeEach(() => {
   vi.stubEnv('APP_URL', 'https://beta.example')
   count.mockReset().mockResolvedValue({ totalDocs: 0 })
   create.mockReset().mockResolvedValue({ id: 'invitation' })
-  session.mockReset().mockResolvedValue({ payload: { count, create }, user })
+  config.serverURL = 'https://beta.example'
+  session.mockReset().mockResolvedValue({ payload: { count, create, config }, user })
 })
 afterEach(() => vi.unstubAllEnvs())
 
-it.each([null, { role: 'user' }])(
-  'refuses invitation generation without an administrator session',
-  async (user) => {
-    session.mockResolvedValue({ payload: { count, create }, user })
-    expect(await issueInvitation(previous, form('invited@example.test'))).toMatchObject({
-      error: 'forbidden',
-      url: null,
-    })
-    expect(count).not.toHaveBeenCalled()
-    expect(create).not.toHaveBeenCalled()
-  },
-)
+it.each([
+  [null, 'unauthenticated'],
+  [{ role: 'user' }, 'forbidden'],
+])('refuses invitation generation without an administrator session', async (user, error) => {
+  session.mockResolvedValue({ payload: { count, create, config }, user })
+  expect(await issueInvitation(previous, form('invited@example.test'))).toMatchObject({
+    error,
+    url: null,
+  })
+  expect(count).not.toHaveBeenCalled()
+  expect(create).not.toHaveBeenCalled()
+})
 
 it('binds the link to the email, stores only its hash and retains collection access checks', async () => {
   const result = await issueInvitation(previous, form(' Invited@Example.test '))
@@ -66,8 +68,8 @@ it('refuses an invalid or already registered email before issuing a token', asyn
   expect(create).not.toHaveBeenCalled()
 })
 
-it('refuses an unconfigured or insecure origin', async () => {
-  vi.stubEnv('APP_URL', 'http://beta.example')
+it('refuses an unconfigured application origin', async () => {
+  config.serverURL = ''
   expect(await issueInvitation(previous, form('invited@example.test'))).toMatchObject({
     error: 'unavailable',
     url: null,

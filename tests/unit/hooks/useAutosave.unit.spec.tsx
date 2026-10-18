@@ -18,6 +18,55 @@ describe('useAutosave', () => {
     ...renderHook(({ run }) => useAutosave(run), { initialProps: { run: save } }),
   })
 
+  it('resumes pending edits after login but never retries a conflict automatically', async () => {
+    const save = vi
+      .fn(async (): Promise<ActionResult> => done())
+      .mockResolvedValueOnce({ status: 'error', reason: 'session-expired' })
+      .mockResolvedValueOnce(done())
+      .mockResolvedValueOnce({ status: 'error', reason: 'conflict' })
+    const { result } = setup(save)
+    act(() => result.current.queue())
+    await act(async () => {
+      await result.current.flush()
+    })
+    expect(result.current.failure).toBe('session-expired')
+    await act(async () => {
+      expect(await result.current.retryAfterLogin()).toBe(true)
+    })
+    expect(result.current.failure).toBeUndefined()
+    act(() => result.current.queue())
+    await act(async () => {
+      await result.current.flush()
+    })
+    await act(async () => {
+      expect(await result.current.retryAfterLogin()).toBe(false)
+    })
+    expect(save).toHaveBeenCalledTimes(3)
+    expect(result.current.failure).toBe('conflict')
+  })
+
+  it.each(['session-expired', 'conflict'] as const)(
+    'suspends automatic retries for %s while keeping changes pending',
+    async (reason) => {
+      const save = vi.fn(async (): Promise<ActionResult> => ({ status: 'error', reason }))
+      const { result } = setup(save)
+      act(() => result.current.queue())
+      await act(async () => vi.advanceTimersByTimeAsync(800))
+      expect(result.current.failure).toBe(reason)
+      act(() => result.current.queue())
+      await act(async () => vi.advanceTimersByTimeAsync(60_000))
+      expect(save).toHaveBeenCalledOnce()
+      let saved = true
+      await act(async () => {
+        saved = await result.current.flush()
+      })
+      expect(saved).toBe(false)
+      const closing = new Event('beforeunload', { cancelable: true })
+      window.dispatchEvent(closing)
+      expect(closing.defaultPrevented).toBe(true)
+    },
+  )
+
   it('waits for a pause in the changes and saves them once', async () => {
     const { save, result } = setup()
     act(() => result.current.queue())
@@ -45,6 +94,28 @@ describe('useAutosave', () => {
     })
     expect(saved).toBe(true)
     expect(save).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps a navigation flush pending until edits made during its request are saved', async () => {
+    const requests: ((value: ActionResult) => void)[] = []
+    const save = vi.fn(() => new Promise<ActionResult>((resolve) => requests.push(resolve)))
+    const { result } = setup(save)
+    let finished = false
+    act(() => result.current.queue())
+    const leaving = result.current.flush().then((saved) => {
+      finished = saved
+    })
+    await act(async () => vi.advanceTimersByTimeAsync(0))
+    act(() => result.current.queue())
+    await act(async () => requests[0](done()))
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(finished).toBe(false)
+    await act(async () => {
+      requests[1](done())
+      await leaving
+    })
+    expect(finished).toBe(true)
+    expect(result.current.status).toBe('saved')
   })
 
   it('calls the latest save while its controls keep their identity', async () => {

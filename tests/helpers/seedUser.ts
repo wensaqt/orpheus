@@ -1,8 +1,7 @@
-import { getPayload } from 'payload'
-import config from '../../src/payload.config.js'
+import { getTestPayload, TEST_EMAIL_PREFIX } from './testUsers'
 
 export const testUser = {
-  email: 'dev@payloadcms.com',
+  email: `${TEST_EMAIL_PREFIX}admin@example.test`,
   password: 'test-password',
 }
 
@@ -10,7 +9,7 @@ export const testUser = {
  * Seeds an admin test user for e2e admin tests (the admin panel is for admins only).
  */
 export async function seedTestUser(): Promise<void> {
-  const payload = await getPayload({ config })
+  const payload = await getTestPayload()
 
   // Delete existing test user if any
   await payload.delete({
@@ -33,7 +32,7 @@ export async function seedTestUser(): Promise<void> {
  * Cleans up test user after tests
  */
 export async function cleanupTestUser(): Promise<void> {
-  const payload = await getPayload({ config })
+  const payload = await getTestPayload()
 
   await payload.delete({
     collection: 'users',

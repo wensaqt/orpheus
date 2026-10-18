@@ -63,6 +63,26 @@ assert.equal(
   (await request('/api/users', { body: { email: 'beta-first@example.test', password } })).status,
   403,
 )
+assert.equal(
+  (
+    await request('/api/users/register-first-user', {
+      body: { email: 'bootstrap-intrusion@example.test', password, role: 'admin' },
+    })
+  ).status,
+  403,
+)
+assert.equal(
+  (
+    await request('/api/beta-invitations', {
+      body: {
+        email: 'intrusion@example.test',
+        tokenHash: 'c'.repeat(64),
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      },
+    })
+  ).status,
+  403,
+)
 const first = await create('beta-first@example.test')
 const other = await create('beta-other@example.test')
 assert.equal(
@@ -72,6 +92,19 @@ assert.equal(
 )
 const ownSession = await session(first.email)
 const otherSession = await session(other.email)
+assert.equal(
+  (
+    await request('/api/beta-invitations', {
+      body: {
+        email: 'intrusion@example.test',
+        tokenHash: 'c'.repeat(64),
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      },
+      cookie: ownSession,
+    })
+  ).status,
+  403,
+)
 const compositionResponse = await request('/api/compositions', {
   body: { title: 'Private smoke document', owner: other.id },
   cookie: ownSession,

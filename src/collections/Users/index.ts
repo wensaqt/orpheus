@@ -31,6 +31,18 @@ export const Users: CollectionConfig = {
     delete: adminOnly,
     unlock: adminOnly,
   },
+  // Payload's first-user endpoint bypasses access checks, even on a production database.
+  // Administrators are bootstrapped through the trusted Local API instead.
+  endpoints:
+    process.env.NODE_ENV === 'production'
+      ? [
+          {
+            path: '/register-first-user',
+            method: 'post',
+            handler: () => Response.json({ message: 'Forbidden' }, { status: 403 }),
+          },
+        ]
+      : [],
   hooks: {
     beforeOperation: [requirePasswordResetDelivery],
     beforeValidate: [checkCredentials],

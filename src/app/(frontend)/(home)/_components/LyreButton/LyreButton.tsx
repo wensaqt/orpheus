@@ -5,7 +5,8 @@ import React from 'react'
 
 import { classNames } from '@front/_lib/classNames'
 
-import styles from './LyreButton.module.css'
+import styles from '../../home.module.css'
+import { ChoiceIllustration } from './ChoiceIllustration'
 import { LyreHalf } from './LyreHalf'
 import { LyreLabel } from './LyreLabel'
 import { LyreSide } from './types'
@@ -14,7 +15,7 @@ import { useLyrePluck } from './useLyrePluck'
 
 type CommonProps = LyreHandlers & {
   text: string
-  // Revealed on hover, below the rule
+  // Always visible on cards; revealed on hover in the lyre layout
   subtitle?: string
   side?: LyreSide
   className?: string
@@ -52,11 +53,17 @@ export function LyreButton(props: LyreButtonProps) {
     handlers: { onPointerEnter, onPointerDown, onPointerMove, onPointerLeave, onFocus, onBlur },
   })
 
-  const shared = { className: classNames(styles.button, className), ...handlers }
+  const shared = { className: classNames(styles.button, className), 'data-side': side, ...handlers }
   const content = (
     <>
       <LyreHalf side={side} svgRef={svgRef} stringRefs={pathRefs} />
+      <span className={styles.illustration} aria-hidden="true">
+        <ChoiceIllustration side={side} />
+      </span>
       <LyreLabel side={side} title={text} subtitle={subtitle} />
+      <span className={styles.arrow} aria-hidden="true">
+        ↗
+      </span>
     </>
   )
 

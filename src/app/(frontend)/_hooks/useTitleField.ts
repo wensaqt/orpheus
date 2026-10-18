@@ -42,12 +42,16 @@ export function useTitleField({
   useLayoutEffect(() => {
     latest.current = title
   }, [title, resetVersion])
-  const { status, queue, flush, cancel } = useAutosave(() => save(latest.current))
+  const { status, failure, queue, flush, cancel, retryAfterLogin } = useAutosave(() =>
+    save(latest.current),
+  )
 
   return {
     status,
+    failure,
     flush,
     cancel,
+    retryAfterLogin,
     inputProps: {
       value,
       maxLength,

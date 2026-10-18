@@ -6,8 +6,16 @@ function required(env: Environment, key: string): string {
   return value
 }
 
+function getHostname(env: Environment): string | undefined {
+  // VERCEL_URL identifies one deployment; browsers use the stable production domain.
+  return env.VERCEL_ENV === 'production'
+    ? env.VERCEL_PROJECT_PRODUCTION_URL || env.VERCEL_URL
+    : env.VERCEL_URL
+}
+
 function applicationOrigin(env: Environment): string | undefined {
-  const value = env.APP_URL || (env.VERCEL_URL ? `https://${env.VERCEL_URL}` : undefined)
+  const hostname = getHostname(env)
+  const value = env.APP_URL || (hostname ? `https://${hostname}` : undefined)
   if (!value) return undefined
   const url = new URL(value)
   if (
@@ -27,6 +35,7 @@ export function deploymentConfig(env: Environment) {
   if (!['postgres:', 'postgresql:'].includes(new URL(databaseUrl).protocol))
     throw new Error('DATABASE_URL must be a PostgreSQL URL.')
   const origin = applicationOrigin(env)
-  if (production && !origin) throw new Error('APP_URL or VERCEL_URL is required in production.')
+  if (production && !origin)
+    throw new Error('APP_URL or a Vercel domain is required in production.')
   return { production, secret, databaseUrl, origin }
 }

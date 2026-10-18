@@ -85,12 +85,63 @@ export const en = {
       invalidEmail: 'Enter a valid email address.',
       taken: 'This email already has an account.',
       forbidden: 'Only administrators can issue invitations.',
+      unauthenticated:
+        'Your session could not be verified. Sign in again to generate an invitation.',
       unavailable: 'Could not generate the invitation. Try again.',
     },
   },
   home: {
+    introduction: {
+      heading: 'A page of your own.',
+      subtitle: 'For words, for notes, for whatever inspires you.',
+    },
+    about: 'About Orpheus',
     create: { title: 'New composition', subtitle: 'Start a new piece' },
     browse: { title: 'All compositions', subtitle: 'Revisit your pieces' },
+  },
+  about: {
+    pageTitle: 'About',
+    description:
+      'Meet Guilhem, a fullstack developer with a passion for writing and music, and discover Orpheus, his text and sheet music editor.',
+    heading: 'Orpheus, words and notes.',
+    scroll: 'Discover my project',
+    cvInterest: 'Interested?',
+    downloadCv: 'Download my CV!',
+    beta: {
+      heading: 'Want to try Orpheus?',
+      description:
+        'The beta welcomes a small group of testers by invitation. Send a request by email to get access and share your feedback.',
+      requestAccess: 'Request beta access',
+      emailHint: 'The button opens your email app. You can also write to',
+      emailSubject: 'Orpheus beta access request',
+      emailBody:
+        'Hello,\n\nI would like to join the Orpheus beta and receive an invitation link.\n\nThank you!',
+    },
+    introduction:
+      'Orpheus is a text and sheet music editor for writers and musicians. A space to write and compose, with simple tools and a clean, intuitive interface.',
+    author: {
+      title: 'The creator',
+      heading: 'Writing, exploring, creating',
+      portraitAlt:
+        'Illustration of Guilhem coding on his Mac with a little AI companion on his shoulder.',
+      role: 'Fullstack developer',
+      fields: 'Web & software',
+      curiosity:
+        'Right now, I want to go beyond web development and explore more complex fields: artificial intelligence, security and embedded systems. I am learning Rust and C++ and getting hands-on experience with Qt and Embassy.',
+      background:
+        'My name is Guilhem. Having recently graduated with a master’s degree, I am looking for my first role as a fullstack developer, in web or software development.',
+      writing:
+        'I have been writing for fifteen years. It is my first passion, and it gave Orpheus its starting point: the desire to create a space for writing.',
+    },
+    origin: {
+      heading: 'Two passions, one project',
+      text: 'Originally designed for writing, Orpheus grew to include music through conversations with musicians. The sheet music editor joined the text editor, bringing words and notes together in one creative space.',
+    },
+    intention: {
+      heading: 'Making room for creativity',
+      text: 'Orpheus offers a space that feels easy to find your way around, so you can focus on what you want to express. Whether you are writing text or a score, the tools support your ideas and give creativity centre stage.',
+    },
+    backHome: 'Back to home',
   },
   compositions: {
     opening: 'Opening a blank page…',
@@ -191,6 +242,8 @@ export const en = {
     },
   },
   editor: {
+    safariWarning:
+      'Safari has issues with the caret and text selection. We recommend Google Chrome for this beta. Book view is temporarily disabled in Safari.',
     loading: 'Opening the document…',
     loadError: 'This document could not be opened. Check your connection, then try again.',
     retry: 'Try again',
@@ -198,6 +251,16 @@ export const en = {
     titleLabel: 'Composition title',
     documentTitleLabel: 'Document title',
     textLabel: 'Document text',
+    sessionExpiredSettings:
+      'Your session expired. Sign in again; unsaved titles and page settings will be reset.',
+    sessionExpired: 'Your session expired. Your draft remains in this tab: sign in again to save.',
+    saveConflict:
+      'Another version was saved. Your writing is preserved here; download it before loading the saved version.',
+    downloadDraft: 'Download my draft',
+    loadSavedVersion: 'Load saved version',
+    discardDraft: 'Discard your local draft and load the saved version?',
+    draftUnavailable:
+      'Your browser cannot store a draft. Keep this tab open until saving is confirmed.',
     saveError: 'Could not save — trying again…',
     historyError: 'Could not undo or redo this change. Try again.',
     toolbar: 'Editor toolbar',
@@ -285,6 +348,13 @@ export const en = {
     },
   },
   score: {
+    sessionExpired:
+      'Your session expired. Your score remains in this tab. Export it as a precaution, sign in in another tab, then retry saving here.',
+    saveConflict:
+      'Another version was saved. Export your changes as MusicXML before loading the saved version.',
+    logInNewTab: 'Sign in in a new tab',
+    retrySave: 'Retry saving after signing in',
+    discardChanges: 'Discard your unsaved changes and load the saved version?',
     intervals: {
       none: 'None',
       majorSecondUp: 'Major second ↑',

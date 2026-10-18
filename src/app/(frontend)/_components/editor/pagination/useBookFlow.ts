@@ -13,13 +13,31 @@ import { type MouseEvent, type RefObject, useEffect, useEffectEvent, useRef, use
 import { clamp } from '@/lib/numbers'
 import { isMainButton } from '@front/_components/ui/pointer'
 import { PAGE_BREAK_ATTRIBUTE } from '../constants'
-import { $selectTextBefore, bookCaretTarget, caretFromPoint } from './caretPlacement'
+import {
+  $selectTextBefore,
+  bookCaretFromPoint,
+  bookCaretTarget,
+  caretFromPoint,
+} from './caretPlacement'
 import { BookMirror } from './bookMirror'
 import type { PageGeometry } from './types'
 
 const DRAG_SCROLL_EDGE = 48
 const DRAG_SCROLL_STEP = 24
 const CARET_EDGE_TOLERANCE = 1
+
+function editorHeaderBottom(): number {
+  return document.querySelector('[data-editor-header]')?.getBoundingClientRect().bottom ?? 0
+}
+
+function scrollDuringDrag(y: number, header: number): boolean {
+  const top = header + DRAG_SCROLL_EDGE
+  const bottom = window.innerHeight - DRAG_SCROLL_EDGE
+  const direction = y < top ? -1 : y > bottom ? 1 : 0
+  const before = window.scrollY
+  if (direction) window.scrollBy(0, direction * DRAG_SCROLL_STEP)
+  return window.scrollY !== before
+}
 
 // Resolve a point in a displayed copy back to the same node in the single editor.
 function originalNode(node: Node, copy: Node, original: Node): Node | null {
@@ -54,6 +72,7 @@ export function useBookFlow(
   const dragAnchor = useRef<{ node: Node; offset: number } | null>(null)
   const dragPoint = useRef<{ x: number; y: number } | null>(null)
   const dragFrame = useRef(0)
+  const repaintSelection = useRef<(() => void) | null>(null)
   const [active, setActive] = useState(0)
   const lastSpread = Math.ceil(pages / 2) - 1
 
@@ -78,16 +97,12 @@ export function useBookFlow(
     const displayedText = copy ?? text
     const track = copy ? spread?.firstElementChild : root.current
     if (!(track instanceof HTMLElement)) return null
-    const point = displayedText.contains(target)
-      ? { x, y }
-      : bookCaretTarget(
-          displayedText,
-          track,
-          { x, y },
-          { page, gap: measureGap(), pages, flowTop: 0 },
-        )
-    if (!point) return null
-    const caret = caretFromPoint(point)
+    const caret = bookCaretFromPoint(
+      displayedText,
+      track,
+      { x, y },
+      { page, gap: measureGap(), pages, flowTop: 0 },
+    )
     if (!caret) return null
     // WebKit can place a point in the whitespace after a line one character
     // before its end. A drag past the last glyph should include that glyph.
@@ -114,30 +129,39 @@ export function useBookFlow(
     }
   }
 
-  const dragStep = useEffectEvent(() => {
+  const extendToPointer = useEffectEvent(() => {
     const anchor = dragAnchor.current
     const point = dragPoint.current
     const container = stack.current
-    if (!anchor || !point || !container) return false
-    const header =
-      document.querySelector('[data-editor-header]')?.getBoundingClientRect().bottom ?? 0
-    const top = header + DRAG_SCROLL_EDGE
-    const bottom = window.innerHeight - DRAG_SCROLL_EDGE
-    const direction = point.y < top ? -1 : point.y > bottom ? 1 : 0
-    if (direction) window.scrollBy(0, direction * DRAG_SCROLL_STEP)
+    if (!anchor || !point || !container) return
+    const header = editorHeaderBottom()
     const box = container.getBoundingClientRect()
-    const hit = hitAt(clamp(point.x, box.left + 1, box.right - 1), clamp(point.y, top, bottom))
+    // The scroll activation band is not a text boundary: keep hit testing under the pointer.
+    const hit = hitAt(
+      clamp(point.x, box.left + 1, box.right - 1),
+      clamp(point.y, header + 1, window.innerHeight - 1),
+    )
     if (hit) {
       if (activeRef.current !== hit.spread) updateSpread(hit.spread)
       const selection = window.getSelection()
       if (selection?.focusNode !== hit.node || selection.focusOffset !== hit.offset) {
         selection?.setBaseAndExtent(anchor.node, anchor.offset, hit.node, hit.offset)
       }
+      repaintSelection.current?.()
     }
-    return direction !== 0
+  })
+
+  const dragStep = useEffectEvent(() => {
+    const point = dragPoint.current
+    if (!dragAnchor.current || !point) return false
+    const scrolled = scrollDuringDrag(point.y, editorHeaderBottom())
+    extendToPointer()
+    return scrolled
   })
 
   const revealCaret = useEffectEvent(() => {
+    // A drag owns scrolling; revealing its focus at every selectionchange fights edge scrolling.
+    if (dragAnchor.current) return
     const track = root.current
     const text = editor.getRootElement()
     const selection = window.getSelection()
@@ -155,8 +179,7 @@ export function useBookFlow(
     updateSpread(Math.floor(column / 2))
     const caret = range.getClientRects()[0]
     if (!caret) return
-    const header =
-      document.querySelector('[data-editor-header]')?.getBoundingClientRect().bottom ?? 0
+    const header = editorHeaderBottom()
     if (caret.bottom > window.innerHeight) window.scrollBy(0, caret.bottom - window.innerHeight)
     else if (caret.top < header) window.scrollBy(0, caret.top - header)
   })
@@ -178,6 +201,8 @@ export function useBookFlow(
       if (selection?.rangeCount && !selection.isCollapsed) {
         const selected = selection.getRangeAt(0)
         if (text.contains(selected.startContainer) && text.contains(selected.endContainer)) {
+          // WebKit can defer native selection painting until mouseup for a scripted drag.
+          highlight.add(selected.cloneRange())
           for (const spread of visible) {
             const copy = spread.querySelector('[data-book-copy-editor]')
             if (!copy) continue
@@ -193,6 +218,7 @@ export function useBookFlow(
       }
       CSS.highlights.set('orpheus-book-selection', highlight)
     }
+    repaintSelection.current = paintSelection
     const refresh = () => {
       if (window.matchMedia('print').matches) return
       updateSpread(activeRef.current)
@@ -272,22 +298,32 @@ export function useBookFlow(
     )
     document.addEventListener('selectionchange', scheduleCaret)
     const continueDrag = () => {
+      dragFrame.current = 0
       if (dragStep()) dragFrame.current = requestAnimationFrame(continueDrag)
     }
     const extendSelection = (event: globalThis.MouseEvent) => {
-      if (!dragAnchor.current || event.buttons !== 1) return
+      if (!dragAnchor.current) return
+      if (event.buttons !== 1) {
+        stopDragging()
+        return
+      }
       event.preventDefault()
       dragPoint.current = { x: event.clientX, y: event.clientY }
-      cancelAnimationFrame(dragFrame.current)
-      if (dragStep()) dragFrame.current = requestAnimationFrame(continueDrag)
+      // Coalesce pointer events: edge-scroll speed must not depend on the mouse event rate.
+      if (!dragFrame.current) dragFrame.current = requestAnimationFrame(continueDrag)
     }
     const stopDragging = () => {
+      // Mouseup can precede the next animation frame; commit its pending endpoint first.
+      extendToPointer()
       dragAnchor.current = null
       dragPoint.current = null
       cancelAnimationFrame(dragFrame.current)
+      dragFrame.current = 0
+      paintSelection()
     }
     window.addEventListener('mousemove', extendSelection)
     window.addEventListener('mouseup', stopDragging)
+    window.addEventListener('blur', stopDragging)
     window.addEventListener('resize', scheduleMirrors)
     const media = window.matchMedia('print')
     const restore = () => {
@@ -304,16 +340,19 @@ export function useBookFlow(
       dragFrame.current = requestAnimationFrame(continueDrag)
     return () => {
       cancelAnimationFrame(dragFrame.current)
+      dragFrame.current = 0
       cancelAnimationFrame(mirrorFrame)
       cancelAnimationFrame(caretFrame)
       observer.disconnect()
       mutations.disconnect()
       CSS.highlights.delete('orpheus-book-selection')
+      repaintSelection.current = null
       unregister()
       unregisterEdges()
       document.removeEventListener('selectionchange', scheduleCaret)
       window.removeEventListener('mousemove', extendSelection)
       window.removeEventListener('mouseup', stopDragging)
+      window.removeEventListener('blur', stopDragging)
       window.removeEventListener('resize', scheduleMirrors)
       media.removeEventListener('change', restore)
     }

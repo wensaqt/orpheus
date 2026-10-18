@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const auth = vi.fn()
 const lookupSynonyms = vi.fn()
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
+vi.mock('next/headers', () => ({
+  headers: async () => new Headers(),
+  cookies: async () => ({ toString: () => '' }),
+}))
 vi.mock('@/payload.config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: async () => ({ auth }) }))
 vi.mock('@front/_features/lexicon/lexicon', () => ({ lookupSynonyms }))
