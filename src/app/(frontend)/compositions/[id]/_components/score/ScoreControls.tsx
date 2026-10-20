@@ -14,11 +14,13 @@ export function PitchCorrectionControls({
   issue,
   selectedIndex,
   onShowAll,
+  showAll,
   onEdit,
 }: {
   notes: ScoreNote[]
   issue: string | null
   selectedIndex: number | null
+  showAll: boolean
   onShowAll: () => void
   onEdit: (index: number, pitch: Pitch) => void
 }) {
@@ -38,13 +40,13 @@ export function PitchCorrectionControls({
           />
         ))}
       </div>
-      {selectedIndex !== null && (
+      {showAll ? (
         <div className={styles.actions}>
           <Button variant="ghost" onClick={onShowAll}>
             {t('score.showAllNotes')}
           </Button>
         </div>
-      )}
+      ) : null}
     </>
   )
 }

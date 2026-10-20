@@ -8,6 +8,7 @@ import { ScoreRenderer } from '@front/_components/scores/ScoreRenderer'
 import { TitleInput } from '@front/_components/ui/TitleInput/TitleInput'
 
 import { useDocumentTitleSlot } from '../header/documentTitleSlot'
+import { MeasureActions } from './MeasureActions'
 import { ScorePanel } from './ScorePanel'
 import { ScoreSaveAlert } from './ScoreSaveAlert'
 import { useScoreDocument } from './useScoreDocument'
@@ -62,13 +63,14 @@ export function ScoreDocument(props: { id: Id; title: string; initialXml: string
     panelProps,
     sheetRef,
     rendererProps,
+    measureActions,
   } = useScoreDocument(props)
   return (
     <div className={styles.workspace} onKeyDown={onKeyDown}>
       <ScoreTitlePortal titleField={titleField} busy={busy} />
       <input
         ref={fileInput}
-        className="visually-hidden"
+        hidden
         type="file"
         aria-label={t('score.importMusicXml')}
         accept=".musicxml,.xml"
@@ -82,7 +84,11 @@ export function ScoreDocument(props: { id: Id; title: string; initialXml: string
       )}
       <ScorePanel {...panelProps} />
       <div ref={sheetRef} className={styles.sheet}>
-        <ScoreRenderer {...rendererProps} className={styles.score} />
+        <ScoreRenderer
+          {...rendererProps}
+          className={styles.score}
+          measureActions={measureActions ? <MeasureActions {...measureActions} /> : null}
+        />
       </div>
     </div>
   )
