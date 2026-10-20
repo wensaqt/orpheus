@@ -162,7 +162,7 @@ test('mobile controls format the selection and expose the remaining commands', a
   await expectNoOverflow(page)
 })
 
-test('formatting controls remain visible and touch sized on narrow screens', async ({
+test('formatting controls stay on one scrollable row and touch sized on narrow screens', async ({
   page,
   account,
 }) => {
@@ -171,14 +171,30 @@ test('formatting controls remain visible and touch sized on narrow screens', asy
   for (const width of [320, 390, 700, 834]) {
     await page.setViewportSize({ width, height: 844 })
     await expect(page.locator('[data-editor-titles]')).toBeHidden()
+    const ribbon = toolbar(page)
+    await ribbon.evaluate((element) => {
+      element.scrollLeft = 0
+    })
+    const ribbonBounds = await boxOf(ribbon)
     const controls = toolbar(page).locator('[data-roving]')
+    const firstControl = await boxOf(controls.first())
     for (const control of await controls.all()) {
       await expect(control).toBeVisible()
       const bounds = await boxOf(control)
       expect(bounds.width).toBeGreaterThanOrEqual(44)
       expect(bounds.height).toBeGreaterThanOrEqual(44)
-      expect(bounds.x).toBeGreaterThanOrEqual(0)
-      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width)
+      expect(bounds.y).toBeCloseTo(firstControl.y, 1)
+    }
+    await controls.first().focus()
+    await page.keyboard.press('End')
+    await expect(controls.last()).toBeFocused()
+    const lastControl = await boxOf(controls.last())
+    expect(lastControl.x).toBeGreaterThanOrEqual(ribbonBounds.x)
+    expect(lastControl.x + lastControl.width).toBeLessThanOrEqual(
+      ribbonBounds.x + ribbonBounds.width,
+    )
+    if (width === 320) {
+      expect(await ribbon.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0)
     }
     await expectNoOverflow(page)
   }

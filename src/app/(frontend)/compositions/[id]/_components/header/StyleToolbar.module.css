@@ -132,11 +132,14 @@
   }
 }
 
-/* Wrap working controls instead of hiding them in a long actions menu. Popovers stay unclipped. */
+/* Keep touch targets on one row; only the ribbon scrolls when space runs out. */
 .toolbar[data-continuous='true'] {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   height: auto;
   min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
   padding-block: var(--space-1);
 }
 
