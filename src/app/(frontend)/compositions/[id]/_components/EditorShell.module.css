@@ -163,9 +163,7 @@
   --control-size: 2.75rem;
   --menubar-height: var(--control-size);
   --toolbar-height: calc(var(--control-size) + 2 * var(--space-1));
-  --editor-header-height: calc(
-    3.75rem + var(--control-size) + var(--space-1) + var(--toolbar-height) + var(--space-2) + 1px
-  );
+  --editor-header-height: var(--measured-editor-header-height, 14rem);
   --writing-padding: var(--space-3);
   --writing-max-width: 48rem;
 }
@@ -267,10 +265,4 @@
   .drawer {
     display: none;
   }
-}
-
-.screen[data-continuous='true'][data-compact-writing]:not(
-  :has([data-editor-titles]:focus-within, [data-editor-titles] [role='alert'])
-) {
-  --editor-header-height: calc(3.75rem + var(--toolbar-height) + var(--space-2) + 1px);
 }

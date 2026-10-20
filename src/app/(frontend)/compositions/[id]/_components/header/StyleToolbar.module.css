@@ -20,6 +20,7 @@
 
 /* The paragraph style: its name, wide enough for the longest, and a chevron */
 .blockType,
+.alignment,
 .font {
   display: inline-flex;
   flex-shrink: 0;
@@ -41,24 +42,24 @@
     background-color var(--duration);
 }
 
-:is(.blockType, .font):is(:hover, :focus-visible, [aria-expanded='true']):not(
+:is(.blockType, .font, .alignment):is(:hover, :focus-visible, [aria-expanded='true']):not(
     [aria-disabled='true']
   ) {
   background-color: var(--color-surface-accent);
   color: var(--color-primary-hover);
 }
 
-:is(.blockType, .font):focus-visible {
+:is(.blockType, .font, .alignment):focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-:is(.blockType, .font)[aria-disabled='true'] {
+:is(.blockType, .font, .alignment)[aria-disabled='true'] {
   color: var(--color-text-muted);
   cursor: default;
 }
 
-:is(.blockType, .font)[aria-disabled='true'] > * {
+:is(.blockType, .font, .alignment)[aria-disabled='true'] > * {
   opacity: 0.4;
 }
 
@@ -124,8 +125,47 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .alignment,
   .blockType,
   .font {
     transition: none;
   }
+}
+
+/* Wrap working controls instead of hiding them in a long actions menu. Popovers stay unclipped. */
+.toolbar[data-continuous='true'] {
+  flex-wrap: wrap;
+  height: auto;
+  min-width: 0;
+  padding-block: var(--space-1);
+}
+
+.toolbar[data-continuous='true'] .blockType {
+  width: 5.5rem;
+}
+
+.toolbar[data-continuous='true'] .font {
+  flex-shrink: 0;
+  width: var(--control-size);
+  padding: 0;
+  justify-content: center;
+}
+
+.toolbar[data-continuous='true'] :is(.font .blockTypeLabel, .fontChevron) {
+  display: none;
+}
+
+.toolbar[data-continuous='true'] .fontIcon {
+  display: block;
+}
+
+.alignment {
+  width: var(--control-size);
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+}
+
+.alignment svg:last-child {
+  width: 12px;
 }
