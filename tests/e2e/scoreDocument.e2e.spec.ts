@@ -414,3 +414,59 @@ test('renders and transposes a score with a chord, triplets and a forwarded voic
   expect(transposed.scoreXml).toContain('<forward>')
   expect(transposed.scoreXml).toContain('<time-modification>')
 })
+
+for (const width of [1280, 375]) {
+  test(`adds and deletes notes with undo, autosave and reload at ${width}px`, async ({
+    page,
+    account,
+  }) => {
+    test.setTimeout(60_000)
+    await page.setViewportSize({ width: 1280, height: 900 })
+    const { composition } = await seed(account)
+    await page.goto(`/compositions/${composition.id}`)
+    await page.getByRole('button', { name: 'New score' }).click()
+    await expect(page.locator('.vf-notehead')).toHaveCount(7)
+    const id = page.url().split('/').at(-1)!
+    await page.setViewportSize({ width, height: 900 })
+    const stored = async () =>
+      (await account.payload.findByID({ collection: 'binder-items', id })).scoreXml
+    const pitchCount = async () => [...((await stored()) ?? '').matchAll(/<pitch>/g)].length
+    const first = page.getByRole('button', { name: 'Measure 1', exact: true })
+    await first.focus()
+    await page.keyboard.press('Enter')
+    const actions = page.getByRole('group', { name: 'Measure actions' })
+    await actions.getByRole('button', { name: 'Add after', exact: true }).click()
+    const add = actions.getByRole('button', { name: 'Add a note', exact: true })
+    await expect(add).toBeEnabled()
+    await add.focus()
+    await page.keyboard.press('Enter')
+    await add.click()
+    await expect.poll(pitchCount).toBe(9)
+    await page.locator('.vf-notehead').nth(4).click()
+    const pitch = page.getByLabel('Measure 2 · note 5 · note name')
+    await expect(pitch).toHaveValue('C')
+    await pitch.selectOption('D')
+    await expect.poll(stored).toContain('<step>D</step><octave>4</octave>')
+    const beforeDelete = await stored()
+    const panel = page.locator('section[aria-label="Correct a pitch…"]')
+    expect(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+    const remove = page.getByRole('button', { name: 'Delete Measure 2 · note 5', exact: true })
+    await remove.focus()
+    await page.keyboard.press('Enter')
+    await expect.poll(pitchCount).toBe(8)
+    const deleted = await stored()
+    await page.getByRole('button', { name: 'Close panel' }).click()
+    await page.getByRole('menuitem', { name: 'Edit', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Undo', exact: true }).click()
+    await expect.poll(stored).toBe(beforeDelete)
+    await page.getByRole('menuitem', { name: 'Edit', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Redo', exact: true }).click()
+    await expect.poll(stored).toBe(deleted)
+    await page.reload()
+    await expect(page.locator('[data-score-measure]')).toHaveCount(3)
+    expect(await stored()).toBe(deleted)
+    await page.getByRole('menuitem', { name: 'Edit', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Correct a pitch…' }).click()
+    await expect(page.getByLabel('Measure 2 · note 5 · note name')).toHaveValue('C')
+  })
+}
