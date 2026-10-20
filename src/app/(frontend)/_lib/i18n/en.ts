@@ -375,6 +375,7 @@ export const en = {
       octaveDown: 'Octave ↓',
     },
     instruments: {
+      piano: 'Piano',
       guitar: 'Guitar',
       bass: 'Bass guitar',
       concert: 'Concert pitch',

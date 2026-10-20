@@ -1,5 +1,11 @@
 import { ScoreError } from './errors'
-import { INSTRUMENTS, type Instrument, type Interval } from './model'
+import {
+  INSTRUMENTS,
+  INTERVALS,
+  type Instrument,
+  type SourceInstrument,
+  type Interval,
+} from './model'
 import { findXmlChild, setXmlValue, readXmlValue } from './musicXml'
 import { readScoreMetadata } from './validation'
 
@@ -9,7 +15,8 @@ export function hasInstrumentTranspose(xml: string): boolean {
   return readScoreMetadata(xml).hasInstrumentTranspose
 }
 
-function selectedInstrumentOffset(selected: Instrument | null): Interval {
+function selectedInstrumentOffset(selected: SourceInstrument | null): Interval {
+  if (selected === 'piano') return INTERVALS[0]
   if (!selected || !Object.hasOwn(INSTRUMENTS, selected)) throw new ScoreError('sourceRequired')
   return INSTRUMENTS[selected].writtenToSounding
 }
@@ -49,11 +56,14 @@ function constantInstrumentOffset(transposes: Element[]): Interval {
   return source
 }
 
-function isOctaveStringInstrument(instrument: Instrument | null): boolean {
+function isOctaveStringInstrument(instrument: SourceInstrument | null): boolean {
   return instrument === 'guitar' || instrument === 'bass'
 }
 
-function undeclaredInstrumentOffset(document: Document, selected: Instrument | null): Interval {
+function undeclaredInstrumentOffset(
+  document: Document,
+  selected: SourceInstrument | null,
+): Interval {
   const offset = selectedInstrumentOffset(selected)
   const clefs = Array.from(document.querySelectorAll('attributes > clef'))
   if (
@@ -67,7 +77,7 @@ function undeclaredInstrumentOffset(document: Document, selected: Instrument | n
   return { diatonic: 0, semitones: 0 }
 }
 
-function sourceInstrumentOffset(document: Document, selected: Instrument | null): Interval {
+function sourceInstrumentOffset(document: Document, selected: SourceInstrument | null): Interval {
   const transposes = Array.from(document.querySelectorAll(TRANSPOSE_SELECTOR))
   if (!transposes.length) return undeclaredInstrumentOffset(document, selected)
   if (document.querySelector('clef > clef-octave-change'))
@@ -108,7 +118,7 @@ function assertInstrumentCompatible(document: Document, target: Instrument): voi
 export function instrumentConversionInterval(
   document: Document,
   target: Instrument,
-  selected: Instrument | null,
+  selected: SourceInstrument | null,
 ): Interval {
   assertInstrumentCompatible(document, target)
   const source = sourceInstrumentOffset(document, selected)

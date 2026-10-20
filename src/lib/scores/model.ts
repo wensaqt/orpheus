@@ -26,6 +26,9 @@ export const INSTRUMENT_IDS = [
 ] as const
 export type Instrument = (typeof INSTRUMENT_IDS)[number]
 
+export const SOURCE_INSTRUMENT_IDS = [...INSTRUMENT_IDS, 'piano'] as const
+export type SourceInstrument = (typeof SOURCE_INSTRUMENT_IDS)[number]
+
 export const INSTRUMENTS: Record<
   Instrument,
   { label: string; code: string; writtenToSounding: Interval }

@@ -1,5 +1,5 @@
-import type { Instrument, Pitch, ScoreNote, Step } from '@/lib/scores'
-import { INSTRUMENT_IDS, INTERVALS, STEPS } from '@/lib/scores'
+import type { SourceInstrument, Pitch, ScoreNote, Step } from '@/lib/scores'
+import { INSTRUMENT_IDS, SOURCE_INSTRUMENT_IDS, INTERVALS, STEPS } from '@/lib/scores'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { Button } from '@front/_components/ui/Button/Button'
@@ -98,16 +98,18 @@ function PitchCorrectionRow({
   )
 }
 
-function InstrumentField({
+function InstrumentField<T extends SourceInstrument>({
   label,
   value,
   onChange,
   placeholder,
+  options,
 }: {
   label: string
-  value: Instrument | null
-  onChange: (instrument: Instrument) => void
+  value: T | null
+  onChange: (instrument: T) => void
   placeholder?: string
+  options: readonly T[]
 }) {
   const t = useT()
   return (
@@ -115,7 +117,7 @@ function InstrumentField({
       label={label}
       value={value ?? ''}
       onChange={(event) => {
-        const instrument = INSTRUMENT_IDS.find((id) => id === event.target.value)
+        const instrument = options.find((id) => id === event.target.value)
         if (instrument) onChange(instrument)
       }}
     >
@@ -124,7 +126,7 @@ function InstrumentField({
           {placeholder}
         </option>
       )}
-      {INSTRUMENT_IDS.map((id) => (
+      {options.map((id) => (
         <option key={id} value={id}>
           {t(`score.instruments.${id}`)}
         </option>
@@ -190,6 +192,7 @@ export function TranspositionControls({
           <div className={styles.transposeField}>
             <InstrumentField
               label={t('score.sourceInstrument')}
+              options={SOURCE_INSTRUMENT_IDS}
               value={sourceInstrument}
               onChange={onSourceInstrumentChange}
               placeholder={t('score.chooseSourceInstrument')}
@@ -212,6 +215,7 @@ export function TranspositionControls({
         ) : (
           <InstrumentField
             label={t('score.targetInstrument')}
+            options={INSTRUMENT_IDS}
             value={instrument}
             onChange={onInstrumentChange}
           />

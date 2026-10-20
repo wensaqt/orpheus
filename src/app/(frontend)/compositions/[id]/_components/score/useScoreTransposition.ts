@@ -1,6 +1,12 @@
 import { useCallback, useRef, useState } from 'react'
 
-import { adaptToInstrument, INTERVALS, transposeKey, type Instrument } from '@/lib/scores'
+import {
+  adaptToInstrument,
+  INTERVALS,
+  transposeKey,
+  type Instrument,
+  type SourceInstrument,
+} from '@/lib/scores'
 import type { ScoreVariant } from '@/lib/scores/variantTitle'
 import type { ScoreRenderState } from '@front/_components/scores/scoreRendering'
 import { useT } from '@front/_components/i18n/I18nProvider'
@@ -15,7 +21,7 @@ export function useScoreTransposition(
   const [mode, setMode] = useState<'key' | 'instrument'>('key')
   const [intervalIndex, setIntervalIndex] = useState(1)
   const [instrument, setInstrument] = useState<Instrument>('trumpet-bb')
-  const [sourceInstrument, setSourceInstrument] = useState<Instrument | null>(null)
+  const [sourceInstrument, setSourceInstrument] = useState<SourceInstrument | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [renderState, setRenderState] = useState<ScoreRenderState | null>(null)
   const [applying, setApplying] = useState(false)
@@ -75,7 +81,7 @@ export function useScoreTransposition(
           setInstrument(next)
           reset()
         },
-        onSourceInstrumentChange: (next: Instrument) => {
+        onSourceInstrumentChange: (next: SourceInstrument) => {
           setSourceInstrument(next)
           reset()
         },
