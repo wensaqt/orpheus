@@ -176,3 +176,42 @@ const toolsMenu = ({ t, view }: MenuContext): MenuDefinition => ({
 
 export const menuBarMenus = (context: MenuContext): MenuDefinition[] =>
   [fileMenu, editMenu, viewMenu, insertMenu, formatMenu, toolsMenu].map((menu) => menu(context))
+
+// History and formatting already live in the touch toolbar; keep only document commands here.
+export const compactMenuBarMenus = (context: MenuContext): MenuDefinition[] => [
+  {
+    label: 'editor.actionsMenu',
+    items: [
+      { label: context.t('editor.actions.pageSetup'), onSelect: context.onPageSetup },
+      {
+        label: context.t('editor.actions.print'),
+        shortcut: SHORTCUTS.print,
+        onSelect: context.actions.print,
+      },
+      MENU_SEPARATOR,
+      {
+        label: context.t('editor.actions.selectAll'),
+        shortcut: SHORTCUTS.selectAll,
+        disabled: !context.hasEditor,
+        onSelect: context.actions.selectAll,
+      },
+      {
+        label: context.t('editor.actions.pageBreak'),
+        shortcut: SHORTCUTS.pageBreak,
+        disabled: !context.state.text,
+        onSelect: context.actions.pageBreak,
+      },
+    ],
+  },
+  {
+    label: 'editor.menus.tools',
+    items: [
+      {
+        label: context.t('editor.actions.synonyms'),
+        kind: 'checkbox',
+        checked: context.view.synonymsVisible,
+        onSelect: context.view.toggleSynonyms,
+      },
+    ],
+  },
+]

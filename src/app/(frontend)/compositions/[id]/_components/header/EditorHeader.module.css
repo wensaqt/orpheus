@@ -64,10 +64,10 @@
 @media screen {
   .header[data-compact='true'] {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
     height: auto;
-    min-height: var(--editor-header-height);
+    min-height: 0;
     padding: 3.75rem var(--space-3) var(--space-2);
     gap: var(--space-1);
   }
@@ -101,10 +101,18 @@
   .header[data-compact='true'] .titles:has(.saveError) {
     flex-wrap: wrap;
   }
-  /* Keep renaming and save failures accessible when the keyboard reduces the viewport. */
+}
+
+@media screen {
+  /* Keep more writing space when a tablet's keyboard reduces the visible height. */
   [data-compact-writing]
     .header[data-compact='true']
-    .titles:not(:focus-within):not(:has(.saveError)) {
+    .titles:not(:focus-within):not(:has(.saveError)),
+  .header[data-mobile-navigation='true'] .titles:not(:has(.saveError)) {
+    display: none;
+  }
+
+  .header[data-mobile-navigation='true'] .titles > :not(.saveError) {
     display: none;
   }
 }

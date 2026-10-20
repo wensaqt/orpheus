@@ -150,13 +150,52 @@ test('mobile controls format the selection and expose the remaining commands', a
   await toolbar(page).getByRole('button', { name: 'Bold', exact: true }).click()
   await expect(page.locator(`${editable} strong`)).toHaveText('Selected writing')
   await page.getByRole('menubar').getByRole('menuitem', { name: 'Actions' }).click()
-  await expect(page.getByRole('menuitemcheckbox', { name: 'Book view' })).toHaveAttribute(
-    'aria-disabled',
-    'true',
-  )
+  await expect(page.getByRole('menuitemcheckbox', { name: 'Book view' })).toHaveCount(0)
+  await expect(page.getByRole('menuitemradio', { name: 'Quote', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('menu', { name: 'Actions', exact: true })).toContainText('Page break')
+  await page.keyboard.press('Escape')
+  await toolbar(page)
+    .getByRole('button', { name: /Paragraph style/ })
+    .click()
   await page.getByRole('menuitemradio', { name: 'Quote', exact: true }).click()
   await expect(page.locator(`${editable} blockquote`)).toHaveText('Selected writing')
   await expectNoOverflow(page)
+})
+
+test('formatting controls remain visible and touch sized on narrow screens', async ({
+  page,
+  account,
+}) => {
+  await page.setViewportSize({ width: 320, height: 568 })
+  await openDocument(page, account, documentOf([paragraphNode('Selected writing')]))
+  for (const width of [320, 390, 700, 834]) {
+    await page.setViewportSize({ width, height: 844 })
+    await expect(page.locator('[data-editor-titles]')).toBeHidden()
+    const controls = toolbar(page).locator('[data-roving]')
+    for (const control of await controls.all()) {
+      await expect(control).toBeVisible()
+      const bounds = await boxOf(control)
+      expect(bounds.width).toBeGreaterThanOrEqual(44)
+      expect(bounds.height).toBeGreaterThanOrEqual(44)
+      expect(bounds.x).toBeGreaterThanOrEqual(0)
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width)
+    }
+    await expectNoOverflow(page)
+  }
+  await page.setViewportSize({ width: 320, height: 568 })
+  await page.locator(editable).selectText()
+  await toolbar(page)
+    .getByRole('button', { name: /Paragraph style/ })
+    .click()
+  await page.getByRole('menuitemradio', { name: 'Heading 1', exact: true }).click()
+  await expect(page.locator(`${editable} h1`)).toHaveText('Selected writing')
+  await toolbar(page)
+    .getByRole('button', { name: /^Alignment/ })
+    .click()
+  await page.getByRole('menuitemradio', { name: 'Justify', exact: true }).click()
+  await expect(page.locator(`${editable} h1`)).toHaveCSS('text-align', 'justify')
+  await toolbar(page).getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(page.locator(`${editable} h1`)).not.toHaveCSS('text-align', 'justify')
 })
 
 test('a failed mobile save survives rotation and is recovered before leaving', async ({
@@ -221,7 +260,9 @@ test('mobile drawers close after navigation and keep text free of horizontal scr
   await expect(page.locator(editable)).toHaveText('First document')
   await page.getByRole('button', { name: 'Next document', exact: true }).click()
   await expect(page.locator(editable)).toHaveText('Second document')
-  await page.getByRole('button', { name: 'Show synonyms', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Show synonyms', exact: true })).toHaveCount(0)
+  await page.getByRole('menubar').getByRole('menuitem', { name: 'Tools', exact: true }).click()
+  await page.getByRole('menuitemcheckbox', { name: 'Synonyms', exact: true }).click()
   const synonyms = page.getByRole('dialog', { name: 'Synonyms', exact: true })
   await expect(synonyms).toBeVisible()
   const bounds = await boxOf(synonyms)
@@ -230,6 +271,7 @@ test('mobile drawers close after navigation and keep text free of horizontal scr
   await expectNoOverflow(page)
   await synonyms.getByRole('button', { name: 'Hide synonyms', exact: true }).click()
   await expect(synonyms).toBeHidden()
+  await expect(page.locator(editable)).toBeFocused()
 })
 
 test.describe('touch tablet', () => {
