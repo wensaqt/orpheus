@@ -16,7 +16,14 @@ export const INTERVALS = [
   { id: 'octaveDown', diatonic: -7, semitones: -12 },
 ] as const satisfies readonly (Interval & { id: string })[]
 
-export const INSTRUMENT_IDS = ['concert', 'trumpet-bb', 'alto-sax-eb', 'tenor-sax-bb'] as const
+export const INSTRUMENT_IDS = [
+  'concert',
+  'trumpet-bb',
+  'alto-sax-eb',
+  'tenor-sax-bb',
+  'guitar',
+  'bass',
+] as const
 export type Instrument = (typeof INSTRUMENT_IDS)[number]
 
 export const INSTRUMENTS: Record<
@@ -38,6 +45,16 @@ export const INSTRUMENTS: Record<
     label: 'B♭ tenor saxophone',
     code: 'Sax tén. Si♭',
     writtenToSounding: { diatonic: -8, semitones: -14 },
+  },
+  guitar: {
+    label: 'Guitar',
+    code: 'Gtr',
+    writtenToSounding: { diatonic: -7, semitones: -12 },
+  },
+  bass: {
+    label: 'Bass guitar',
+    code: 'B. él.',
+    writtenToSounding: { diatonic: -7, semitones: -12 },
   },
 }
 

@@ -10,11 +10,13 @@ export function useScorePanel({
   onError: (message: string | null) => void
 }) {
   const [panel, setPanel] = useState<ScorePanel>(null)
+  const [selectedMeasure, setSelectedMeasure] = useState<number | null>(null)
   const [selectedNote, setSelectedNote] = useState<number | null>(null)
   // Registered as a document command: selection changes must not re-register the menu actions.
   const openPanel = useCallback(
     (next: ScorePanel) => {
       setPanel(next)
+      if (next === 'measures') setSelectedMeasure((current) => current ?? 0)
       setSelectedNote(null)
       resetPreview()
       onError(null)
@@ -34,5 +36,21 @@ export function useScorePanel({
     resetPreview()
   }
 
-  return { panel, selectedNote, setSelectedNote, openPanel, selectNote, closePanel }
+  function selectMeasure(index: number | null) {
+    closePanel()
+    setSelectedMeasure(index)
+    onError(null)
+  }
+
+  return {
+    panel,
+    selectedNote,
+    setSelectedNote,
+    selectedMeasure,
+    setSelectedMeasure,
+    selectMeasure,
+    openPanel,
+    selectNote,
+    closePanel,
+  }
 }

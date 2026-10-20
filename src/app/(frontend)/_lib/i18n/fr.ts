@@ -381,12 +381,33 @@ export const fr: Messages = {
       octaveDown: 'Octave ↓',
     },
     instruments: {
+      guitar: 'Guitare',
+      bass: 'Basse électrique',
       concert: 'Hauteur réelle',
       'trumpet-bb': 'Trompette en si♭',
       'alto-sax-eb': 'Saxophone alto en mi♭',
       'tenor-sax-bb': 'Saxophone ténor en si♭',
     },
+    measureActions: 'Actions de la mesure',
+    editMeasureNotes: 'Corriger les notes',
+    insertMeasureAfter: 'Ajouter après',
+    duplicateMeasure: 'Dupliquer',
+    deselectMeasure: 'Désélectionner la mesure',
+    manageMeasures: 'Mesures…',
+    measuresHint:
+      'Ajoutez une mesure vide à la fin, ou supprimez une mesure dans toutes les parties instrumentales.',
+    appendMeasure: 'Ajouter une mesure à la fin',
+    selectedMeasure: 'Mesure à supprimer',
+    measureNumber: 'Mesure {number}',
+    deleteMeasure: 'Supprimer cette mesure',
+    deleteMeasureHint:
+      'Les notes de cette mesure seront supprimées. Vous pouvez annuler cette action. La partition doit conserver au moins une mesure.',
     errors: {
+      measureMissing: 'Mesure introuvable.',
+      lastMeasure: 'Conservez au moins une mesure dans la partition.',
+      unsupportedMeasureStructure:
+        'Cette opération ne peut pas préserver la structure de cette partition (rythme, portées, liaisons ou reprises). Aucune modification effectuée.',
+      measureEditFailed: 'Impossible de modifier les mesures.',
       invalidXml: 'Le fichier MusicXML est invalide.',
       fileTooLarge: 'Le fichier dépasse {size} Mo.',
       invalidRoot: 'Le fichier doit être un MusicXML score-partwise valide.',

@@ -1,10 +1,10 @@
 import { ScoreError } from './errors'
 import { STEPS, type Pitch } from './model'
 import { assertPitchCorrectionSupported } from './capabilities'
-import { findXmlChild, parseMusicXml } from './musicXml'
+import { findXmlChild, parseMusicXml, serializeMusicXml } from './musicXml'
 import { readPitch, writePitch, accidentalName } from './pitch'
 
-export type ScoreNote = { index: number; measure: string; pitch: Pitch }
+export type ScoreNote = { index: number; measure: string; measureIndex: number; pitch: Pitch }
 
 const ELEMENTS_AFTER_ACCIDENTAL = new Set([
   'time-modification',
@@ -26,16 +26,23 @@ function pitchedNotes(document: Document): Element[] {
   return Array.from(document.querySelectorAll('part > measure > note > pitch'))
 }
 
-function scoreNote(pitch: Element, index: number): ScoreNote {
+function scoreNote(pitch: Element, index: number, measureIndex: number): ScoreNote {
   return {
     index,
+    measureIndex,
     measure: pitch.parentElement?.parentElement?.getAttribute('number') ?? '?',
     pitch: readPitch(pitch),
   }
 }
 
 export function inspectScore(xml: string): ScoreNote[] {
-  return pitchedNotes(editableDocument(xml)).map(scoreNote)
+  const document = editableDocument(xml)
+  let index = 0
+  return Array.from(document.querySelectorAll('part > measure')).flatMap((measure, measureIndex) =>
+    Array.from(measure.querySelectorAll('note > pitch'), (pitch) =>
+      scoreNote(pitch, index++, measureIndex),
+    ),
+  )
 }
 
 function assertValidCorrection(next: Pitch): void {
@@ -78,5 +85,5 @@ export function correctPitch(xml: string, noteIndex: number, next: Pitch): strin
   writePitch(pitch, next)
   const note = pitch.parentElement
   if (note) updateCorrectedNote(note, next.alter)
-  return new XMLSerializer().serializeToString(document)
+  return serializeMusicXml(document)
 }

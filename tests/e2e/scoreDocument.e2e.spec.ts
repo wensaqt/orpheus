@@ -8,6 +8,67 @@ async function savedFirstPitch(account: Account, id: string) {
   return scoreXml?.match(/<pitch>\s*<step>([A-G])<\/step>/)?.[1]
 }
 
+test('adds and removes measures in the browser and keeps them after reload', async ({
+  page,
+  account,
+}) => {
+  const { composition } = await seed(account)
+  await page.goto(`/compositions/${composition.id}`)
+  await page.getByRole('button', { name: 'New score' }).click()
+  await expect(page.locator('.vf-notehead')).toHaveCount(7)
+  const id = page.url().split('/').at(-1)!
+  const savedMeasureCount = async () => {
+    const { scoreXml } = await account.payload.findByID({ collection: 'binder-items', id })
+    return [...(scoreXml ?? '').matchAll(/<measure\b/g)].length
+  }
+  const openMeasures = async () => {
+    await page.getByRole('menuitem', { name: 'Edit', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Measures…', exact: true }).click()
+  }
+  await expect(page.getByLabel('Import MusicXML…')).toBeHidden()
+  await openMeasures()
+  await page.getByRole('button', { name: 'Add a measure at the end' }).click()
+  await page.getByRole('button', { name: 'Add a measure at the end' }).click()
+  await expect(page.getByLabel('Measure to remove').locator('option')).toHaveCount(4)
+  await expect(page.getByRole('main').getByRole('alert')).toHaveCount(0)
+  await expect(page.locator('.vf-notehead')).toHaveCount(9)
+  await expect.poll(savedMeasureCount).toBe(4)
+  await page.reload()
+  await openMeasures()
+  await expect(page.getByLabel('Measure to remove').locator('option')).toHaveCount(4)
+  await page.getByLabel('Measure to remove').selectOption('0')
+  await page.getByRole('button', { name: 'Delete this measure' }).click()
+  await expect(page.getByLabel('Measure to remove').locator('option')).toHaveCount(3)
+  await expect(page.locator('.vf-notehead')).toHaveCount(5)
+  await expect(page.getByRole('main').getByRole('alert')).toHaveCount(0)
+  await expect.poll(savedMeasureCount).toBe(3)
+  await page.getByRole('button', { name: 'Close panel' }).click()
+  await page.getByRole('button', { name: 'Measure 2', exact: true }).focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('button', { name: 'Measure 2', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await page
+    .getByRole('group', { name: 'Measure actions' })
+    .getByRole('button', { name: 'Add after', exact: true })
+    .click()
+  await expect(page.locator('[data-score-measure]')).toHaveCount(4)
+  await page
+    .getByRole('group', { name: 'Measure actions' })
+    .getByRole('button', { name: 'Duplicate', exact: true })
+    .click()
+  await expect(page.locator('[data-score-measure]')).toHaveCount(5)
+  await page.getByRole('menuitem', { name: 'Edit', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Undo', exact: true }).click()
+  await expect(page.locator('[data-score-measure]')).toHaveCount(4)
+  await expect(page.getByRole('group', { name: 'Measure actions' })).toHaveCount(0)
+  await page.getByRole('menuitem', { name: 'Edit', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Redo', exact: true }).click()
+  await expect(page.locator('[data-score-measure]')).toHaveCount(5)
+  await expect.poll(savedMeasureCount).toBe(5)
+})
+
 test('an expired score session can reconnect without losing pitch corrections', async ({
   page,
   account,
