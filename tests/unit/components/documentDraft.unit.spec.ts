@@ -7,6 +7,28 @@ const draft = {
 }
 describe('document drafts', () => {
   beforeEach(() => sessionStorage.clear())
+  it.each([
+    '{',
+    'null',
+    'true',
+    '123',
+    '"text"',
+    '[]',
+    '{}',
+    JSON.stringify({ content: draft.content }),
+    JSON.stringify({ revision: draft.revision }),
+    JSON.stringify({ content: null, revision: draft.revision }),
+    JSON.stringify({ ...draft, revision: [draft.revision] }),
+    JSON.stringify({ ...draft, revision: 'A'.repeat(64) }),
+  ])('discards malformed stored drafts: %s', (stored) => {
+    sessionStorage.setItem('orpheus-draft:alice:document', stored)
+    expect(readDraft('alice', 'document')).toBeNull()
+  })
+  it('retains additional fields on a valid stored draft', () => {
+    const stored = { ...draft, extra: { source: 'editor' } }
+    sessionStorage.setItem('orpheus-draft:alice:document', JSON.stringify(stored))
+    expect(readDraft('alice', 'document')).toEqual(stored)
+  })
   it('survives editor navigation but is scoped to both account and document', () => {
     expect(writeDraft('alice', 'document', draft)).toBe(true)
     expect(readDraft('alice', 'document')).toEqual(draft)
