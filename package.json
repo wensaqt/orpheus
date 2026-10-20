@@ -51,8 +51,8 @@
     "next": "16.4.0",
     "opensheetmusicdisplay": "^2.2.0",
     "payload": "3.90.2",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "server-only": "^0.0.1",
     "sharp": "0.35.5"
   },
