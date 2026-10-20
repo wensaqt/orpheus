@@ -325,6 +325,7 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
       xml: preview ?? content.xml,
       onRenderState: transposition.onRenderState,
       selectedMeasure: preview === null && !isImporting ? selectedMeasure : null,
+      selectedNote: preview === null && !isImporting ? selectedNote : null,
       onMeasureClick: preview === null && !isImporting ? selectMeasure : undefined,
       onNoteClick: preview === null && !isImporting ? selectNote : undefined,
     },

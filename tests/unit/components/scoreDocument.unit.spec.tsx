@@ -279,6 +279,20 @@ it('rejects an invalid pitch without a snapshot, then saves and undoes a valid c
   })
 })
 
+it('passes the selected note to the renderer and clears it when selecting a measure', () => {
+  const { result } = renderHook(() =>
+    useScoreDocument({ id: '1', title: 'Study', initialXml: SAMPLE_SCORE }),
+  )
+  expect(result.current.rendererProps.selectedNote).toBeNull()
+  act(() => result.current.rendererProps.onNoteClick?.(1))
+  expect(result.current.rendererProps.selectedNote).toBe(1)
+  act(() => result.current.panelProps.correction.onEdit(1, { step: 'G', alter: 0, octave: 5 }))
+  expect(result.current.rendererProps.selectedNote).toBe(1)
+  act(() => result.current.rendererProps.onMeasureClick?.(0))
+  expect(result.current.rendererProps.selectedNote).toBeNull()
+  expect(result.current.rendererProps.selectedMeasure).toBe(0)
+})
+
 it('keeps both pitch corrections made before React rerenders', () => {
   const { result } = renderHook(() =>
     useScoreDocument({ id: '1', title: 'Study', initialXml: SAMPLE_SCORE }),

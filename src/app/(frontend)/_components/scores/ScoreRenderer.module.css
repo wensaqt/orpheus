@@ -26,7 +26,30 @@
   fill: var(--color-primary);
   stroke: var(--color-primary);
 }
+.renderer :global([data-score-note]) {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: scale 140ms ease-out;
+}
+.renderer :global([data-score-note-selected='true']) {
+  scale: 1.4;
+}
+@media screen {
+  .renderer :global([data-score-note-selected='true']) path {
+    fill: var(--color-primary);
+    stroke: var(--color-primary);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .renderer :global([data-score-note]) {
+    transition: none;
+  }
+}
 @media print {
+  .renderer :global([data-score-note]) {
+    scale: none;
+    transition: none;
+  }
   .measureActions {
     display: none;
   }

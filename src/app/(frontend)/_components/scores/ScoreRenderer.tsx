@@ -23,6 +23,7 @@ type ScoreRendererProps = {
   className?: string
   onNoteClick?: (index: number) => void
   selectedMeasure?: number | null
+  selectedNote?: number | null
   onMeasureClick?: (index: number | null) => void
   measureActions?: ReactNode
   onRenderState?: (state: ScoreRenderState) => void
@@ -124,6 +125,7 @@ export function ScoreRenderer({
   onNoteClick,
   onRenderState,
   selectedMeasure = null,
+  selectedNote = null,
   onMeasureClick,
   measureActions,
 }: ScoreRendererProps) {
@@ -138,6 +140,10 @@ export function ScoreRenderer({
   useEffect(() => {
     selection?.measures?.select(selectedMeasure)
   }, [selection, selectedMeasure])
+
+  useEffect(() => {
+    picker?.select(selectedNote)
+  }, [picker, selectedNote])
 
   function handleNoteClick(event: MouseEvent<HTMLDivElement>) {
     if (onMeasureClick && selection?.measures) {
