@@ -206,7 +206,7 @@ function assertNoSpanners(document: Document): void {
   // until the command can repair the paired endpoints and repeat/jump semantics explicitly.
   if (
     document.querySelector(
-      'tie, tied, slur, glissando, slide, wedge, octave-shift, pedal, repeat, ending, segno, coda, sound[dc], sound[ds], sound[tocoda], sound[fine]',
+      'tie, tied, slur, glissando, slide, wedge, dashes, bracket, octave-shift, pedal, repeat, ending, segno, coda, sound[dc], sound[ds], sound[tocoda], sound[fine]',
     )
   )
     throw new ScoreError('unsupportedMeasureStructure')

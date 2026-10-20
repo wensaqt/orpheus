@@ -197,6 +197,30 @@ describe('score measures', () => {
     ).toThrow('unsupportedMeasureStructure')
   })
 
+  describe.each(['dashes', 'bracket'])('paired %s directions', (name) => {
+    it.each([
+      ['delete', deleteMeasure],
+      ['duplicate', duplicateMeasure],
+      ['insert after', insertMeasureAfter],
+    ] as const)('rejects %s instead of orphaning or copying endpoints', (_action, edit) => {
+      const document = read(SAMPLE_SCORE)
+      const measures = document.querySelectorAll('measure')
+      for (const [index, type] of ['start', 'stop'].entries()) {
+        const direction = document.createElement('direction')
+        const directionType = document.createElement('direction-type')
+        const endpoint = document.createElement(name)
+        endpoint.setAttribute('type', type)
+        endpoint.setAttribute('number', '1')
+        if (name === 'bracket') endpoint.setAttribute('line-end', 'none')
+        directionType.append(endpoint)
+        direction.append(directionType)
+        measures[index].append(direction)
+      }
+      const xml = new XMLSerializer().serializeToString(document)
+      expect(() => edit(xml, 0)).toThrow('unsupportedMeasureStructure')
+    })
+  })
+
   it('rejects unknown durations, staff-specific meters and unaligned parts', () => {
     expect(() => appendMeasure(SAMPLE_SCORE.replace('<time>', '<time number="1">'))).toThrow(
       'unsupportedMeasureStructure',
