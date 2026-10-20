@@ -22,7 +22,7 @@ import { BinderProvider, useBinder } from './binder/state/BinderProvider'
 import styles from './EditorShell.module.css'
 import { DocumentTitleSlot } from './header/documentTitleSlot'
 import { EditorHeader } from './header/EditorHeader'
-import { OpenEditorContext } from './editorFocus'
+import { OpenEditorContext, useOpenEditor } from './editorFocus'
 import { LayoutProvider, useLayout } from './page/LayoutProvider'
 import { Ruler } from './page/Ruler'
 import { useEditorDisplay } from './editorDisplay'
@@ -130,6 +130,7 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   const [binderFolded, setBinderFolded] = useState(binderHidden)
   const [binderOver, setBinderOver] = useState(false)
   const view = useEditorView()
+  const editor = useOpenEditor()
   const { entries, activeDocumentId } = useBinder()
   const scoreOpen = entries.some(
     (entry) => entry.id === activeDocumentId && entry.documentType === 'score',
@@ -179,7 +180,8 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   // Back to the button that opened them, shown at once to take the focus
   const hideSynonyms = () => {
     flushSync(view.hideSynonyms)
-    showSynonyms.current?.focus()
+    if (continuous) editor?.focus()
+    else showSynonyms.current?.focus()
   }
   const over = view.synonymsOver
 
@@ -248,14 +250,16 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
           {/* As wide as the open panel: whether it fits is measured with it */}
           <div ref={panelProbe} className={styles.panelProbe} aria-hidden="true" />
           {!view.synonymsVisible ? (
-            <IconButton
-              ref={showSynonyms}
-              label={t('synonyms.show')}
-              tooltipAlign="end"
-              icon={<SynonymsIcon />}
-              className={styles.show}
-              onClick={openSynonyms}
-            />
+            continuous ? null : (
+              <IconButton
+                ref={showSynonyms}
+                label={t('synonyms.show')}
+                tooltipAlign="end"
+                icon={<SynonymsIcon />}
+                className={styles.show}
+                onClick={openSynonyms}
+              />
+            )
           ) : continuous ? (
             <Dialog
               open={view.synonymsVisible}

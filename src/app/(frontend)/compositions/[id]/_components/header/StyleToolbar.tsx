@@ -3,7 +3,12 @@
 import { useRef } from 'react'
 
 import { ALIGNMENTS, BLOCK_TYPES, TEXT_FORMATS } from '@front/_components/editor/constants'
-import { BlockType, type ChosenBlockType, type ListType } from '@front/_components/editor/types'
+import {
+  Alignment,
+  BlockType,
+  type ChosenBlockType,
+  type ListType,
+} from '@front/_components/editor/types'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { Menu } from '@front/_components/ui/Menu/Menu'
 import { ROVING_PROPS, useRovingFocus } from '@front/_components/ui/rovingFocus'
@@ -83,6 +88,37 @@ function BlockTypeMenu({ blockType }: { blockType: BlockType | null }) {
   )
 }
 
+function AlignmentMenu({ align }: { align: Alignment | null }) {
+  const t = useT()
+  const actions = useToolbarActions()
+  const focus = useFocusReturn()
+  const current = align ?? Alignment.Left
+  return (
+    <Menu
+      label={t('editor.labelWithHint', {
+        label: t('editor.alignment'),
+        hint: t(ALIGNMENT_LABELS[current]),
+      })}
+      align="start"
+      fixedTrigger
+      disabled={align === null}
+      triggerClassName={styles.alignment}
+      triggerProps={{ ...ROVING_PROPS, onKeyDown: focus.remember }}
+      onTriggerPointerDown={focus.remember}
+      onCloseInPlace={focus.restore}
+      items={ALIGNMENTS.map((value) => ({
+        label: t(ALIGNMENT_LABELS[value]),
+        kind: 'radio',
+        checked: align === value,
+        onSelect: () => actions.align(value),
+      }))}
+    >
+      <ToolbarIcon name={current} />
+      <ToolbarIcon name="chevron" />
+    </Menu>
+  )
+}
+
 /*
  * The style toolbar, under the menu bar: what applies to the selected text, its state shown
  * as the selection moves. One tab stop; the arrows move between its controls, Escape goes back
@@ -105,6 +141,7 @@ export function StyleToolbar({ state }: { state: ToolbarState }) {
       aria-label={t('editor.toolbar')}
       aria-disabled={!editor || undefined}
       className={styles.toolbar}
+      data-continuous={continuous}
       onFocus={roving.onFocus}
       onKeyDown={roving.onKeyDown}
     >
@@ -133,18 +170,24 @@ export function StyleToolbar({ state }: { state: ToolbarState }) {
           <Divider />
         </>
       )}
-      {TEXT_FORMATS.filter((format) => !continuous || format === 'bold' || format === 'italic').map(
-        (format) => (
-          <ToolButton
-            key={format}
-            label={t(TEXT_FORMAT_LABELS[format])}
-            icon={format}
-            shortcut={TEXT_FORMAT_SHORTCUTS[format]}
-            disabled={off}
-            pressed={!off && state.formats[format]}
-            onPress={(control) => actions.formatText(format, control)}
-          />
-        ),
+      {TEXT_FORMATS.map((format) => (
+        <ToolButton
+          key={format}
+          label={t(TEXT_FORMAT_LABELS[format])}
+          icon={format}
+          shortcut={TEXT_FORMAT_SHORTCUTS[format]}
+          tooltipAlign={continuous ? 'end' : undefined}
+          disabled={off}
+          pressed={!off && state.formats[format]}
+          onPress={(control) => actions.formatText(format, control)}
+        />
+      ))}
+      {continuous && (
+        <>
+          <BlockTypeMenu blockType={off ? null : state.blockType} />
+          <FontMenu font={off ? null : state.font} />
+          <AlignmentMenu align={off ? null : state.align} />
+        </>
       )}
       {!continuous && (
         <>
@@ -166,17 +209,21 @@ export function StyleToolbar({ state }: { state: ToolbarState }) {
           ))}
           <SoonButton label="editor.actions.lineSpacing" icon="lineSpacing" />
           <Divider />
-          {LISTS.map(({ type, label }) => (
-            <ToolButton
-              key={type}
-              label={t(label)}
-              icon={type}
-              tooltipAlign="end"
-              disabled={off}
-              pressed={!off && state.blockType === type}
-              onPress={(control) => actions.list(type, control)}
-            />
-          ))}
+        </>
+      )}
+      {LISTS.map(({ type, label }) => (
+        <ToolButton
+          key={type}
+          label={t(label)}
+          icon={type}
+          tooltipAlign="end"
+          disabled={off}
+          pressed={!off && state.blockType === type}
+          onPress={(control) => actions.list(type, control)}
+        />
+      ))}
+      {!continuous && (
+        <>
           <SoonButton label="editor.actions.indent" icon="indent" />
           <SoonButton label="editor.actions.clearFormatting" icon="clearFormatting" />
         </>

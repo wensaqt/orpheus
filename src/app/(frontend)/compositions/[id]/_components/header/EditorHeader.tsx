@@ -1,6 +1,6 @@
 'use client'
 
-import type { Ref } from 'react'
+import { type Ref, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ROUTES } from '@front/_lib/routes'
@@ -52,9 +52,30 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
   useRegisterSaver(SAVERS.compositionTitle, field)
   const sessionExpired = field.failure === 'session-expired' || layoutFailure === 'session-expired'
   const toolbarState = useToolbarState(useOpenEditor())
+  const headerRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const header = headerRef.current
+    const screen = header?.closest<HTMLElement>('[data-editor-screen]')
+    if (!header || !screen || !view.continuous || scoreOpen) return
+    // Wrapping, translated labels and save errors can all change the sticky header's height.
+    const measure = () =>
+      screen.style.setProperty(
+        '--measured-editor-header-height',
+        `${header.getBoundingClientRect().height}px`,
+      )
+    const observer = new ResizeObserver(measure)
+    observer.observe(header)
+    measure()
+    return () => {
+      observer.disconnect()
+      screen.style.removeProperty('--measured-editor-header-height')
+    }
+  }, [view.continuous, scoreOpen])
 
   return (
     <header
+      ref={headerRef}
+      data-mobile-navigation={view.continuous && !view.sidebarAvailable && !scoreOpen}
       className={styles.header}
       data-editor-header=""
       data-score={scoreOpen}
