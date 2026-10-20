@@ -46,15 +46,11 @@ function observeScoreWidth(container: HTMLElement, redraw: () => void) {
   }
 }
 
-export function ScoreRenderer({
-  xml,
-  className,
-  onNoteClick,
-  onRenderState,
-  selectedMeasure = null,
-  onMeasureClick,
-  measureActions,
-}: ScoreRendererProps) {
+function useRenderedScore(
+  xml: string,
+  measureSelectable: boolean,
+  onRenderState: ScoreRendererProps['onRenderState'],
+) {
   const t = useT()
   const ref = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -64,13 +60,8 @@ export function ScoreRenderer({
     measures: ReturnType<typeof createMeasureSelection> | null
   } | null>(null)
   const selection = renderedPicker?.xml === xml ? renderedPicker : null
-  const picker = selection?.pick
-  const measureSelectable = onMeasureClick !== undefined
   const measureLabel = useEffectEvent((number: number) => t('score.measureNumber', { number }))
 
-  useEffect(() => {
-    selection?.measures?.select(selectedMeasure)
-  }, [selection, selectedMeasure])
   const report = useEffectEvent((state: ScoreRenderState) => onRenderState?.(state))
   const reportError = useEffectEvent((cause: unknown) =>
     setError(scoreErrorMessage(cause, t, 'renderFailed')),
@@ -123,6 +114,30 @@ export function ScoreRenderer({
       container.replaceChildren()
     }
   }, [xml, measureSelectable])
+
+  return { ref, error, selection }
+}
+
+export function ScoreRenderer({
+  xml,
+  className,
+  onNoteClick,
+  onRenderState,
+  selectedMeasure = null,
+  onMeasureClick,
+  measureActions,
+}: ScoreRendererProps) {
+  const t = useT()
+  const { ref, error, selection } = useRenderedScore(
+    xml,
+    onMeasureClick !== undefined,
+    onRenderState,
+  )
+  const picker = selection?.pick
+
+  useEffect(() => {
+    selection?.measures?.select(selectedMeasure)
+  }, [selection, selectedMeasure])
 
   function handleNoteClick(event: MouseEvent<HTMLDivElement>) {
     if (onMeasureClick && selection?.measures) {

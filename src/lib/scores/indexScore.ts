@@ -74,6 +74,60 @@ function appendTone(
   }
 }
 
+function readDuration(element: Element, divisions: number): Fraction {
+  return fractionFromDivisions(
+    positiveInteger(readXmlValue(element, 'duration'), 'duration'),
+    divisions,
+  )
+}
+
+function readNoteDuration(note: Element, divisions: number): Fraction {
+  if (findXmlChild(note, 'grace') && readXmlValue(note, 'duration') === null) return ZERO
+  return readDuration(note, divisions)
+}
+
+function moveCursor(cursor: Fraction, movement: Element, divisions: number): Fraction {
+  const duration = readDuration(movement, divisions)
+  const next =
+    movement.localName === 'backup'
+      ? subtractFractions(cursor, duration)
+      : addFractions(cursor, duration)
+  if (compareFractions(next, ZERO) < 0) throw new Error('MusicXML backup precedes measure start')
+  return next
+}
+
+function createIndexedEvent(
+  note: Element,
+  id: string,
+  position: MusicalPosition,
+  duration: Fraction,
+): IndexedEvent {
+  const rest = findXmlChild(note, 'rest')
+  const pitch = findXmlChild(note, 'pitch')
+  const unpitched = findXmlChild(note, 'unpitched')
+  if (!rest && !pitch && !unpitched)
+    throw new Error('Unsupported MusicXML note without pitch, rest or unpitched')
+  return {
+    id,
+    position,
+    duration,
+    kind: rest ? 'rest' : unpitched ? 'unpitched' : 'notes',
+    tones: pitch
+      ? [
+          {
+            id: `${id}:0`,
+            pitch: readPitch(pitch),
+            duration,
+            staff: staffNumber(note),
+            source: note,
+          },
+        ]
+      : [],
+    wholeMeasure: rest?.getAttribute('measure') === 'yes',
+    source: note,
+  }
+}
+
 function indexMeasure(partId: string, measure: Element, index: number, initialDivisions: number) {
   let divisions = initialDivisions
   let cursor: Fraction = ZERO
@@ -83,63 +137,32 @@ function indexMeasure(partId: string, measure: Element, index: number, initialDi
     if (child.localName === 'attributes') {
       const value = readXmlValue(child, 'divisions')
       if (value !== null) divisions = positiveInteger(value, 'divisions')
-    } else if (child.localName === 'backup' || child.localName === 'forward') {
-      const duration = fractionFromDivisions(
-        positiveInteger(readXmlValue(child, 'duration'), 'duration'),
-        divisions,
-      )
-      cursor =
-        child.localName === 'backup'
-          ? subtractFractions(cursor, duration)
-          : addFractions(cursor, duration)
-      if (compareFractions(cursor, ZERO) < 0)
-        throw new Error('MusicXML backup precedes measure start')
-      anchor = null
-    } else if (child.localName === 'note') {
-      const chord = findXmlChild(child, 'chord') !== null
-      const voiceId = readXmlValue(child, 'voice') ?? '1'
-      const durationValue = readXmlValue(child, 'duration')
-      const duration =
-        findXmlChild(child, 'grace') && durationValue === null
-          ? ZERO
-          : fractionFromDivisions(positiveInteger(durationValue, 'duration'), divisions)
-      const id = `${partId}:${index}:${events.length}`
-      if (chord) {
-        if (!anchor || anchor.position.voiceId !== voiceId)
-          throw new Error('Chord member has no matching voice anchor')
-        const member = appendTone(anchor, child, `${anchor.id}:${anchor.tones.length}`, duration)
-        events[events.length - 1] = member
-        anchor = member
-        continue
-      }
-      const rest = findXmlChild(child, 'rest')
-      const pitch = findXmlChild(child, 'pitch')
-      const unpitched = findXmlChild(child, 'unpitched')
-      if (!rest && !pitch && !unpitched)
-        throw new Error('Unsupported MusicXML note without pitch, rest or unpitched')
-      const event: IndexedEvent = {
-        id,
-        position: { partId, measureIndex: index, voiceId, onset: cursor },
-        duration,
-        kind: rest ? 'rest' : unpitched ? 'unpitched' : 'notes',
-        tones: pitch
-          ? [
-              {
-                id: `${id}:0`,
-                pitch: readPitch(pitch),
-                duration,
-                staff: staffNumber(child),
-                source: child,
-              },
-            ]
-          : [],
-        wholeMeasure: rest?.getAttribute('measure') === 'yes',
-        source: child,
-      }
-      events.push(event)
-      anchor = event
-      cursor = addFractions(cursor, duration)
+      continue
     }
+    if (child.localName === 'backup' || child.localName === 'forward') {
+      cursor = moveCursor(cursor, child, divisions)
+      anchor = null
+      continue
+    }
+    if (child.localName !== 'note') continue
+    const voiceId = readXmlValue(child, 'voice') ?? '1'
+    const duration = readNoteDuration(child, divisions)
+    if (findXmlChild(child, 'chord')) {
+      if (!anchor || anchor.position.voiceId !== voiceId)
+        throw new Error('Chord member has no matching voice anchor')
+      anchor = appendTone(anchor, child, `${anchor.id}:${anchor.tones.length}`, duration)
+      events[events.length - 1] = anchor
+      continue
+    }
+    const event = createIndexedEvent(
+      child,
+      `${partId}:${index}:${events.length}`,
+      { partId, measureIndex: index, voiceId, onset: cursor },
+      duration,
+    )
+    events.push(event)
+    anchor = event
+    cursor = addFractions(cursor, duration)
   }
   return {
     measure: {

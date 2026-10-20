@@ -65,3 +65,47 @@ it('uses reduced exact fractions and refuses unsafe arithmetic', () => {
   expect(compareFractions(fraction(2, 3), fraction(1, 2))).toBe(1)
   expect(() => addFractions(fraction(Number.MAX_SAFE_INTEGER), fraction(1))).toThrow(RangeError)
 })
+
+it('inherits divisions and preserves event identity and source elements across measures', () => {
+  const xml = `<score-partwise><part-list><score-part id="P1"><part-name>Voice</part-name></score-part></part-list><part id="P1">
+    <measure number="1"><attributes><divisions>2</divisions></attributes>
+      <note><pitch><step>C</step><octave>4</octave></pitch><duration>1</duration></note>
+      <note><chord/><pitch><step>E</step><octave>4</octave></pitch><duration>1</duration></note>
+    </measure>
+    <measure number="2">
+      <note><rest/><duration>1</duration></note>
+      <note><rest/><duration>2</duration></note>
+    </measure>
+  </part></score-partwise>`
+  const score = indexScore(xml)
+  const events = score.measures.flatMap((measure) => measure.events)
+  expect(events.map((event) => event.id)).toEqual(['P1:0:0', 'P1:1:0', 'P1:1:1'])
+  expect(events[0].tones.map((tone) => tone.id)).toEqual(['P1:0:0:0', 'P1:0:0:1'])
+  expect(events[1].duration).toEqual(fraction(1, 2))
+  expect(events[2].position.onset).toEqual(fraction(1, 2))
+  expect(events[2].duration).toEqual(fraction(1))
+  expect(events[0].source).toBe(score.document.querySelector('note'))
+  expect(events[0].tones[1].source).toBe(score.document.querySelectorAll('note')[1])
+})
+
+it.each([
+  ['<backup><duration>1</duration></backup>', 'backup precedes measure start'],
+  [
+    '<note><chord/><pitch><step>E</step><octave>4</octave></pitch><duration>1</duration></note>',
+    'Chord member has no matching voice anchor',
+  ],
+  [
+    '<note><pitch><step>C</step><octave>4</octave></pitch><duration>1</duration><voice>1</voice></note><note><chord/><pitch><step>E</step><octave>4</octave></pitch><duration>1</duration><voice>2</voice></note>',
+    'Chord member has no matching voice anchor',
+  ],
+  [
+    '<note><pitch><step>C</step><octave>4</octave></pitch><duration>1</duration></note><forward><duration>1</duration></forward><note><chord/><pitch><step>E</step><octave>4</octave></pitch><duration>1</duration></note>',
+    'Chord member has no matching voice anchor',
+  ],
+])('rejects invalid cursor or chord state for %s', (content, error) => {
+  expect(() =>
+    indexScore(
+      `<score-partwise><part-list><score-part id="P1"><part-name>Voice</part-name></score-part></part-list><part id="P1"><measure number="1">${content}</measure></part></score-partwise>`,
+    ),
+  ).toThrow(error)
+})
