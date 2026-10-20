@@ -40,6 +40,40 @@ async function expectScoreFits(page: Page) {
   )
 }
 
+test('measure focus keeps its keyboard indicator without a browser outline', async ({
+  page,
+  account,
+}) => {
+  await openScore(page, account)
+  const firstMeasure = page.getByRole('button', { name: 'Measure 1', exact: true })
+  const secondMeasure = page.getByRole('button', { name: 'Measure 2', exact: true })
+  await firstMeasure.click({ position: { x: 8, y: 4 } })
+  await expect(firstMeasure).toBeFocused()
+  await expect(firstMeasure).toHaveAttribute('aria-pressed', 'true')
+  await expect(firstMeasure).toHaveCSS('outline-style', 'none')
+
+  await page.keyboard.press('Shift+Tab')
+  await expect(firstMeasure).not.toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(firstMeasure).toBeFocused()
+  await expect(firstMeasure).toHaveCSS('stroke-width', '3px')
+  await expect(firstMeasure).toHaveCSS('outline-style', 'none')
+  await page.keyboard.press('Enter')
+  await expect(firstMeasure).toHaveAttribute('aria-pressed', 'true')
+  await page.keyboard.press('ArrowRight')
+  await expect(secondMeasure).toBeFocused()
+  await expect(secondMeasure).toHaveAttribute('aria-pressed', 'true')
+  await expect(secondMeasure).toHaveCSS('stroke-width', '3px')
+  await page.keyboard.press('Space')
+  await expect(secondMeasure).toHaveAttribute('aria-pressed', 'true')
+  await page.keyboard.press('ArrowLeft')
+  await expect(firstMeasure).toBeFocused()
+  await expect(firstMeasure).toHaveAttribute('aria-pressed', 'true')
+
+  await page.locator('.vf-notehead').first().click()
+  await expect(page.getByLabel('Measure 1 · note 1 · note name')).toBeVisible()
+})
+
 test('mobile scores reflow on rotation and keep pitch edits, undo and saved XML', async ({
   page,
   account,
@@ -111,6 +145,11 @@ test.describe('touch score', () => {
     await page.setViewportSize({ width: 1194, height: 834 })
     await expectScoreFits(page)
     await expect(page.getByRole('tree', { name: 'Documents and folders' })).toBeVisible()
+    const measure = page.getByRole('button', { name: 'Measure 1', exact: true })
+    await measure.tap({ position: { x: 8, y: 4 } })
+    await expect(measure).toBeFocused()
+    await expect(measure).toHaveAttribute('aria-pressed', 'true')
+    await expect(measure).toHaveCSS('outline-style', 'none')
     await page.locator('.vf-notehead').first().tap()
     await expect(page.getByLabel('Measure 1 · note 1 · note name')).toBeVisible()
     await page.getByRole('button', { name: 'Close panel' }).tap()

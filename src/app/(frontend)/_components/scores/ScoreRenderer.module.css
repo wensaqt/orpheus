@@ -4,6 +4,7 @@
   stroke-width: 1.5;
   pointer-events: all;
   cursor: pointer;
+  outline: none;
   transition:
     fill var(--duration),
     stroke var(--duration);
@@ -18,7 +19,6 @@
   stroke: var(--color-primary);
 }
 .renderer :global([data-score-measure]):focus-visible {
-  outline: none;
   stroke: var(--color-primary);
   stroke-width: 3;
 }
