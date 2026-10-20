@@ -4,6 +4,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 const load = vi.fn()
 const draw = vi.fn()
 const createPicker = vi.fn()
+const selectNote = vi.fn()
 const createMeasureSelection = vi.fn()
 const measures = { pick: vi.fn(), select: vi.fn(), anchor: vi.fn(), focus: vi.fn(), count: 4 }
 const disconnect = vi.fn()
@@ -16,7 +17,12 @@ vi.doMock('opensheetmusicdisplay', () => ({
   },
 }))
 vi.doMock('@front/_components/scores/scoreMeasureSelection', () => ({ createMeasureSelection }))
-vi.doMock('@front/_components/scores/scoreNotePicking', () => ({ createNotePicker: createPicker }))
+vi.doMock('@front/_components/scores/scoreNotePicking', () => ({
+  createNotePicker: (...args: unknown[]) => {
+    const pick = createPicker(...args)
+    return pick ? Object.assign(pick, { select: selectNote }) : null
+  },
+}))
 const { ScoreRenderer } = await import('@front/_components/scores/ScoreRenderer')
 
 afterEach(() => {
@@ -33,6 +39,7 @@ beforeEach(() => {
   load.mockReset()
   draw.mockReset()
   createPicker.mockReset().mockReturnValue(null)
+  selectNote.mockReset()
   disconnect.mockReset()
   frame = undefined
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(600)
@@ -253,4 +260,20 @@ it('selects empty measures with the keyboard and focuses the adjacent measure', 
   fireEvent.keyDown(rect, { key: 'ArrowRight' })
   expect(onMeasureClick).toHaveBeenLastCalledWith(2)
   expect(measures.focus).toHaveBeenLastCalledWith(2)
+})
+
+it('reapplies the controlled note selection after resizing and XML correction, then clears it', async () => {
+  load.mockResolvedValue(undefined)
+  createPicker.mockImplementation(() => () => 2)
+  const { rerender } = render(<ScoreRenderer xml="first" selectedNote={2} />)
+  await waitFor(() => expect(selectNote).toHaveBeenLastCalledWith(2))
+  resizeScore(320)
+  flushResize()
+  expect(selectNote).toHaveBeenCalledTimes(2)
+  expect(selectNote).toHaveBeenLastCalledWith(2)
+  rerender(<ScoreRenderer xml="corrected" selectedNote={2} />)
+  await waitFor(() => expect(selectNote).toHaveBeenCalledTimes(3))
+  expect(selectNote).toHaveBeenLastCalledWith(2)
+  rerender(<ScoreRenderer xml="corrected" selectedNote={null} />)
+  expect(selectNote).toHaveBeenLastCalledWith(null)
 })

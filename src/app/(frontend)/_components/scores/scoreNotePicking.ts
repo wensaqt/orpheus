@@ -64,6 +64,29 @@ function pickedNoteIndex(
   return note ? (indexes.get(note.sourceNote) ?? null) : null
 }
 
+/** Associate only verified XML notes with their SVG heads; DOM order can differ from score order. */
+function noteHeads(display: Display, indexes: WeakMap<object, number>, container: HTMLElement) {
+  const heads = new Map<SVGElement, number>()
+  const notes = display.GraphicSheet.MeasureList.flat()
+    .filter((measure) => measure && !measure.IsExtraGraphicalMeasure)
+    .flatMap((measure) => measure.staffEntries)
+    .flatMap((entry) => entry.graphicalVoiceEntries)
+    .flatMap((voice) => voice.notes)
+  for (const note of notes) {
+    const index = indexes.get(note.sourceNote)
+    if (index === undefined || !('getNoteheadSVGs' in note)) continue
+    if (typeof note.getNoteheadSVGs !== 'function') continue
+    const elements: unknown = note.getNoteheadSVGs()
+    if (!Array.isArray(elements)) continue
+    for (const element of elements) {
+      if (!(element instanceof SVGElement) || !container.contains(element)) continue
+      element.dataset.scoreNote = String(index)
+      heads.set(element, index)
+    }
+  }
+  return heads
+}
+
 export function createNotePicker(
   display: Display,
   xml: string,
@@ -74,7 +97,16 @@ export function createNotePicker(
     const indexes = indexRenderedNotes(display, xml, osmd.Pitch.OctaveXmlDifference)
     if (!indexes) return null
     const context = { container, display, osmd }
-    return (event: MouseEvent) => pickedNoteIndex(event, context, indexes)
+    const heads = noteHeads(display, indexes, container)
+    const pick = (event: MouseEvent) => pickedNoteIndex(event, context, indexes)
+    return Object.assign(pick, {
+      select(index: number | null) {
+        for (const [head, candidate] of heads) {
+          if (candidate === index) head.dataset.scoreNoteSelected = 'true'
+          else delete head.dataset.scoreNoteSelected
+        }
+      },
+    })
   } catch (cause) {
     // Unsupported structures return null above; unexpected indexing failures need a diagnostic.
     if (!(cause instanceof ScoreError))

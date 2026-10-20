@@ -40,6 +40,65 @@ async function expectScoreFits(page: Page) {
   )
 }
 
+test('selected note heads grow around their musical position and survive corrections and reflow', async ({
+  page,
+  account,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await openScore(page, account)
+  await page.locator('.vf-notehead').first().click()
+  const selected = page.locator('[data-score-note-selected="true"]')
+  await expect(selected).toHaveAttribute('data-score-note', '0')
+  await expect(selected).toHaveCSS('transition-duration', '0s')
+  const geometry = await selected.evaluate((head) => {
+    const enlarged = head.getBoundingClientRect()
+    delete head.dataset.scoreNoteSelected
+    const original = head.getBoundingClientRect()
+    head.dataset.scoreNoteSelected = 'true'
+    return {
+      ratio: enlarged.width / original.width,
+      centerX: enlarged.x + enlarged.width / 2 - (original.x + original.width / 2),
+      centerY: enlarged.y + enlarged.height / 2 - (original.y + original.height / 2),
+    }
+  })
+  expect(geometry.ratio).toBeCloseTo(1.4, 1)
+  expect(Math.abs(geometry.centerX)).toBeLessThan(1)
+  expect(Math.abs(geometry.centerY)).toBeLessThan(1)
+  const second = page.locator('[data-score-note="1"]')
+  const stem = page.locator('.vf-stem').first()
+  const unchangedNote = await second.boundingBox()
+  const unchangedStem = await stem.boundingBox()
+  await expect(second).toHaveCSS('scale', 'none')
+  // Reselect the enlarged edge, outside the original notehead bounds.
+  const box = await selected.boundingBox()
+  expect(box).not.toBeNull()
+  if (!box) throw new Error('Selected notehead has no bounds')
+  await page.mouse.click(box.x + box.width - 0.5, box.y + box.height / 2)
+  await expect(selected).toHaveAttribute('data-score-note', '0')
+  expect(await second.boundingBox()).toEqual(unchangedNote)
+  expect(await stem.boundingBox()).toEqual(unchangedStem)
+
+  await second.click()
+  await expect(selected).toHaveAttribute('data-score-note', '1')
+  await expect(page.locator('[data-score-note="0"]')).toHaveCSS('scale', 'none')
+  await page.getByLabel('Measure 1 · note 2 · note name').selectOption('A')
+  await expect(selected).toHaveAttribute('data-score-note', '1')
+  await expect(selected).toHaveCSS('scale', '1.4')
+  await page.setViewportSize({ width: 834, height: 1194 })
+  await expectScoreFits(page)
+  await expect(selected).toHaveAttribute('data-score-note', '1')
+  await expect(selected).toHaveCSS('scale', '1.4')
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await expect(selected).toHaveCSS('transition-duration', '0.14s')
+  await page.emulateMedia({ media: 'print' })
+  await expect(selected).toHaveCSS('scale', 'none')
+  await page.emulateMedia({ media: 'screen', reducedMotion: 'reduce' })
+  await page.getByRole('button', { name: 'Measure 1', exact: true }).click({
+    position: { x: 8, y: 4 },
+  })
+  await expect(selected).toHaveCount(0)
+})
+
 test('mobile scores reflow on rotation and keep pitch edits, undo and saved XML', async ({
   page,
   account,
