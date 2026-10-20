@@ -7,6 +7,9 @@ import styles from './ScoreDocument.module.css'
 export function MeasureActions({
   measure,
   canDelete,
+  canAddNote,
+  onAddNote,
+  noteEditingIssue,
   disabled,
   onEdit,
   onCorrect,
@@ -14,6 +17,9 @@ export function MeasureActions({
 }: {
   measure: { index: number; number: string }
   canDelete: boolean
+  canAddNote: boolean
+  onAddNote: () => void
+  noteEditingIssue: string | null
   disabled: boolean
   onEdit: (action: MeasureAction) => void
   onCorrect: () => void
@@ -23,6 +29,15 @@ export function MeasureActions({
   return (
     <div className={styles.measureActions} role="group" aria-label={t('score.measureActions')}>
       <strong>{t('score.measureNumber', { number: measure.number })}</strong>
+      <Button
+        variant="ghost"
+        disabled={disabled || !canAddNote}
+        onClick={onAddNote}
+        title={t('score.noteEditingHint')}
+      >
+        {t('score.addNote')}
+      </Button>
+      {noteEditingIssue ? <span className={styles.hint}>{noteEditingIssue}</span> : null}
       <Button variant="ghost" disabled={disabled} onClick={onCorrect}>
         {t('score.editMeasureNotes')}
       </Button>

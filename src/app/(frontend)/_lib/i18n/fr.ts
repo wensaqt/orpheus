@@ -388,6 +388,11 @@ export const fr: Messages = {
       'alto-sax-eb': 'Saxophone alto en mi♭',
       'tenor-sax-bb': 'Saxophone ténor en si♭',
     },
+    addNote: 'Ajouter une note',
+    deleteNote: 'Supprimer la note',
+    deleteNamedNote: 'Supprimer {note}',
+    noteEditingHint:
+      'Ajoutez un do naturel 4 noire dans le premier silence disponible (ou une note plus courte si nécessaire). Une note supprimée devient un silence de même durée. Une seule portée et voix ; liaisons, ligatures et triolets non pris en charge.',
     measureActions: 'Actions de la mesure',
     editMeasureNotes: 'Corriger les notes',
     insertMeasureAfter: 'Ajouter après',
@@ -403,6 +408,11 @@ export const fr: Messages = {
     deleteMeasureHint:
       'Les notes de cette mesure seront supprimées. Vous pouvez annuler cette action. La partition doit conserver au moins une mesure.',
     errors: {
+      unsupportedNoteStructure:
+        'L’ajout ou la suppression de notes nécessite une seule portée et voix avec des durées usuelles, sans liaisons, ligatures ni triolets. Aucune modification effectuée.',
+      noNoteSpace:
+        'Cette mesure ne contient aucun silence disponible. Supprimez une note pour libérer de la place.',
+      noteEditFailed: 'Impossible de modifier les notes.',
       measureMissing: 'Mesure introuvable.',
       lastMeasure: 'Conservez au moins une mesure dans la partition.',
       unsupportedMeasureStructure:
@@ -456,7 +466,7 @@ export const fr: Messages = {
     transpose: 'Transposer…',
     closePanel: 'Fermer le panneau',
     correctionLimit:
-      'Ce prototype corrige les hauteurs. Les durées et les voix attendent un éditeur musical.',
+      'Sélectionnez une note pour corriger sa hauteur. L’ajout et la suppression de notes préservent le rythme de la mesure.',
     noteInMeasure: 'Mesure {measure} · note {index}',
     showAllNotes: 'Voir toutes les notes',
     pitchStep: 'nom de note',

@@ -382,6 +382,11 @@ export const en = {
       'alto-sax-eb': 'E♭ alto saxophone',
       'tenor-sax-bb': 'B♭ tenor saxophone',
     },
+    addNote: 'Add a note',
+    deleteNote: 'Delete note',
+    deleteNamedNote: 'Delete {note}',
+    noteEditingHint:
+      'Add a natural C4 quarter note in the first available rest (or a shorter note if needed). Deleting a note keeps its duration as a rest. Single staff and voice only; ties, beams and tuplets are not supported.',
     measureActions: 'Measure actions',
     editMeasureNotes: 'Correct notes',
     insertMeasureAfter: 'Add after',
@@ -397,6 +402,10 @@ export const en = {
     deleteMeasureHint:
       'The notes in this measure will be removed. You can undo this action. The score must keep at least one measure.',
     errors: {
+      unsupportedNoteStructure:
+        'Adding or deleting notes is limited to a single staff and voice with ordinary durations, without ties, beams or tuplets. No changes were made.',
+      noNoteSpace: 'This measure has no available rest. Delete a note to make room.',
+      noteEditFailed: 'Could not modify the notes.',
       measureMissing: 'Measure not found.',
       lastMeasure: 'Keep at least one measure in the score.',
       unsupportedMeasureStructure:
@@ -447,7 +456,8 @@ export const en = {
     correctPitch: 'Correct a pitch…',
     transpose: 'Transpose…',
     closePanel: 'Close panel',
-    correctionLimit: 'This prototype corrects pitches. Durations and voices need a music editor.',
+    correctionLimit:
+      'Select a note to correct its pitch. Adding and deleting notes preserves the measure’s rhythm.',
     noteInMeasure: 'Measure {measure} · note {index}',
     showAllNotes: 'Show all notes',
     pitchStep: 'note name',

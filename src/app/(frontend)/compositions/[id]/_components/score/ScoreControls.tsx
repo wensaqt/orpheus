@@ -16,8 +16,14 @@ export function PitchCorrectionControls({
   onShowAll,
   showAll,
   onEdit,
+  onDelete,
+  deletableNotes,
+  editingIssue,
 }: {
   notes: ScoreNote[]
+  deletableNotes: number[]
+  onDelete: (index: number) => void
+  editingIssue: string | null
   issue: string | null
   selectedIndex: number | null
   showAll: boolean
@@ -30,6 +36,7 @@ export function PitchCorrectionControls({
   return (
     <>
       <p className={styles.hint}>{issue ?? t('score.correctionLimit')}</p>
+      <p className={styles.hint}>{editingIssue ?? t('score.noteEditingHint')}</p>
       <div className={styles.notes}>
         {visibleNotes.map((note) => (
           <PitchCorrectionRow
@@ -37,6 +44,8 @@ export function PitchCorrectionControls({
             note={note}
             selected={note.index === selectedIndex}
             onEdit={onEdit}
+            canDelete={deletableNotes.includes(note.index)}
+            onDelete={onDelete}
           />
         ))}
       </div>
@@ -55,9 +64,13 @@ function PitchCorrectionRow({
   note: { index, measure, pitch },
   selected,
   onEdit,
+  canDelete,
+  onDelete,
 }: {
   note: ScoreNote
   selected: boolean
+  canDelete: boolean
+  onDelete: (index: number) => void
   onEdit: (index: number, pitch: Pitch) => void
 }) {
   const t = useT()
@@ -94,6 +107,15 @@ function PitchCorrectionRow({
         value={pitch.octave}
         onChange={(octave) => onEdit(index, { ...pitch, octave })}
       />
+      <Button
+        variant="ghost"
+        tone="danger"
+        disabled={!canDelete}
+        onClick={() => onDelete(index)}
+        aria-label={t('score.deleteNamedNote', { note: name })}
+      >
+        {t('score.deleteNote')}
+      </Button>
     </div>
   )
 }

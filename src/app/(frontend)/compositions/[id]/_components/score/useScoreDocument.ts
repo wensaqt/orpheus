@@ -11,6 +11,7 @@ import {
   type Pitch,
   type ScoreNote,
 } from '@/lib/scores'
+import { addNote, deleteNote, inspectNoteEditing } from '@/lib/scores/notes'
 import type { ScoreVariant } from '@/lib/scores/variantTitle'
 import { renameBinderItem, saveScoreDocument } from '@front/_features/binder/actions'
 import { documentCacheGeneration, rememberScore } from '@front/_features/binder/documentStore'
@@ -131,6 +132,21 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
     },
     onError: setError,
   })
+  const noteEditingEnabled = panel === 'correct' || selectedMeasure !== null
+  const noteEditing = useMemo<
+    ReturnType<typeof inspectNoteEditing> & { issue: string | null }
+  >(() => {
+    if (!noteEditingEnabled) return { addableMeasures: [], deletableNotes: [], issue: null }
+    try {
+      return { ...inspectNoteEditing(content.xml), issue: null }
+    } catch (cause) {
+      return {
+        addableMeasures: [],
+        deletableNotes: [],
+        issue: scoreErrorMessage(cause, t, 'noteEditFailed'),
+      }
+    }
+  }, [content.xml, noteEditingEnabled, t])
   const sourceDeclared = useMemo(
     () => panel === 'transpose' && hasInstrumentTranspose(content.xml),
     [content.xml, panel],
@@ -164,6 +180,16 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
     transposition.resetSource()
     closePanel()
     setSelectedMeasure(null)
+  }
+  function editNote(operation: 'add' | 'delete', index: number) {
+    if (importInProgress.current) return
+    try {
+      const xml = content.xmlRef.current
+      changeXml(operation === 'add' ? addNote(xml, index) : deleteNote(xml, index))
+      setSelectedNote(null)
+    } catch (cause) {
+      setError(scoreErrorMessage(cause, t, 'noteEditFailed'))
+    }
   }
   function correctNote(index: number, pitch: Pitch) {
     if (importInProgress.current) return
@@ -299,6 +325,9 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
           setSelectedMeasure(null)
         },
         onEdit: correctSelectedNote,
+        deletableNotes: noteEditing.deletableNotes,
+        onDelete: (index: number) => editNote('delete', index),
+        editingIssue: noteEditing.issue,
       },
       transposition: {
         ...transposition.controls,
@@ -315,6 +344,11 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
         ? {
             measure: measures.active,
             canDelete: measures.measures.length > 1,
+            canAddNote: noteEditing.addableMeasures.includes(measures.active.index),
+            onAddNote: () => {
+              if (selectedMeasure !== null) editNote('add', selectedMeasure)
+            },
+            noteEditingIssue: noteEditing.issue,
             disabled: isImporting,
             onEdit: measures.edit,
             onCorrect: () => openPanel('correct'),

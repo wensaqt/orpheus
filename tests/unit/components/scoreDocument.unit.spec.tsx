@@ -495,3 +495,80 @@ it('clears an import error when the current XML is imported again without creati
   expect(screen.queryByRole('alert')).toBeNull()
   expect(commands.canUndo).toBe(false)
 })
+
+it('adds two notes against the latest XML, deletes one, saves and restores both history states', async () => {
+  const { result } = renderHook(() =>
+    useScoreDocument({ id: '1', title: 'Study', initialXml: SAMPLE_SCORE }),
+  )
+  act(() => result.current.panelProps.measures.onEdit({ type: 'append' }))
+  act(() => result.current.rendererProps.onMeasureClick?.(2))
+  expect(result.current.measureActions?.canAddNote).toBe(true)
+  const add = result.current.measureActions!.onAddNote
+  act(() => {
+    add()
+    add()
+  })
+  expect(result.current.rendererProps.xml.match(/<pitch>/g)).toHaveLength(9)
+  const added = result.current.rendererProps.xml
+  act(() => result.current.rendererProps.onNoteClick?.(7))
+  expect(result.current.panelProps.correction.selectedIndex).toBe(7)
+  act(() => result.current.panelProps.correction.onDelete(7))
+  expect(result.current.panelProps.correction.selectedIndex).toBeNull()
+  expect(result.current.rendererProps.xml.match(/<pitch>/g)).toHaveLength(8)
+  const deleted = result.current.rendererProps.xml
+  await flushContent()
+  expect(saveScore).toHaveBeenLastCalledWith(expect.objectContaining({ scoreXml: deleted }))
+  act(() => commands.undo())
+  expect(result.current.rendererProps.xml).toBe(added)
+  act(() => commands.redo())
+  expect(result.current.rendererProps.xml).toBe(deleted)
+  await flushContent()
+  expect(saveScore).toHaveBeenLastCalledWith(expect.objectContaining({ scoreXml: deleted }))
+})
+
+it('does not save or create history for refused note edits', async () => {
+  const { result } = renderHook(() =>
+    useScoreDocument({ id: '1', title: 'Study', initialXml: SAMPLE_SCORE }),
+  )
+  act(() => result.current.panelProps.correction.onDelete(99))
+  expect(result.current.error).toBe('score.errors.noteMissing')
+  expect(result.current.rendererProps.xml).toBe(SAMPLE_SCORE)
+  expect(commands.canUndo).toBe(false)
+  await flushContent()
+  expect(saveScore).not.toHaveBeenCalled()
+})
+
+it('blocks captured add and delete commands while an import is being verified', async () => {
+  let documentState!: ReturnType<typeof useScoreDocument>
+  function ImportHarness() {
+    documentState = useScoreDocument({ id: '1', title: 'Study', initialXml: SAMPLE_SCORE })
+    return (
+      <input aria-label="score.importMusicXml" type="file" onChange={documentState.importFile} />
+    )
+  }
+  render(<ImportHarness />)
+  act(() => documentState.panelProps.measures.onEdit({ type: 'append' }))
+  act(() => documentState.rendererProps.onMeasureClick?.(2))
+  const add = documentState.measureActions!.onAddNote
+  const remove = documentState.panelProps.correction.onDelete
+  const before = documentState.rendererProps.xml
+  await flushContent()
+  saveScore.mockClear()
+  let finish!: () => void
+  verify.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      finish = resolve
+    }),
+  )
+  await importXml(SAMPLE_SCORE.replace('Piano', 'Violin'))
+  expect(documentState.isImporting).toBe(true)
+  act(() => {
+    add()
+    remove(0)
+  })
+  expect(documentState.rendererProps.xml).toBe(before)
+  await flushContent()
+  expect(saveScore).not.toHaveBeenCalled()
+  await act(async () => finish())
+  expect(documentState.isImporting).toBe(false)
+})
