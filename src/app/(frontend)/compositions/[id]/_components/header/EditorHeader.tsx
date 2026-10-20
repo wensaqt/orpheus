@@ -1,6 +1,6 @@
 'use client'
 
-import type { Ref } from 'react'
+import { type Ref, type RefObject, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ROUTES } from '@front/_lib/routes'
@@ -22,7 +22,7 @@ import styles from './EditorHeader.module.css'
 import { MenuBar } from './MenuBar'
 import { StyleToolbar } from './StyleToolbar'
 import { useToolbarState } from './useToolbarState'
-import { ScoreMenuBar } from '../score/ScoreMenuBar'
+import { ScoreMenuBar, ScoreHistoryToolbar } from '../score/ScoreMenuBar'
 
 type EditorHeaderProps = {
   title: string
@@ -52,12 +52,17 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
   useRegisterSaver(SAVERS.compositionTitle, field)
   const sessionExpired = field.failure === 'session-expired' || layoutFailure === 'session-expired'
   const toolbarState = useToolbarState(useOpenEditor())
+  const headerRef = useRef<HTMLElement>(null)
+  useContinuousHeaderHeight(headerRef, view.continuous && !scoreOpen)
 
   return (
     <header
+      ref={headerRef}
+      data-mobile-navigation={view.continuous && !view.sidebarAvailable && !scoreOpen}
       className={styles.header}
       data-editor-header=""
       data-score={scoreOpen}
+      data-compact={view.continuous}
       data-continuous={view.continuous && !scoreOpen}
     >
       <div className={styles.titles} data-editor-titles="">
@@ -84,7 +89,29 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
         ) : null}
       </div>
       {scoreOpen ? <ScoreMenuBar /> : <MenuBar state={toolbarState} />}
+      {scoreOpen && view.continuous && <ScoreHistoryToolbar />}
       {!scoreOpen && <StyleToolbar state={toolbarState} />}
     </header>
   )
+}
+
+function useContinuousHeaderHeight(headerRef: RefObject<HTMLElement | null>, enabled: boolean) {
+  useEffect(() => {
+    const header = headerRef.current
+    const screen = header?.closest<HTMLElement>('[data-editor-screen]')
+    if (!header || !screen || !enabled) return
+    // Wrapping, translated labels and save errors can all change the sticky header's height.
+    const measure = () =>
+      screen.style.setProperty(
+        '--measured-editor-header-height',
+        `${header.getBoundingClientRect().height}px`,
+      )
+    const observer = new ResizeObserver(measure)
+    observer.observe(header)
+    measure()
+    return () => {
+      observer.disconnect()
+      screen.style.removeProperty('--measured-editor-header-height')
+    }
+  }, [headerRef, enabled])
 }

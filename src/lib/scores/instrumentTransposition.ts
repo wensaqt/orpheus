@@ -26,7 +26,8 @@ function assertSupportedOffset(transpose: Element, numbers: number[]): void {
   if (
     transpose.hasAttribute('number') ||
     findXmlChild(transpose, 'double') ||
-    readXmlValue(transpose, 'diatonic') === null ||
+    (readXmlValue(transpose, 'diatonic') === null &&
+      readXmlValue(transpose, 'chromatic') !== '0') ||
     readXmlValue(transpose, 'chromatic') === null ||
     numbers.some((number) => !Number.isInteger(number))
   )
@@ -48,26 +49,60 @@ function constantInstrumentOffset(transposes: Element[]): Interval {
   return source
 }
 
+function isOctaveStringInstrument(instrument: Instrument | null): boolean {
+  return instrument === 'guitar' || instrument === 'bass'
+}
+
+function undeclaredInstrumentOffset(document: Document, selected: Instrument | null): Interval {
+  const offset = selectedInstrumentOffset(selected)
+  const clefs = Array.from(document.querySelectorAll('attributes > clef'))
+  if (
+    !isOctaveStringInstrument(selected) ||
+    !clefs.some((clef) => findXmlChild(clef, 'clef-octave-change'))
+  )
+    return offset
+  // Octave-clef exports can encode sounding pitches without <transpose>.
+  if (clefs.some((clef) => readXmlValue(clef, 'clef-octave-change') !== '-1'))
+    throw new ScoreError('unsupportedTranspose')
+  return { diatonic: 0, semitones: 0 }
+}
+
 function sourceInstrumentOffset(document: Document, selected: Instrument | null): Interval {
   const transposes = Array.from(document.querySelectorAll(TRANSPOSE_SELECTOR))
-  if (!transposes.length) return selectedInstrumentOffset(selected)
+  if (!transposes.length) return undeclaredInstrumentOffset(document, selected)
+  if (document.querySelector('clef > clef-octave-change'))
+    throw new ScoreError('unsupportedTranspose')
   assertInitialOffset(document)
   return constantInstrumentOffset(transposes)
 }
 
-function hasMultipleVoicesOrStaves(document: Document): boolean {
-  const distinctValues = (selector: string) =>
-    new Set(Array.from(document.querySelectorAll(selector), (node) => node.textContent)).size
+function hasDistinctValues(document: Document, selector: string): boolean {
+  return (
+    new Set(Array.from(document.querySelectorAll(selector), (node) => node.textContent)).size > 1
+  )
+}
+
+function hasMultipleStaves(document: Document): boolean {
   return (
     Array.from(document.querySelectorAll('staves')).some((node) => Number(node.textContent) > 1) ||
-    distinctValues('note > staff') > 1 ||
-    distinctValues('note > voice') > 1
+    hasDistinctValues(document, 'note > staff')
+  )
+}
+
+function hasTablature(document: Document): boolean {
+  return (
+    Array.from(document.querySelectorAll('clef > sign')).some(
+      (sign) => sign.textContent === 'TAB',
+    ) || document.querySelector('staff-tuning, technical > fret, technical > string') !== null
   )
 }
 
 function assertInstrumentCompatible(document: Document, target: Instrument): void {
-  if (target !== 'concert' && hasMultipleVoicesOrStaves(document))
-    throw new ScoreError('unsupportedVoices')
+  if (hasTablature(document)) throw new ScoreError('unsupportedTranspose')
+  if (target === 'concert') return
+  const unsupportedVoices =
+    !isOctaveStringInstrument(target) && hasDistinctValues(document, 'note > voice')
+  if (hasMultipleStaves(document) || unsupportedVoices) throw new ScoreError('unsupportedVoices')
 }
 
 export function instrumentConversionInterval(
@@ -87,13 +122,15 @@ export function instrumentConversionInterval(
 function firstMeasureAttributes(document: Document): Element {
   const measure = document.querySelector('part > measure')
   if (!measure) throw new ScoreError('noMeasures')
-  const attributes = findXmlChild(measure, 'attributes') ?? document.createElement('attributes')
+  const attributes =
+    findXmlChild(measure, 'attributes') ??
+    document.createElementNS(document.documentElement.namespaceURI, 'attributes')
   if (!attributes.parentNode) measure.prepend(attributes)
   return attributes
 }
 
 function createTransposeElement(document: Document, target: Instrument): Element {
-  const transpose = document.createElement('transpose')
+  const transpose = document.createElementNS(document.documentElement.namespaceURI, 'transpose')
   const offset = INSTRUMENTS[target].writtenToSounding
   const octave = Math.trunc(offset.semitones / 12)
   setXmlValue(transpose, 'diatonic', String(offset.diatonic - octave * 7))
@@ -127,8 +164,26 @@ function removePreviousInstrumentHints(document: Document): void {
     document.querySelector(selector)?.remove()
 }
 
+function replaceInstrumentClef(document: Document, target: Instrument): void {
+  if (target === 'concert') {
+    document.querySelectorAll('clef > clef-octave-change').forEach((node) => node.remove())
+    return
+  }
+  // Store written pitches plus <transpose>; do not also apply an octave clef.
+  document.querySelectorAll('attributes > clef').forEach((clef) => clef.remove())
+  const clef = document.createElementNS(document.documentElement.namespaceURI, 'clef')
+  setXmlValue(clef, 'sign', target === 'bass' ? 'F' : 'G')
+  setXmlValue(clef, 'line', target === 'bass' ? '4' : '2')
+  const attributes = firstMeasureAttributes(document)
+  attributes.insertBefore(
+    clef,
+    findXmlChild(attributes, 'staff-details') ?? findXmlChild(attributes, 'transpose'),
+  )
+}
+
 export function updateInstrumentMetadata(document: Document, target: Instrument): void {
   replaceTransposeMetadata(document, target)
   renameInstrument(document, target)
   removePreviousInstrumentHints(document)
+  replaceInstrumentClef(document, target)
 }

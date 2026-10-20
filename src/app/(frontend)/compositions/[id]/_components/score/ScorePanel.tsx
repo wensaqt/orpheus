@@ -6,6 +6,7 @@ import { IconButton } from '@front/_components/ui/IconButton/IconButton'
 
 import type { ScorePanel as Panel } from './ScoreCommands'
 import { PitchCorrectionControls, TranspositionControls } from './ScoreControls'
+import { MeasureControls } from './MeasureControls'
 import styles from './ScoreDocument.module.css'
 
 type ScorePanelProps = {
@@ -14,6 +15,7 @@ type ScorePanelProps = {
   disabled: boolean
   correction: ComponentProps<typeof PitchCorrectionControls>
   transposition: ComponentProps<typeof TranspositionControls>
+  measures: ComponentProps<typeof MeasureControls>
 }
 
 export function ScorePanel({
@@ -22,10 +24,16 @@ export function ScorePanel({
   disabled,
   correction,
   transposition,
+  measures,
 }: ScorePanelProps) {
   const t = useT()
   if (panel === null) return null
-  const title = panel === 'correct' ? t('score.correctPitch') : t('score.transpose')
+  const titles = {
+    correct: t('score.correctPitch'),
+    transpose: t('score.transpose'),
+    measures: t('score.manageMeasures'),
+  }
+  const title = titles[panel]
   return (
     <section className={styles.panel} aria-label={title}>
       <div className={styles.panelHead}>
@@ -42,8 +50,10 @@ export function ScorePanel({
       <fieldset disabled={disabled} className={styles.panelControls}>
         {panel === 'correct' ? (
           <PitchCorrectionControls {...correction} />
-        ) : (
+        ) : panel === 'transpose' ? (
           <TranspositionControls {...transposition} />
+        ) : (
+          <MeasureControls {...measures} />
         )}
       </fieldset>
     </section>

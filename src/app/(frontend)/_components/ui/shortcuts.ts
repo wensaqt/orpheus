@@ -20,6 +20,9 @@ export type Shortcut = `Mod+${string}`
 export const isModShortcut = (event: KeyboardEventModifiers, key: string) =>
   isExactShortcutMatch(event, key, CONTROL_OR_META)
 
+export const isModShiftShortcut = (event: KeyboardEventModifiers, key: string) =>
+  isExactShortcutMatch(event, key, { ...CONTROL_OR_META, shiftKey: true })
+
 // Apple's symbols, in Apple's order (Shift before Cmd)
 const APPLE_KEYS: Record<string, string> = { Shift: '⇧', Alt: '⌥', Mod: '⌘', Enter: '↩' }
 const APPLE_ORDER = ['Shift', 'Alt', 'Mod']

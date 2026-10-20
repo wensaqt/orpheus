@@ -1,7 +1,14 @@
 import { ScoreError } from './errors'
 import { FIFTH_TONICS, type Instrument, type Interval, type Pitch, type Step, STEPS } from './model'
 import { assertTransposable } from './capabilities'
-import { findXmlChild, parseMusicXml, requireXmlValue, setXmlValue, readXmlValue } from './musicXml'
+import {
+  findXmlChild,
+  parseMusicXml,
+  serializeMusicXml,
+  requireXmlValue,
+  setXmlValue,
+  readXmlValue,
+} from './musicXml'
 import { accidentalName, readPitch, shiftPitch, writePitch } from './pitch'
 import { instrumentConversionInterval, updateInstrumentMetadata } from './instrumentTransposition'
 
@@ -80,7 +87,7 @@ function transposableDocument(xml: string): Document {
 export function transposeKey(xml: string, interval: Interval): string {
   const document = transposableDocument(xml)
   transposeContent(document, interval)
-  return new XMLSerializer().serializeToString(document)
+  return serializeMusicXml(document)
 }
 
 export function adaptToInstrument(
@@ -91,5 +98,5 @@ export function adaptToInstrument(
   const document = transposableDocument(xml)
   transposeContent(document, instrumentConversionInterval(document, target, source))
   updateInstrumentMetadata(document, target)
-  return new XMLSerializer().serializeToString(document)
+  return serializeMusicXml(document)
 }

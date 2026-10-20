@@ -1,4 +1,5 @@
 import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
+import { IS_APPLE } from 'lexical'
 
 import { contentRevision } from '@/lib/contentRevision'
 import { MAX_BINDER_TITLE_LENGTH } from '@/lib/binder/constants'
@@ -27,8 +28,9 @@ import { useRegisterScoreCommands, type ScoreCommands } from './ScoreCommands'
 import { useScoreImport } from './useScoreImport'
 import { useScoreTransposition } from './useScoreTransposition'
 import { useScoreXml } from './useScoreXml'
+import { useScoreMeasures } from './useScoreMeasures'
 import { useScorePanel } from './useScorePanel'
-import { isModShortcut } from '@front/_components/ui/shortcuts'
+import { isModShortcut, isModShiftShortcut } from '@front/_components/ui/shortcuts'
 
 type ScoreDocumentOptions = { id: Id; title: string; initialXml: string }
 
@@ -82,16 +84,29 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
   const sheetRef = useRef<HTMLDivElement>(null)
   const transposition = useScoreTransposition(content.xml, createVariant, setError)
   const { preview, reset: resetPreview } = transposition
-  const { panel, selectedNote, setSelectedNote, openPanel, selectNote, closePanel } = useScorePanel(
-    { resetPreview, onError: setError },
-  )
+  const {
+    panel,
+    selectedNote,
+    setSelectedNote,
+    selectedMeasure,
+    setSelectedMeasure,
+    selectMeasure,
+    openPanel,
+    selectNote,
+    closePanel,
+  } = useScorePanel({ resetPreview, onError: setError })
   const {
     inputRef: fileInput,
     importFile,
     isImporting,
     importInProgress,
   } = useScoreImport({
-    getWidth: () => sheetRef.current?.clientWidth ?? 0,
+    getWidth: () => {
+      const sheet = sheetRef.current
+      if (!sheet) return 0
+      const style = getComputedStyle(sheet)
+      return sheet.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+    },
     onImport: acceptImport,
     onError: setError,
   })
@@ -105,6 +120,17 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
       panel === 'correct' ? inspectCorrectableNotes(content.xml, t) : { notes: [], issue: null },
     [content.xml, panel, t],
   )
+  const measures = useScoreMeasures({
+    content,
+    selection: { index: selectedMeasure, select: setSelectedMeasure },
+    enabled: panel === 'measures' || selectedMeasure !== null,
+    importInProgress,
+    onChange: (next) => {
+      changeXml(next)
+      setSelectedNote(null)
+    },
+    onError: setError,
+  })
   const sourceDeclared = useMemo(
     () => panel === 'transpose' && hasInstrumentTranspose(content.xml),
     [content.xml, panel],
@@ -137,11 +163,12 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
     changeXml(next)
     transposition.resetSource()
     closePanel()
+    setSelectedMeasure(null)
   }
   function correctNote(index: number, pitch: Pitch) {
     if (importInProgress.current) return
     try {
-      changeXml(correctPitch(content.xml, index, pitch))
+      changeXml(correctPitch(content.xmlRef.current, index, pitch))
     } catch (cause) {
       setError(scoreErrorMessage(cause, t, 'correctionFailed'))
     }
@@ -156,35 +183,75 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
   const undoXml = useCallback(() => {
     if (importInProgress.current) return
     if (!restorePreviousXml()) return
+    setSelectedMeasure(null)
+    setSelectedNote(null)
     resetPreview()
     queueSave()
-  }, [restorePreviousXml, resetPreview, queueSave, importInProgress])
+  }, [
+    restorePreviousXml,
+    resetPreview,
+    queueSave,
+    importInProgress,
+    setSelectedMeasure,
+    setSelectedNote,
+  ])
+  const restoreNextXml = content.restoreNextXml
+  const redoXml = useCallback(() => {
+    if (importInProgress.current) return
+    if (!restoreNextXml()) return
+    setSelectedMeasure(null)
+    setSelectedNote(null)
+    resetPreview()
+    queueSave()
+  }, [
+    restoreNextXml,
+    resetPreview,
+    queueSave,
+    importInProgress,
+    setSelectedMeasure,
+    setSelectedNote,
+  ])
   const actions: ScoreCommands = useMemo(
     () => ({
       openImport: () => fileInput.current?.click(),
       setPanel: openPanel,
       undo: undoXml,
       canUndo: content.canUndo && !isImporting,
+      redo: redoXml,
+      canRedo: content.canRedo && !isImporting,
       download: () => downloadXml(content.xml, title),
       print: () => window.print(),
     }),
-    [fileInput, openPanel, undoXml, content.canUndo, content.xml, title, isImporting],
+    [
+      fileInput,
+      openPanel,
+      undoXml,
+      redoXml,
+      content.canUndo,
+      content.canRedo,
+      content.xml,
+      title,
+      isImporting,
+    ],
   )
   useRegisterScoreCommands(actions)
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'Escape' && panel) {
+    if (event.key === 'Escape' && (panel || selectedMeasure !== null)) {
       closePanel()
+      setSelectedMeasure(null)
       return
     }
-    if (!isModShortcut(event, 'z')) return
+    const redo = isModShiftShortcut(event, 'z') || (!IS_APPLE && isModShortcut(event, 'y'))
+    if (!redo && !isModShortcut(event, 'z')) return
     if (
       event.target instanceof HTMLElement &&
-      event.target.closest('input, textarea, [contenteditable=true]')
+      event.target.closest('input, textarea, select, [contenteditable=true]')
     )
       return
     event.preventDefault()
-    undoXml()
+    if (redo) redoXml()
+    else undoXml()
   }
   return {
     sheetRef,
@@ -212,11 +279,25 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
       panel,
       onClose: closePanel,
       disabled: isImporting,
+      measures: {
+        measures: measures.measures,
+        issue: measures.issue,
+        selectedIndex: selectedMeasure,
+        onSelect: setSelectedMeasure,
+        onEdit: measures.edit,
+      },
       correction: {
-        notes: inspection.notes,
+        notes:
+          selectedMeasure === null
+            ? inspection.notes
+            : inspection.notes.filter((note) => note.measureIndex === selectedMeasure),
         issue: inspection.issue,
         selectedIndex: selectedNote,
-        onShowAll: () => setSelectedNote(null),
+        showAll: selectedNote !== null || selectedMeasure !== null,
+        onShowAll: () => {
+          setSelectedNote(null)
+          setSelectedMeasure(null)
+        },
         onEdit: correctSelectedNote,
       },
       transposition: {
@@ -229,9 +310,22 @@ export function useScoreDocument({ id, title, initialXml }: ScoreDocumentOptions
         },
       },
     },
+    measureActions:
+      measures.active && preview === null && panel === null
+        ? {
+            measure: measures.active,
+            canDelete: measures.measures.length > 1,
+            disabled: isImporting,
+            onEdit: measures.edit,
+            onCorrect: () => openPanel('correct'),
+            onClose: () => selectMeasure(null),
+          }
+        : null,
     rendererProps: {
       xml: preview ?? content.xml,
       onRenderState: transposition.onRenderState,
+      selectedMeasure: preview === null && !isImporting ? selectedMeasure : null,
+      onMeasureClick: preview === null && !isImporting ? selectMeasure : undefined,
       onNoteClick: preview === null && !isImporting ? selectNote : undefined,
     },
   }
