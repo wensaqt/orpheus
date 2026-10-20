@@ -1,9 +1,11 @@
 export {
   INSTRUMENTS,
   INSTRUMENT_IDS,
+  SOURCE_INSTRUMENT_IDS,
   INTERVALS,
   STEPS,
   type Instrument,
+  type SourceInstrument,
   type Interval,
   type Pitch,
   type Step,

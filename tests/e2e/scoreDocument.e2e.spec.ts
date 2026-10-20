@@ -320,6 +320,51 @@ test('transposition creates adjacent score documents and preserves their sources
   expect((await downloading).suggestedFilename()).toBe('Untitled score (Ut).musicxml')
 })
 
+test('converts a piano source to concert pitch while preserving both staves after reload', async ({
+  page,
+  account,
+}) => {
+  const { composition } = await seed(account)
+  await page.goto(`/compositions/${composition.id}`)
+  await page.getByRole('button', { name: 'New score' }).click()
+  await expect(page.locator('.vf-notehead')).toHaveCount(7)
+  const sourceId = page.url().split('/').at(-1)!
+  await page
+    .getByLabel('Import MusicXML…')
+    .setInputFiles('tests/fixtures/scores/polyphonic-piano.musicxml')
+  const savedSource = async () =>
+    (await account.payload.findByID({ collection: 'binder-items', id: sourceId })).scoreXml
+  await expect.poll(savedSource).toContain('<backup>')
+  const original = await savedSource()
+  await page.getByRole('menuitem', { name: 'Edit', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Transpose…' }).click()
+  await page.getByLabel('Transpose for an instrument').check()
+  const source = page.getByLabel('Source instrument')
+  const target = page.getByLabel('Target instrument')
+  await expect(source.getByRole('option', { name: 'Piano', exact: true })).toHaveCount(1)
+  await expect(target.getByRole('option', { name: 'Piano', exact: true })).toHaveCount(0)
+  await source.selectOption('piano')
+  await target.selectOption('concert')
+  await page.getByRole('button', { name: 'Preview' }).click()
+  await expect(page.locator('.vf-notehead')).toHaveCount(5)
+  await page.getByRole('button', { name: 'Apply' }).click()
+  await expect.poll(() => page.url().split('/').at(-1)).not.toBe(sourceId)
+  const variantId = page.url().split('/').at(-1)!
+  await expect(page.getByLabel('Document title')).toHaveValue('Untitled score (Ut)')
+  const { scoreXml } = await account.payload.findByID({
+    collection: 'binder-items',
+    id: variantId,
+  })
+  expect(scoreXml).toContain('<staves>2</staves>')
+  expect(scoreXml).toContain('<backup>')
+  expect(scoreXml).toContain('<clef number="2"><sign>F</sign><line>4</line></clef>')
+  expect(scoreXml).not.toContain('<transpose>')
+  expect(await savedSource()).toBe(original)
+  await page.reload()
+  await expect(page.locator('.vf-notehead')).toHaveCount(5)
+  await expect(page.getByLabel('Document title')).toHaveValue('Untitled score (Ut)')
+})
+
 test('changes key on a polyphonic piano while keeping direct correction guarded', async ({
   page,
   account,

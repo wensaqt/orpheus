@@ -17,6 +17,43 @@ const polyphonicPiano = readFileSync('tests/fixtures/scores/polyphonic-piano.mus
 const voicesTriplet = readFileSync('tests/fixtures/scores/voices-triplet.musicxml', 'utf8')
 
 describe('MusicXML prototype', () => {
+  it.each(['concert', 'trumpet-bb'] as const)(
+    'treats a piano source as concert pitch when targeting %s',
+    (target) => {
+      expect(adaptToInstrument(SAMPLE_SCORE, target, 'piano')).toBe(
+        adaptToInstrument(SAMPLE_SCORE, target, 'concert'),
+      )
+    },
+  )
+
+  it('keeps explicit MusicXML transposition authoritative over a selected piano source', () => {
+    const trumpet = adaptToInstrument(SAMPLE_SCORE, 'trumpet-bb', 'concert')
+    expect(adaptToInstrument(trumpet, 'concert', 'piano')).toBe(
+      adaptToInstrument(trumpet, 'concert'),
+    )
+    expect(inspectScore(adaptToInstrument(trumpet, 'concert', 'piano'))[0].pitch).toEqual(
+      inspectScore(SAMPLE_SCORE)[0].pitch,
+    )
+  })
+
+  it('preserves both piano staves, clefs, pitches and rhythms when converting to concert pitch', () => {
+    const result = read(adaptToInstrument(polyphonicPiano, 'concert', 'piano'))
+    const original = read(polyphonicPiano)
+    for (const selector of ['note', 'clef', 'staves', 'backup', 'time', 'divisions', 'key']) {
+      expect(Array.from(result.querySelectorAll(selector), (element) => element.outerHTML)).toEqual(
+        Array.from(original.querySelectorAll(selector), (element) => element.outerHTML),
+      )
+    }
+    expect(result.querySelector('transpose')).toBeNull()
+  })
+
+  it.each(['trumpet-bb', 'alto-sax-eb', 'tenor-sax-bb', 'guitar', 'bass'] as const)(
+    'keeps multi-staff piano conversion to %s guarded',
+    (target) => {
+      expect(() => adaptToInstrument(polyphonicPiano, target, 'piano')).toThrow('unsupportedVoices')
+    },
+  )
+
   it('corrects a note and keeps it in exportable MusicXML', () => {
     const corrected = correctPitch(SAMPLE_SCORE, 0, { step: 'G', alter: 1, octave: 4 })
     expect(inspectScore(corrected)[0].pitch).toEqual({ step: 'G', alter: 1, octave: 4 })

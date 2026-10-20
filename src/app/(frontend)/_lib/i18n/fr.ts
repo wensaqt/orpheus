@@ -381,6 +381,7 @@ export const fr: Messages = {
       octaveDown: 'Octave ↓',
     },
     instruments: {
+      piano: 'Piano',
       guitar: 'Guitare',
       bass: 'Basse électrique',
       concert: 'Hauteur réelle',

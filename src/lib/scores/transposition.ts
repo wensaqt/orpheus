@@ -1,5 +1,13 @@
 import { ScoreError } from './errors'
-import { FIFTH_TONICS, type Instrument, type Interval, type Pitch, type Step, STEPS } from './model'
+import {
+  FIFTH_TONICS,
+  type Instrument,
+  type SourceInstrument,
+  type Interval,
+  type Pitch,
+  type Step,
+  STEPS,
+} from './model'
 import { assertTransposable } from './capabilities'
 import {
   findXmlChild,
@@ -93,7 +101,7 @@ export function transposeKey(xml: string, interval: Interval): string {
 export function adaptToInstrument(
   xml: string,
   target: Instrument,
-  source: Instrument | null = null,
+  source: SourceInstrument | null = null,
 ): string {
   const document = transposableDocument(xml)
   transposeContent(document, instrumentConversionInterval(document, target, source))
