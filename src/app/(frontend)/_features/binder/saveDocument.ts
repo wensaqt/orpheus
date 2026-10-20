@@ -9,7 +9,7 @@ import {
   type PayloadRequest,
 } from 'payload'
 
-import { contentRevision } from '@/lib/contentRevision'
+import { contentRevision, isContentRevision } from '@/lib/contentRevision'
 import type { Id } from '@/lib/ids'
 import { conflicted, done, failed, type ActionResult } from '@front/_lib/actionResult'
 import type { Session } from '@front/_lib/server/auth'
@@ -77,12 +77,13 @@ export async function persistDocumentBody(
   body: Body,
   expectedRevision: string,
 ): Promise<ActionResult<{ updatedAt: string; revision: string }>> {
-  if (typeof expectedRevision !== 'string' || !/^[a-f0-9]{64}$/.test(expectedRevision)) {
+  const revisionLength = typeof expectedRevision === 'string' ? expectedRevision.length : null
+  if (!isContentRevision(expectedRevision)) {
     session.payload.logger.warn({
       msg: 'Document save refused: invalid revision',
       documentId: id,
       revisionType: typeof expectedRevision,
-      revisionLength: typeof expectedRevision === 'string' ? expectedRevision.length : null,
+      revisionLength,
     })
     return failed
   }

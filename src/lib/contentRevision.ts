@@ -1,12 +1,17 @@
+import { isRecord } from './guards'
+
+export function isContentRevision(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/.test(value)
+}
+
 // JSONB does not retain object key order. Versions must compare semantic JSON, not its layout.
 export function canonicalContent(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalContent).join(',')}]`
-  if (value !== null && typeof value === 'object') {
-    const record = value as Record<string, unknown>
-    return `{${Object.keys(record)
+  if (isRecord(value)) {
+    return `{${Object.keys(value)
       .sort()
-      .filter((key) => record[key] !== undefined)
-      .map((key) => `${JSON.stringify(key)}:${canonicalContent(record[key])}`)
+      .filter((key) => value[key] !== undefined)
+      .map((key) => `${JSON.stringify(key)}:${canonicalContent(value[key])}`)
       .join(',')}}`
   }
   return JSON.stringify(value) ?? 'null'
