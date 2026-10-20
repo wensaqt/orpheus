@@ -28,7 +28,7 @@ export function requireXmlValue(parent: Element, name: string): string {
 export function setXmlValue(parent: Element, name: string, text: string): void {
   let element = findXmlChild(parent, name)
   if (!element) {
-    element = parent.ownerDocument.createElement(name)
+    element = parent.ownerDocument.createElementNS(parent.namespaceURI, name)
     parent.appendChild(element)
   }
   element.textContent = text
@@ -38,4 +38,11 @@ export function setXmlValue(parent: Element, name: string, text: string): void {
 export function parseMusicXml(xml: string): Document {
   validateScoreImport(xml)
   return new DOMParser().parseFromString(xml, 'application/xml')
+}
+
+/** OSMD 2.2 recognizes XML strings by their declaration; otherwise it may treat them as URLs. */
+export function serializeMusicXml(document: Document): string {
+  const xml = new XMLSerializer().serializeToString(document)
+  // Native browsers may preserve the declaration, whereas jsdom omits it.
+  return xml.startsWith('<?xml') ? xml : `<?xml version="1.0" encoding="UTF-8"?>\n${xml}`
 }

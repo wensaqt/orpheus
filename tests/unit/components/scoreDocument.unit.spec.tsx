@@ -186,6 +186,16 @@ it('preserves ordered snapshots and saves the current XML after imports and undo
     scoreXml: first,
     expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
   })
+  expect(commands.canRedo).toBe(true)
+  act(() => commands.redo())
+  await flushContent()
+  expect(renderer.xml).toBe(second)
+  expect(saveScore).toHaveBeenLastCalledWith({
+    id: '1',
+    scoreXml: second,
+    expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
+  })
+  act(() => commands.undo())
   act(() => commands.undo())
   expect(renderer.xml).toBe(SAMPLE_SCORE)
   expect(commands.canUndo).toBe(false)
@@ -267,6 +277,107 @@ it('rejects an invalid pitch without a snapshot, then saves and undoes a valid c
     scoreXml: SAMPLE_SCORE,
     expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/),
   })
+})
+
+it('keeps both pitch corrections made before React rerenders', () => {
+  const { result } = renderHook(() =>
+    useScoreDocument({ id: '1', title: 'Study', initialXml: SAMPLE_SCORE }),
+  )
+  act(() => {
+    result.current.panelProps.correction.onEdit(0, { step: 'D', alter: 0, octave: 5 })
+    result.current.panelProps.correction.onEdit(1, { step: 'E', alter: 0, octave: 5 })
+  })
+  const xml = new DOMParser().parseFromString(result.current.rendererProps.xml, 'application/xml')
+  expect(
+    Array.from(xml.querySelectorAll('part > measure > note > pitch > step'))
+      .slice(0, 2)
+      .map((step) => step.textContent),
+  ).toEqual(['D', 'E'])
+  act(() => commands.undo())
+  expect(result.current.rendererProps.xml).toContain('<step>D</step>')
+  act(() => commands.undo())
+  expect(result.current.rendererProps.xml).toBe(SAMPLE_SCORE)
+})
+
+it('adds and deletes measures through the panel, then saves, undoes and redoes the edits', async () => {
+  render(<ScoreDocumentLoader id="1" initial={initial} />)
+  act(() => commands.setPanel('measures'))
+  const selection = screen.getByLabelText('score.selectedMeasure')
+  expect(selection.querySelectorAll('option')).toHaveLength(2)
+  fireEvent.click(screen.getByRole('button', { name: 'score.appendMeasure' }))
+  expect(selection.querySelectorAll('option')).toHaveLength(3)
+  await flushContent()
+  expect(saveScore).toHaveBeenLastCalledWith(expect.objectContaining({ scoreXml: renderer.xml }))
+  const appended = renderer.xml
+  fireEvent.change(selection, { target: { value: '0' } })
+  fireEvent.click(screen.getByRole('button', { name: 'score.deleteMeasure' }))
+  expect(selection.querySelectorAll('option')).toHaveLength(2)
+  const deleted = renderer.xml
+  expect(deleted).not.toBe(appended)
+  act(() => commands.undo())
+  expect(renderer.xml).toBe(appended)
+  act(() => commands.redo())
+  expect(renderer.xml).toBe(deleted)
+  await flushContent()
+  expect(saveScore).toHaveBeenLastCalledWith(expect.objectContaining({ scoreXml: deleted }))
+  fireEvent.click(screen.getByRole('button', { name: 'score.deleteMeasure' }))
+  expect(selection.querySelectorAll('option')).toHaveLength(1)
+  expect(screen.getByRole('button', { name: 'score.deleteMeasure' }).hasAttribute('disabled')).toBe(
+    true,
+  )
+})
+
+it('keeps XML and history intact when measure deletion is unsafe', () => {
+  const xml = SAMPLE_SCORE.replace(
+    '<type>quarter</type>',
+    '<tie type="start"/><type>quarter</type>',
+  )
+  const { result } = renderHook(() =>
+    useScoreDocument({ id: '1', title: 'Study', initialXml: xml }),
+  )
+  act(() => result.current.panelProps.measures.onEdit({ type: 'delete', index: 0 }))
+  expect(result.current.error).toBe('score.errors.unsupportedMeasureStructure')
+  expect(result.current.rendererProps.xml).toBe(xml)
+  expect(commands.canUndo).toBe(false)
+})
+
+it('shares measure selection with correction, context actions and undo', async () => {
+  const { result } = renderHook(() =>
+    useScoreDocument({ id: '1', title: 'Study', initialXml: SAMPLE_SCORE }),
+  )
+  act(() => result.current.rendererProps.onMeasureClick?.(1))
+  expect(result.current.rendererProps.selectedMeasure).toBe(1)
+  expect(result.current.measureActions?.measure.number).toBe('2')
+  act(() => result.current.measureActions?.onCorrect())
+  expect(result.current.panelProps.correction.notes.map((note) => note.index)).toEqual([4, 5, 6])
+  expect(result.current.panelProps.correction.showAll).toBe(true)
+  act(() => result.current.panelProps.measures.onEdit({ type: 'duplicate', index: 1 }))
+  expect(result.current.rendererProps.selectedMeasure).toBe(2)
+  expect(result.current.rendererProps.xml.match(/<pitch>/g)).toHaveLength(10)
+  await flushContent()
+  expect(saveScore).toHaveBeenLastCalledWith(
+    expect.objectContaining({ scoreXml: result.current.rendererProps.xml }),
+  )
+  act(() => commands.undo())
+  expect(result.current.rendererProps.xml).toBe(SAMPLE_SCORE)
+  expect(result.current.rendererProps.selectedMeasure).toBeNull()
+  act(() => commands.redo())
+  expect(result.current.rendererProps.xml.match(/<pitch>/g)).toHaveLength(10)
+  expect(result.current.rendererProps.selectedMeasure).toBeNull()
+})
+
+it('handles undo and redo shortcuts outside editable fields', async () => {
+  render(<ScoreDocumentLoader id="1" initial={initial} />)
+  const changed = SAMPLE_SCORE.replace('Piano', 'Violin')
+  await importXml(changed)
+  const score = screen.getByText('Pick note')
+  fireEvent.keyDown(score, { key: 'z', ctrlKey: true })
+  expect(renderer.xml).toBe(SAMPLE_SCORE)
+  fireEvent.keyDown(score, { key: 'Z', ctrlKey: true, shiftKey: true })
+  expect(renderer.xml).toBe(changed)
+  act(() => commands.setPanel('correct'))
+  fireEvent.keyDown(screen.getAllByRole('combobox')[0], { key: 'z', ctrlKey: true })
+  expect(renderer.xml).toBe(changed)
 })
 
 it('reopens the saved score instead of its stale server snapshot', async () => {

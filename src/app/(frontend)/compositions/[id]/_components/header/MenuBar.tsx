@@ -4,7 +4,7 @@ import { useCallback, useRef } from 'react'
 
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { Menu } from '@front/_components/ui/Menu/Menu'
-import type { MenuItem, MenuHandle } from '@front/_components/ui/Menu/types'
+import type { MenuHandle } from '@front/_components/ui/Menu/types'
 import type { PopoverHandle } from '@front/_components/ui/Popover/Popover'
 import { ROVING_PROPS, useRovingFocus } from '@front/_components/ui/rovingFocus'
 
@@ -13,21 +13,8 @@ import { useFocusReturn, useOpenEditor } from '../editorFocus'
 import styles from './MenuBar.module.css'
 import { PageSetup } from './PageSetup'
 import { useToolbarActions } from './toolbarActions'
-import { menuBarMenus, type MenuDefinition } from './menuBarMenus'
+import { menuBarMenus, compactMenuBarMenus } from './menuBarMenus'
 import type { ToolbarState } from './useToolbarState'
-
-// A single touch menu reuses the existing commands without unavailable placeholders.
-function compactMenus(definitions: MenuDefinition[], t: ReturnType<typeof useT>): MenuDefinition[] {
-  const items = definitions.map(({ label, items }) => ({
-    group: t(label),
-    items: items.flatMap<MenuItem>((entry) => {
-      if (entry === 'separator') return []
-      if ('group' in entry) return entry.items
-      return entry.hint === t('common.soon') ? [] : [entry]
-    }),
-  }))
-  return [{ label: 'editor.actionsMenu', items }]
-}
 
 /*
  * The editor's menu bar, under the titles, as in a word processor: the page setup and
@@ -49,9 +36,10 @@ export function MenuBar({ state }: { state: ToolbarState }) {
   const pageSetup = useRef<PopoverHandle>(null)
 
   const onPageSetup = useCallback(() => pageSetup.current?.open(), [])
+  const buildMenus = view.continuous ? compactMenuBarMenus : menuBarMenus
   // The builder stores this callback for a menu click; it never calls it during render.
   // eslint-disable-next-line react-hooks/refs
-  const allMenus = menuBarMenus({
+  const definitions = buildMenus({
     t,
     state,
     actions,
@@ -59,7 +47,6 @@ export function MenuBar({ state }: { state: ToolbarState }) {
     onPageSetup,
     view,
   })
-  const definitions = view.continuous ? compactMenus(allMenus, t) : allMenus
 
   // The menu at this index, opened with the focus on its first item
   const openMenu = (index: number) => {
