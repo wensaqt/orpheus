@@ -1,0 +1,47 @@
+.renderer :global([data-score-measure]) {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 1.5;
+  pointer-events: all;
+  cursor: pointer;
+  transition:
+    fill var(--duration),
+    stroke var(--duration);
+}
+.renderer :global([data-score-measure]):hover {
+  fill: var(--color-surface-accent);
+  fill-opacity: 0.35;
+}
+.renderer :global([data-score-measure][aria-pressed='true']) {
+  fill: var(--color-surface-accent);
+  fill-opacity: 0.65;
+  stroke: var(--color-primary);
+}
+.renderer :global([data-score-measure]):focus-visible {
+  outline: none;
+  stroke: var(--color-primary);
+  stroke-width: 3;
+}
+.renderer[data-selectable='true'] :global(.vf-notehead):hover path {
+  fill: var(--color-primary);
+  stroke: var(--color-primary);
+}
+@media print {
+  .measureActions {
+    display: none;
+  }
+  .renderer :global([data-score-measure]) {
+    display: none;
+  }
+}
+.frame {
+  position: relative;
+  min-width: 0;
+}
+.measureActions {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 1;
+  width: fit-content;
+  max-width: 100%;
+}

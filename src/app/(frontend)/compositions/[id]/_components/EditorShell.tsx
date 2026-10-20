@@ -207,7 +207,8 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
       ref={desk}
       className={styles.desk}
       data-continuous={continuous}
-      data-sidebar={continuous && view.sidebarAvailable}
+      data-compact={view.continuous}
+      data-sidebar={view.continuous && view.sidebarAvailable}
       data-book={!scoreOpen && view.bookView}
       data-score={scoreOpen}
       data-mobile-navigation={binderDrawer}
@@ -292,6 +293,8 @@ function HistoryScreen({
   return (
     <div
       data-editor-screen=""
+      data-compact={view.continuous}
+      data-score={scoreOpen}
       data-continuous={view.continuous && !scoreOpen}
       className={classNames(styles.screen, fontClassName)}
       onKeyDownCapture={scoreOpen ? undefined : (event) => historyShortcut(history, event)}

@@ -7,9 +7,48 @@ import { MENU_SEPARATOR } from '@front/_components/ui/Menu/constants'
 import type { MenuHandle } from '@front/_components/ui/Menu/types'
 import { useT } from '@front/_components/i18n/I18nProvider'
 import { ROVING_PROPS, useRovingFocus } from '@front/_components/ui/rovingFocus'
+import { IconButton } from '@front/_components/ui/IconButton/IconButton'
 
 import styles from '../header/MenuBar.module.css'
+import toolbarStyles from '../header/StyleToolbar.module.css'
+import { ToolbarIcon } from '../header/toolbarIcons'
 import { useScoreCommands } from './ScoreCommands'
+
+export function ScoreHistoryToolbar() {
+  const t = useT()
+  const commands = useScoreCommands()
+  const toolbar = useRef<HTMLDivElement>(null)
+  const roving = useRovingFocus(toolbar)
+  return (
+    <div
+      ref={toolbar}
+      role="toolbar"
+      aria-label={t('editor.toolbar')}
+      className={toolbarStyles.toolbar}
+      onFocus={roving.onFocus}
+      onKeyDown={roving.onKeyDown}
+    >
+      <IconButton
+        {...ROVING_PROPS}
+        label={t('editor.actions.undo')}
+        icon={<ToolbarIcon name="undo" />}
+        aria-disabled={!commands?.canUndo || undefined}
+        onClick={() => {
+          if (commands?.canUndo) commands.undo()
+        }}
+      />
+      <IconButton
+        {...ROVING_PROPS}
+        label={t('editor.actions.redo')}
+        icon={<ToolbarIcon name="redo" />}
+        aria-disabled={!commands?.canRedo || undefined}
+        onClick={() => {
+          if (commands?.canRedo) commands.redo()
+        }}
+      />
+    </div>
+  )
+}
 
 export function ScoreMenuBar() {
   const t = useT()
@@ -73,6 +112,11 @@ export function ScoreMenuBar() {
             disabled: !commands?.canRedo,
           },
           MENU_SEPARATOR,
+          {
+            label: t('score.manageMeasures'),
+            onSelect: () => commands?.setPanel('measures'),
+            disabled: !commands,
+          },
           {
             label: t('score.correctPitch'),
             onSelect: () => commands?.setPanel('correct'),

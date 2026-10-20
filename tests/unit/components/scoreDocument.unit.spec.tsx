@@ -299,6 +299,73 @@ it('keeps both pitch corrections made before React rerenders', () => {
   expect(result.current.rendererProps.xml).toBe(SAMPLE_SCORE)
 })
 
+it('adds and deletes measures through the panel, then saves, undoes and redoes the edits', async () => {
+  render(<ScoreDocumentLoader id="1" initial={initial} />)
+  act(() => commands.setPanel('measures'))
+  const selection = screen.getByLabelText('score.selectedMeasure')
+  expect(selection.querySelectorAll('option')).toHaveLength(2)
+  fireEvent.click(screen.getByRole('button', { name: 'score.appendMeasure' }))
+  expect(selection.querySelectorAll('option')).toHaveLength(3)
+  await flushContent()
+  expect(saveScore).toHaveBeenLastCalledWith(expect.objectContaining({ scoreXml: renderer.xml }))
+  const appended = renderer.xml
+  fireEvent.change(selection, { target: { value: '0' } })
+  fireEvent.click(screen.getByRole('button', { name: 'score.deleteMeasure' }))
+  expect(selection.querySelectorAll('option')).toHaveLength(2)
+  const deleted = renderer.xml
+  expect(deleted).not.toBe(appended)
+  act(() => commands.undo())
+  expect(renderer.xml).toBe(appended)
+  act(() => commands.redo())
+  expect(renderer.xml).toBe(deleted)
+  await flushContent()
+  expect(saveScore).toHaveBeenLastCalledWith(expect.objectContaining({ scoreXml: deleted }))
+  fireEvent.click(screen.getByRole('button', { name: 'score.deleteMeasure' }))
+  expect(selection.querySelectorAll('option')).toHaveLength(1)
+  expect(screen.getByRole('button', { name: 'score.deleteMeasure' }).hasAttribute('disabled')).toBe(
+    true,
+  )
+})
+
+it('keeps XML and history intact when measure deletion is unsafe', () => {
+  const xml = SAMPLE_SCORE.replace(
+    '<type>quarter</type>',
+    '<tie type="start"/><type>quarter</type>',
+  )
+  const { result } = renderHook(() =>
+    useScoreDocument({ id: '1', title: 'Study', initialXml: xml }),
+  )
+  act(() => result.current.panelProps.measures.onEdit({ type: 'delete', index: 0 }))
+  expect(result.current.error).toBe('score.errors.unsupportedMeasureStructure')
+  expect(result.current.rendererProps.xml).toBe(xml)
+  expect(commands.canUndo).toBe(false)
+})
+
+it('shares measure selection with correction, context actions and undo', async () => {
+  const { result } = renderHook(() =>
+    useScoreDocument({ id: '1', title: 'Study', initialXml: SAMPLE_SCORE }),
+  )
+  act(() => result.current.rendererProps.onMeasureClick?.(1))
+  expect(result.current.rendererProps.selectedMeasure).toBe(1)
+  expect(result.current.measureActions?.measure.number).toBe('2')
+  act(() => result.current.measureActions?.onCorrect())
+  expect(result.current.panelProps.correction.notes.map((note) => note.index)).toEqual([4, 5, 6])
+  expect(result.current.panelProps.correction.showAll).toBe(true)
+  act(() => result.current.panelProps.measures.onEdit({ type: 'duplicate', index: 1 }))
+  expect(result.current.rendererProps.selectedMeasure).toBe(2)
+  expect(result.current.rendererProps.xml.match(/<pitch>/g)).toHaveLength(10)
+  await flushContent()
+  expect(saveScore).toHaveBeenLastCalledWith(
+    expect.objectContaining({ scoreXml: result.current.rendererProps.xml }),
+  )
+  act(() => commands.undo())
+  expect(result.current.rendererProps.xml).toBe(SAMPLE_SCORE)
+  expect(result.current.rendererProps.selectedMeasure).toBeNull()
+  act(() => commands.redo())
+  expect(result.current.rendererProps.xml.match(/<pitch>/g)).toHaveLength(10)
+  expect(result.current.rendererProps.selectedMeasure).toBeNull()
+})
+
 it('handles undo and redo shortcuts outside editable fields', async () => {
   render(<ScoreDocumentLoader id="1" initial={initial} />)
   const changed = SAMPLE_SCORE.replace('Piano', 'Violin')

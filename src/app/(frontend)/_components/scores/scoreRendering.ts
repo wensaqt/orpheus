@@ -1,4 +1,9 @@
-export const DISPLAY_OPTIONS = { backend: 'svg' as const, autoResize: false, drawTitle: false }
+export const DISPLAY_OPTIONS = {
+  backend: 'svg' as const,
+  autoResize: false,
+  drawTitle: false,
+  autoGenerateMultipleRestMeasuresFromRestMeasures: false,
+}
 export type ScoreRenderState = { xml: string; status: 'loading' | 'ready' | 'error' }
 
 /** Load browser notation code on demand; obsolete jobs must never draw over newer XML. */

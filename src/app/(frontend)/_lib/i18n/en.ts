@@ -375,12 +375,33 @@ export const en = {
       octaveDown: 'Octave ↓',
     },
     instruments: {
+      guitar: 'Guitar',
+      bass: 'Bass guitar',
       concert: 'Concert pitch',
       'trumpet-bb': 'B♭ trumpet',
       'alto-sax-eb': 'E♭ alto saxophone',
       'tenor-sax-bb': 'B♭ tenor saxophone',
     },
+    measureActions: 'Measure actions',
+    editMeasureNotes: 'Correct notes',
+    insertMeasureAfter: 'Add after',
+    duplicateMeasure: 'Duplicate',
+    deselectMeasure: 'Deselect measure',
+    manageMeasures: 'Measures…',
+    measuresHint:
+      'Add an empty measure at the end, or remove a measure across all instrumental parts.',
+    appendMeasure: 'Add a measure at the end',
+    selectedMeasure: 'Measure to remove',
+    measureNumber: 'Measure {number}',
+    deleteMeasure: 'Delete this measure',
+    deleteMeasureHint:
+      'The notes in this measure will be removed. You can undo this action. The score must keep at least one measure.',
     errors: {
+      measureMissing: 'Measure not found.',
+      lastMeasure: 'Keep at least one measure in the score.',
+      unsupportedMeasureStructure:
+        'This measure operation cannot safely preserve this score’s structure (rhythm, staves, ties or repeats). No changes were made.',
+      measureEditFailed: 'Could not modify the measures.',
       invalidXml: 'The MusicXML file is invalid.',
       fileTooLarge: 'The file exceeds {size} MB.',
       invalidRoot: 'The file must be valid score-partwise MusicXML.',

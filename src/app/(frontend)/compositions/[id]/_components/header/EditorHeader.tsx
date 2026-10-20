@@ -22,7 +22,7 @@ import styles from './EditorHeader.module.css'
 import { MenuBar } from './MenuBar'
 import { StyleToolbar } from './StyleToolbar'
 import { useToolbarState } from './useToolbarState'
-import { ScoreMenuBar } from '../score/ScoreMenuBar'
+import { ScoreMenuBar, ScoreHistoryToolbar } from '../score/ScoreMenuBar'
 
 type EditorHeaderProps = {
   title: string
@@ -58,6 +58,7 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
       className={styles.header}
       data-editor-header=""
       data-score={scoreOpen}
+      data-compact={view.continuous}
       data-continuous={view.continuous && !scoreOpen}
     >
       <div className={styles.titles} data-editor-titles="">
@@ -84,6 +85,7 @@ export function EditorHeader({ title, documentTitleRef }: EditorHeaderProps) {
         ) : null}
       </div>
       {scoreOpen ? <ScoreMenuBar /> : <MenuBar state={toolbarState} />}
+      {scoreOpen && view.continuous && <ScoreHistoryToolbar />}
       {!scoreOpen && <StyleToolbar state={toolbarState} />}
     </header>
   )

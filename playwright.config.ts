@@ -55,13 +55,13 @@ export default defineConfig({
     {
       name: 'firefox',
       testMatch:
-        /(pagination|pageSettings|toolbar|editorHistory|login|editorReliability|documentCache|responsiveEditor)\.e2e\.spec\.ts/,
+        /(pagination|pageSettings|toolbar|editorHistory|login|editorReliability|documentCache|responsiveEditor|scoreResponsive)\.e2e\.spec\.ts/,
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
       testMatch:
-        /(pagination|pageSettings|toolbar|editorHistory|login|editorReliability|documentCache|responsiveEditor)\.e2e\.spec\.ts/,
+        /(pagination|pageSettings|toolbar|editorHistory|login|editorReliability|documentCache|responsiveEditor|scoreResponsive)\.e2e\.spec\.ts/,
       use: { ...devices['Desktop Safari'] },
     },
   ],

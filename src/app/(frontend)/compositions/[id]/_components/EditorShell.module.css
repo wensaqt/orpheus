@@ -120,7 +120,8 @@
  */
 @media screen and (max-width: 78rem) {
   .desk,
-  .desk[data-book='true'] {
+  .desk[data-book='true'],
+  .desk[data-score='true'] {
     /* The fixed-width sheet may overflow the viewport, but must not widen the page itself */
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
@@ -158,8 +159,8 @@
    */
 }
 
-/* Local touch sizes leave the score editor and the rest of the application unchanged. */
-.screen[data-continuous='true'] {
+/* Text and score editors share touch targets without sharing their document layout. */
+.screen[data-compact='true'] {
   --control-size: 2.75rem;
   --menubar-height: var(--control-size);
   --toolbar-height: calc(var(--control-size) + 2 * var(--space-1));
@@ -167,59 +168,59 @@
     3.75rem + var(--control-size) + var(--space-1) + var(--toolbar-height) + var(--space-2) + 1px
   );
   --writing-padding: var(--space-3);
-  --writing-max-width: 48rem;
+  --editor-content-max-width: 48rem;
 }
 
 @media screen {
-  .desk[data-continuous='true'] {
+  .desk[data-compact='true'] {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
     padding: 0 0 max(var(--space-6), env(safe-area-inset-bottom));
   }
 
-  .desk[data-continuous='true'] .column {
+  .desk[data-compact='true'] .column {
     grid-column: 1;
-    width: min(100%, var(--writing-max-width));
+    width: min(100%, var(--editor-content-max-width));
     justify-self: center;
   }
 
-  .desk[data-continuous='true'] .binder {
+  .desk[data-compact='true'] .binder {
     position: fixed;
     top: 0.5rem;
     left: 3.75rem;
     z-index: var(--layer-corner);
   }
 
-  .desk[data-continuous='true'] .aside {
+  .desk[data-compact='true'] .aside {
     position: fixed;
     right: var(--space-3);
     bottom: max(var(--space-3), env(safe-area-inset-bottom));
     z-index: var(--layer-drawer);
   }
 
-  .desk[data-continuous='true'] .show {
+  .desk[data-compact='true'] .show {
     position: static;
     background: var(--color-surface-raised);
     box-shadow: var(--shadow-sheet);
   }
 
-  .desk[data-continuous='true'][data-sidebar='true'] {
+  .desk[data-compact='true'][data-sidebar='true'] {
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--space-4);
     padding-inline: var(--space-4);
   }
 
-  .desk[data-continuous='true'][data-sidebar='true'] .column {
+  .desk[data-compact='true'][data-sidebar='true'] .column {
     grid-column: 2;
   }
 
-  .desk[data-continuous='true'][data-sidebar='true'] .binder {
+  .desk[data-compact='true'][data-sidebar='true'] .binder {
     position: static;
     grid-column: 1;
     padding-block-start: var(--space-4);
   }
 
-  .desk[data-continuous='true'][data-sidebar='true'] .binder nav {
+  .desk[data-compact='true'][data-sidebar='true'] .binder nav {
     position: sticky;
     width: var(--binder-width);
     max-height: calc(100dvh - var(--editor-header-height) - var(--space-5));
@@ -254,7 +255,7 @@
 }
 
 @media (min-width: 701px) {
-  .screen[data-continuous='true'] {
+  .screen[data-compact='true'] {
     --writing-padding: var(--space-5);
   }
 }
@@ -270,7 +271,11 @@
 }
 
 .screen[data-continuous='true'][data-compact-writing]:not(
-  :has([data-editor-titles]:focus-within, [data-editor-titles] [role='alert'])
-) {
+    :has([data-editor-titles]:focus-within, [data-editor-titles] [role='alert'])
+  ) {
   --editor-header-height: calc(3.75rem + var(--toolbar-height) + var(--space-2) + 1px);
+}
+
+.screen[data-compact='true'][data-score='true'] {
+  --editor-content-max-width: 60rem;
 }
