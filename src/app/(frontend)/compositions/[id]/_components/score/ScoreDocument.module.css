@@ -58,6 +58,22 @@
   font-size: var(--text-sm);
   font-style: italic;
 }
+.measureActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sheet);
+  font-size: var(--text-sm);
+}
+.measureActions strong {
+  padding-inline: var(--space-2);
+}
 .notes {
   display: grid;
   gap: var(--space-1);
@@ -170,6 +186,27 @@
   .modes {
     grid-template-columns: 1fr;
   }
+}
+@media screen and (max-width: 63.999rem) {
+  .panel {
+    top: auto;
+    bottom: calc(var(--mobile-document-bar-height, 0px) + var(--space-2));
+    max-height: min(45dvh, calc(100dvh - var(--editor-header-height) - var(--space-4)));
+  }
+}
+
+[data-compact='true'] .sheet {
+  min-height: 0;
+  box-shadow: none;
+}
+
+[data-compact='true'] .workspace {
+  gap: var(--space-2);
+}
+
+[data-compact='true'] .panel :is(input, select) {
+  font-size: var(--text-base);
+  min-height: var(--control-size);
 }
 @media screen and (max-width: 24rem) {
   .note {

@@ -44,6 +44,37 @@ it('consumes consecutive undo commands before React renders', () => {
   expect(result.current.xml).toBe('original')
 })
 
+it('redoes consecutive changes and clears redo after a new edit', () => {
+  const { result } = renderHook(() => useScoreXml('original'))
+  act(() => {
+    result.current.commitXml('first')
+    result.current.commitXml('second')
+    result.current.restorePreviousXml()
+    result.current.restorePreviousXml()
+  })
+  expect(result.current.canRedo).toBe(true)
+  act(() => {
+    expect(result.current.restoreNextXml()).toBe(true)
+    expect(result.current.restoreNextXml()).toBe(true)
+    expect(result.current.xmlRef.current).toBe('second')
+    expect(result.current.restoreNextXml()).toBe(false)
+    result.current.restorePreviousXml()
+    result.current.commitXml('different')
+  })
+  expect(result.current.canRedo).toBe(false)
+  expect(result.current.xml).toBe('different')
+})
+
+it('advances generation even when undo returns to the same XML', () => {
+  const { result } = renderHook(() => useScoreXml('original'))
+  act(() => {
+    result.current.commitXml('changed')
+    result.current.restorePreviousXml()
+  })
+  expect(result.current.generation.current).toBe(2)
+  expect(result.current.xml).toBe('original')
+})
+
 it('does not add unchanged XML to the history', () => {
   const { result } = renderHook(() => useScoreXml('original'))
   act(() => result.current.commitXml('original'))

@@ -62,7 +62,7 @@
 }
 
 @media screen {
-  .header[data-continuous='true'] {
+  .header[data-compact='true'] {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: center;
@@ -72,33 +72,33 @@
     gap: var(--space-1);
   }
 
-  .header[data-continuous='true'] .titles {
+  .header[data-compact='true'] .titles {
     grid-column: 1 / -1;
     min-height: var(--control-size);
   }
 
-  .header[data-continuous='true'] :is(.compositionTitle, .documentTitle) {
+  .header[data-compact='true'] :is(.compositionTitle, .documentTitle) {
     flex: 1;
     min-width: 0;
     max-width: 100%;
   }
 
-  .header[data-continuous='true'] .documentTitle input {
+  .header[data-compact='true'] .documentTitle input {
     width: 100%;
     min-width: 0;
     max-width: 100%;
   }
 
-  .header[data-continuous='true'] input {
+  .header[data-compact='true'] input {
     font-size: var(--text-base);
     min-height: var(--control-size);
   }
 
-  .header[data-continuous='true'] .saveError {
+  .header[data-compact='true'] .saveError {
     flex-basis: 100%;
   }
 
-  .header[data-continuous='true'] .titles:has(.saveError) {
+  .header[data-compact='true'] .titles:has(.saveError) {
     flex-wrap: wrap;
   }
 }
@@ -106,7 +106,7 @@
 @media screen {
   /* Keep more writing space when a tablet's keyboard reduces the visible height. */
   [data-compact-writing]
-    .header[data-continuous='true']
+    .header[data-compact='true']
     .titles:not(:focus-within):not(:has(.saveError)),
   .header[data-mobile-navigation='true'] .titles:not(:has(.saveError)) {
     display: none;
