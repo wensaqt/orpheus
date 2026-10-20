@@ -1,7 +1,7 @@
 'use client'
 
 import type { LexicalEditor } from 'lexical'
-import { type KeyboardEvent, type ReactNode, useEffect, useRef, useState } from 'react'
+import { type KeyboardEvent, type ReactNode, type Ref, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
 import type { Layout } from '@/lib/layout'
@@ -130,7 +130,6 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   const [binderFolded, setBinderFolded] = useState(binderHidden)
   const [binderOver, setBinderOver] = useState(false)
   const view = useEditorView()
-  const editor = useOpenEditor()
   const { entries, activeDocumentId } = useBinder()
   const scoreOpen = entries.some(
     (entry) => entry.id === activeDocumentId && entry.documentType === 'score',
@@ -148,7 +147,6 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   const panelProbe = useRef<HTMLDivElement>(null)
   const column = useRef<HTMLDivElement>(null)
   const surface = useRef<HTMLDivElement>(null)
-  const showSynonyms = useRef<HTMLButtonElement>(null)
   const binderTrigger = useRef<HTMLButtonElement>(null)
   const pageWidth = toGeometry(layout.page).width
   useSideRoom(desk, binderCell, panelProbe, view.bookView ? pageWidth * 2 : pageWidth, view.setRoom)
@@ -177,13 +175,6 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
     setBinderFolded(next)
     setPreferenceCookie(BINDER_HIDDEN_COOKIE, next)
   }
-  // Back to the button that opened them, shown at once to take the focus
-  const hideSynonyms = () => {
-    flushSync(view.hideSynonyms)
-    if (continuous) editor?.focus()
-    else showSynonyms.current?.focus()
-  }
-  const over = view.synonymsOver
 
   const showBinder = () => {
     if (binderDrawer) {
@@ -198,10 +189,6 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
   const openSynonyms = () => {
     setBinderOver(false)
     view.showSynonyms()
-  }
-
-  function handleSynonymsKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (over && event.key === 'Escape') hideSynonyms()
   }
 
   return (
@@ -246,37 +233,67 @@ function Desk({ binderHidden, children }: Pick<EditorShellProps, 'binderHidden' 
         </div>
       </div>
       {!scoreOpen && (
-        <div className={styles.aside}>
-          {/* As wide as the open panel: whether it fits is measured with it */}
-          <div ref={panelProbe} className={styles.panelProbe} aria-hidden="true" />
-          {!view.synonymsVisible ? (
-            continuous ? null : (
-              <IconButton
-                ref={showSynonyms}
-                label={t('synonyms.show')}
-                tooltipAlign="end"
-                icon={<SynonymsIcon />}
-                className={styles.show}
-                onClick={openSynonyms}
-              />
-            )
-          ) : continuous ? (
-            <Dialog
-              open={view.synonymsVisible}
-              onClose={hideSynonyms}
-              labelledBy="editor-synonyms-title"
-              className={styles.drawer}
-            >
-              <span id="editor-synonyms-title" className="visually-hidden">
-                {t('synonyms.title')}
-              </span>
-              <SynonymsPanel onHide={hideSynonyms} />
-            </Dialog>
-          ) : (
-            <div className={styles.synonyms} data-over={over} onKeyDown={handleSynonymsKeyDown}>
-              <SynonymsPanel onHide={hideSynonyms} />
-            </div>
-          )}
+        <SynonymsAside panelProbe={panelProbe} continuous={continuous} onOpen={openSynonyms} />
+      )}
+    </div>
+  )
+}
+
+function SynonymsAside({
+  panelProbe,
+  continuous,
+  onOpen,
+}: {
+  panelProbe: Ref<HTMLDivElement>
+  continuous: boolean
+  onOpen: () => void
+}) {
+  const t = useT()
+  const view = useEditorView()
+  const editor = useOpenEditor()
+  const showSynonyms = useRef<HTMLButtonElement>(null)
+  // Back to the button that opened them, shown at once to take the focus
+  const hideSynonyms = () => {
+    flushSync(view.hideSynonyms)
+    if (continuous) editor?.focus()
+    else showSynonyms.current?.focus()
+  }
+  const over = view.synonymsOver
+
+  function handleSynonymsKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (over && event.key === 'Escape') hideSynonyms()
+  }
+
+  return (
+    <div className={styles.aside}>
+      {/* As wide as the open panel: whether it fits is measured with it */}
+      <div ref={panelProbe} className={styles.panelProbe} aria-hidden="true" />
+      {!view.synonymsVisible ? (
+        continuous ? null : (
+          <IconButton
+            ref={showSynonyms}
+            label={t('synonyms.show')}
+            tooltipAlign="end"
+            icon={<SynonymsIcon />}
+            className={styles.show}
+            onClick={onOpen}
+          />
+        )
+      ) : continuous ? (
+        <Dialog
+          open={view.synonymsVisible}
+          onClose={hideSynonyms}
+          labelledBy="editor-synonyms-title"
+          className={styles.drawer}
+        >
+          <span id="editor-synonyms-title" className="visually-hidden">
+            {t('synonyms.title')}
+          </span>
+          <SynonymsPanel onHide={hideSynonyms} />
+        </Dialog>
+      ) : (
+        <div className={styles.synonyms} data-over={over} onKeyDown={handleSynonymsKeyDown}>
+          <SynonymsPanel onHide={hideSynonyms} />
         </div>
       )}
     </div>
