@@ -1,12 +1,14 @@
 // Used inside client boundaries; callback props never cross the server boundary.
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
 
-export type ScorePanel = 'correct' | 'transpose' | null
+export type ScorePanel = 'correct' | 'transpose' | 'measures' | null
 export type ScoreCommands = {
   openImport: () => void
   setPanel: (panel: ScorePanel) => void
   undo: () => void
   canUndo: boolean
+  redo: () => void
+  canRedo: boolean
   download: () => void
   print: () => void
 }

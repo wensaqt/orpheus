@@ -53,7 +53,7 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium firefox webkit
       - name: Browser regression checks
-        run: pnpm test:e2e tests/e2e/responsiveEditor.e2e.spec.ts tests/e2e/home.e2e.spec.ts tests/e2e/login.e2e.spec.ts tests/e2e/signup.e2e.spec.ts tests/e2e/admin.e2e.spec.ts tests/e2e/binder.e2e.spec.ts tests/e2e/scoreDocument.e2e.spec.ts --project chromium
+        run: pnpm test:e2e tests/e2e/scoreResponsive.e2e.spec.ts tests/e2e/responsiveEditor.e2e.spec.ts tests/e2e/home.e2e.spec.ts tests/e2e/login.e2e.spec.ts tests/e2e/signup.e2e.spec.ts tests/e2e/admin.e2e.spec.ts tests/e2e/binder.e2e.spec.ts tests/e2e/scoreDocument.e2e.spec.ts --project chromium
       - name: Production editor regression checks across browser engines
         env:
           PLAYWRIGHT_SERVER_MODE: production

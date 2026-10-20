@@ -32,6 +32,7 @@ Ces consignes s'appliquent à tout le repository. Privilégier du code dont les 
 
 ## Périmètre et validation
 
+- Rédiger les titres et descriptions des pull requests toujours en anglais.
 - Séparer les refactors des changements fonctionnels. Un nettoyage conserve le comportement ; signaler explicitement toute exception nécessaire.
 - Rester dans le périmètre demandé. Éviter les réécritures ou corrections sans rapport avec la tâche.
 - Tester les comportements et les régressions plausibles, plutôt que reproduire l'implémentation dans les tests. Protéger particulièrement la persistance, l'undo et la concurrence asynchrone.
